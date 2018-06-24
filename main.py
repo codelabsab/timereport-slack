@@ -38,116 +38,247 @@ app.config['MYSQL_DB'] = MYSQL_DB_NAME
 mysql = MySQL()
 mysql.init_app(app)
 
+# Helper for validating a date string
 def validate(vacation_date):
     try:
         datetime.datetime.strptime(vacation_date, '%Y-%m-%d')
     except ValueError:
         raise ValueError("Incorrect date format, should be YYYY-MM-DD")
 
+# Helper for verifying that requests came from Slack
+def verify_slack_token(request_token):
+    if SLACK_VERIFICATION_TOKEN != request_token:
+        print("Error: invalid verification token!")
+        print("Received {} but was expecting {}".format(request_token, SLACK_VERIFICATION_TOKEN))
+        return make_response("Request contains invalid Slack verification token", 403)
 
-@app.route("/slack/message_options", methods=['POST'])
-def messoage_options():
+# The endpoint Slack will send the user's menu selection to (Request URL)
+@app.route("/slack/message_actions", methods=["POST"])
+def message_actions():
+
+    # Save submissions to hash
     # Parse the request payload
     form_json = json.loads(request.form["payload"])
-    if request.form.get('token') == SLACK_VERIFICATION_TOKEN:
-    # Dictionary of menu options which will be sent as JSON
-        print(form_json)
-        return Response(json.dumps(form_json), mimetype='application/json')
+    
+    # Verify that the request came from Slack
+    verify_slack_token(form_json["token"])
 
-@app.route("/", methods=['POST'])
-def parse_request():
+    # Set the values from the response and update the message accordingly
+    message_type = form_json["type"]
+    response_url = form_json["response_url"]
+    user_id = form_json["user"]["id"]
+    user_name = form_json["user"]["name"]
+    channel_id = form_json["channel"]["id"]
+    channel_name = form_json["channel"]["name"]
 
-    # Check to see if your team's token is the same, if not ignore the request
-    if request.form.get('token') == SLACK_VERIFICATION_TOKEN:
-        # save slack form responses
-        channel = request.form.get('channel_name')
-        username = request.form.get('user_name')
-        text = request.form.get('text')
-        command = request.form.get('command')
-        response_url = request.form.get('response_url')
-        trigger_id = request.form.get('trigger_id')
+    if message_type == "dialog_submission":
+        # save values from payload of dialog_submission type
+        submission_deviation = form_json["submission"]["Deviation"]
+        submission_month = form_json["submission"]["Month"]
+        submission_day = form_json["submission"]["Day"]
+        submission_hours = form_json["submission"]["Hours"]
+        action_ts = form_json["action_ts"]
+        if not re.match("^([1-8])$", submission_hours):
+             error_payload = {
+	         "errors": [
+		    {
+		     "name": "Hours",
+		     "error": "Only digits between 1-8 allowed"
+		    }
+	         ]    
+             }
+             return jsonify(error_payload)
 
-        # available options
-        deviation_type = ["vab", "semester", "betald_sjukdag", "obetald_sjukdag", "ledigt", "semester", "foraldrar_ledigt" ]
-
-        # split input into
-        text_list = text.split(' ')
-        if len(text_list) != 3:
-            return "wrong number of args"
-
-        vacation_type = text_list[0]
-        vacation_date = text_list[1]
-        vacation_hours = text_list[2]
-        # validate input
-        rex_vt = "^(%s)$" %('|'.join(deviation_type))
-        rex_hours = "^[0-9]$"
-        if not re.match(rex_vt, vacation_type):
-            return "Wrong deviation type: [%s]\nChoose on of: %s" %(vacation_type, deviation_type) 
-        elif vacation_date:
-             try:
-                 validate(vacation_date)
-             except ValueError:
-                 return "Not a valid date format: [%s]\nUse yyyy-mm-dd" %(vacation_date)
-        elif not re.match(rex_hours, vacation_hours):
-            return "Wrong hour: [%s]\nChoose single digit of [0-9]" %(vacation_hours)
-
-        # create mysql connection
-        #conn = mysql.connect()
-        #cursor = conn.cursor()
-
-        # create payload
-        payload = {
-        "text": "Timereport",
-        "attachments": [
-        {
-
-            "text": "User %s\nType: %s\nDate: %s\nHours: %s" %(username, vacation_type, vacation_date, vacation_hours),
-            "fallback": "Cant submit",
-            "callback_id": "vacation",
-            "color": "good",
-            "attachment_type": "default",
-            "actions": [
+        elif not re.match("^(3[01]|[12][0-9]|[1-9])$", submission_day):
+             # todo validation of days
+             error_payload = {
+	         "errors": [
+                    {
+		    "name": "Day",
+		    "error": "This is not a valid day. Only between 1-31 allowed"
+		    }
+	         ]    
+             }
+             return jsonify(error_payload)
+        else:
+            # update user on progress 
+            slack_client.api_call(
+              "chat.postEphemeral",
+              channel=channel_id,
+              text="Submitting to db!...",
+              user=user_id,
+              attachments=[
+            {
+            "color": "#3A6DE1",
+            "pretext": "Submitting to db...",
+            "author_name": "User: {}".format(user_name),
+            "fields": [
                 {
-                    "name": "yes",
-                    "text": "yes",
-                    "type": "button",
-                    "value": "yes"
+                    "title": "Type",
+                    "value": submission_deviation
+
+                },
+		{
+                    "title": "Month",
+                    "value": submission_month
                 },
                 {
-                    "name": "no",
-                    "text": "no",
-                    "style": "danger",
-                    "type": "button",
-                    "value": "no",
-                    "confirm": {
-                        "title": "Submit?",
-                        "text": "Send to db?",
-                        "ok_text": "Yes",
-                        "dismiss_text": "No"
-                    }
+                    "title": "Day",
+                    "value": submission_day
+                },
+		{
+                    "title": "Hours",
+                    "value": submission_hours
+                }
+            ],
+            "footer": "Code Labs timereport",
+            "footer_icon": "https://codelabs.se/favicon.ico",
+            "ts": action_ts
+            }
+          ]
+        )
+        return make_response("",200) 
+        ## SEND TO DB or CANCEL.
+        ## UPDATE ON STATUS 
+      
+    
+    return make_response("", 200)
+
+@app.route("/", methods=["POST"])
+def timereport():
+        # create mysql connection
+#        #conn = mysql.connect()
+#        #cursor = conn.cursor()
+# A Dictionary of message attachment options
+    VACATION_OPTIONS = {}
+    # save the token 
+    slack_token = request.form.get("token")
+    # Verify that the request came from Slack
+    verify_slack_token(slack_token)
+
+    # assign the request values
+    channel_name = request.form.get('channel_id')
+    user_id = request.form.get('user_id')
+    text = request.form.get('text') 
+    command = request.form.get('command')
+    response_url = request.form.get('response_url')
+    trigger = request.form.get('trigger_id')
+    # the dialog to display
+    dialog = {
+        "title": "Submit Timereport",
+        "submit_label": "Submit",
+        "callback_id": user_id + trigger,
+        "elements": [
+        {
+            "label": "Deviation",
+            "type": "select",
+            "name": "Deviation",
+            "placeholder": "Select a deviation type",
+            "options": [
+                {
+                    "label": "vab",
+                    "value": "vab"
+                },
+                {
+                    "label": "semester",
+                    "value": "semester"
+                },
+                {
+                    "label": "betald sjukdag",
+                    "value": "betald_sjukdag"
+                },
+                {
+                    "label": "obetald sjukdag",
+                    "value": "obetald_sjukdag"
+                },
+                {
+                    "label": "ledig",
+                    "value": "ledig"
+                },
+                {
+                    "label": "foraldrar ledigt",
+                    "value": "foraldrar_ledigt"
                 }
             ]
-           }
-         ]
-        }
-        #payload = { 
-        #    "text": "User %s\nType: %s\nDate: %s\nHours: %s" %(username, vacation_type, vacation_date, vacation_hours)
-        #}
-        return jsonify(payload)
+        },
+        {
+            "label": "Month",
+            "type": "select",
+            "name": "Month",
+            "placeholder": "Select a month",
+            "options": [
+                {
+                    "label": "january",
+                    "value": "january"
+                },
+                {
+                    "label": "februari",
+                    "value": "februari"
+                },
+                {
+                    "label": "mars",
+                    "value": "mars"
+                },
+                {
+                    "label": "april",
+                    "value": "april"
+                },
+                {
+                    "label": "maj",
+                    "value": "maj"
+                },
+                {
+                    "label": "juni",
+                    "value": "juni"
+                },
+                {
+                    "label": "juli",
+                    "value": "juli"
+                },
+                {
+                    "label": "augusti",
+                    "value": "augusti"
+                },
+                {
+                    "label": "september",
+                    "value": "september"
+                },
+                {
+                    "label": "oktober",
+                    "value": "oktober"
+                },
+                {
+                    "label": "november",
+                    "value": "november"
+                },
+                {
+                    "label": "december",
+                    "value": "december"
+                },
+        ]
+        },
+        {
+            "label": "Day",
+            "type": "text",
+            "name": "Day",
+            "placeholder": "Write the Day of month [1-31]"
+       },
+       {
+            "label": "Hours",
+            "type": "text",
+            "name": "Hours",
+            "placeholder": "Write your hours [1-8]"
+        }                
+        ]
+    }
 
-# Our app's Slack Event Adapter for receiving actions via the Events API
-slack_events_adapter = SlackEventAdapter(SLACK_VERIFICATION_TOKEN, "/slack/events", app)
-
-@app.route("/slack/events", methods=['POST'])
-@slack_events_adapter.on("message")
-def handle_message(event_data):
-    message = event_data["event"]
-    # If the incoming message contains "hi", then respond with a "Hello" message
-    if message.get("subtype") is None and "hi" in message.get('text'):
-        channel = message["channel"]
-        message = "Hello <@%s>! :tada:" % message["user"]
-        CLIENT.api_call("chat.postMessage", channel=channel, text=message)
-
+    # save to OPTIONS
+    slack_client.api_call(
+    "dialog.open",
+    trigger_id=trigger,
+    dialog=dialog    
+    ) 
+    return make_response("", 200)
  
 # Start the Flask server
 if __name__ == "__main__":
