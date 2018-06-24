@@ -59,7 +59,7 @@ def message_actions():
     # Save submissions to hash
     # Parse the request payload
     form_json = json.loads(request.form["payload"])
-    
+
     # Verify that the request came from Slack
     verify_slack_token(form_json["token"])
 
@@ -85,7 +85,7 @@ def message_actions():
 		     "name": "Hours",
 		     "error": "Only digits between 1-8 allowed"
 		    }
-	         ]    
+	         ]
              }
              return jsonify(error_payload)
 
@@ -97,15 +97,14 @@ def message_actions():
 		    "name": "Day",
 		    "error": "This is not a valid day. Only between 1-31 allowed"
 		    }
-	         ]    
+	         ]
              }
              return jsonify(error_payload)
         else:
-            # update user on progress 
+            # update user on progress
             slack_client.api_call(
               "chat.postEphemeral",
               channel=channel_id,
-              text="Submitting to db!...",
               user=user_id,
               attachments=[
             {
@@ -137,11 +136,11 @@ def message_actions():
             }
           ]
         )
-        return make_response("",200) 
+        return make_response("",200)
         ## SEND TO DB or CANCEL.
-        ## UPDATE ON STATUS 
-      
-    
+        ## UPDATE ON STATUS
+
+
     return make_response("", 200)
 
 @app.route("/", methods=["POST"])
@@ -151,7 +150,7 @@ def timereport():
 #        #cursor = conn.cursor()
 # A Dictionary of message attachment options
     VACATION_OPTIONS = {}
-    # save the token 
+    # save the token
     slack_token = request.form.get("token")
     # Verify that the request came from Slack
     verify_slack_token(slack_token)
@@ -159,7 +158,7 @@ def timereport():
     # assign the request values
     channel_name = request.form.get('channel_id')
     user_id = request.form.get('user_id')
-    text = request.form.get('text') 
+    text = request.form.get('text')
     command = request.form.get('command')
     response_url = request.form.get('response_url')
     trigger = request.form.get('trigger_id')
@@ -268,7 +267,7 @@ def timereport():
             "type": "text",
             "name": "Hours",
             "placeholder": "Write your hours [1-8]"
-        }                
+        }
         ]
     }
 
@@ -276,10 +275,10 @@ def timereport():
     slack_client.api_call(
     "dialog.open",
     trigger_id=trigger,
-    dialog=dialog    
-    ) 
+    dialog=dialog
+    )
     return make_response("", 200)
- 
+
 # Start the Flask server
 if __name__ == "__main__":
    app.run(host="0.0.0.0", port=os.environ["LISTEN_PORT"])
