@@ -34,11 +34,11 @@ app.config['MONGO_DBNAME'] = os.environ["MONGO_DBNAME"]
 mongo = PyMongo(app)
 
 # Helper for validating a date string
-def validate(vacation_date):
+def validateDate(date):
     try:
-        datetime.datetime.strptime(vacation_date, '%Y-%m-%d')
+        datetime.datetime.strptime(date, '%Y-%m-%d')
     except ValueError:
-        raise ValueError("Incorrect date format, should be YYYY-MM-DD")
+        return ValueError("Incorrect date format, should be YYYY-MM-DD")
 
 # Helper for verifying that requests came from Slack
 def verify_slack_token(request_token):
@@ -55,13 +55,57 @@ def postEphemeral(attachment, channel_id, user_id):
             attachments=attachment
     )
 
-def postMessage(attachment, channel_id, user_id):
+def postMessage(channel_id, user_id, type_id, date, hours, attachment=None):
+    if attachment is None:
+        attachment=[
+        {
+            "fields": [
+                {
+                    "title": "Type",
+                    "value": "{}".format(type_id)
+                },
+                {
+                    "title": "Date",
+                    "value": "{}".format(date)
+                },
+                {
+                    "title": "Hours",
+                    "value": "{}".format(hours)
+                }
+           ],
+        "footer": "Code Labs timereport",
+        "footer_icon": "https://codelabs.se/favicon.ico",
+       "fallback": "Submit these values?",
+       "title": "Submit these values?",
+       "callback_id": "submit",
+       "color": "#3AA3E3",
+       "attachment_type": "default",
+       "actions": [
+                {
+                    "name": "submit",
+                    "text": "submit",
+                    "type": "button",
+                    "style": "primary",
+                    "value": "submit_yes"
+                },
+                {
+                    "name": "no",
+                    "text": "No",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "submit_no"
+                }
+            ]
+       }
+       ]
+
     slack_client.api_call(
             "chat.postMessage",
             channel=channel_id,
             user=user_id,
             attachments=attachment
     )
+
 def chatUpdate(channel_id, message_ts, text, user_id):
     slack_client.api_call(
               "chat.update",
@@ -77,6 +121,7 @@ def dateToday():
     month = today.month
     day = today.day
     date = "{:4d}-{:02d}-{:02d}".format(year, month, day)
+    validateDate(date)
     return date
 
 @app.route("/", methods=["POST"])
@@ -133,70 +178,40 @@ def timereport():
           ]
 
         postEphemeral(help_menu, channel_id, user_id)
+    # are we providing at least 2 arguments but not more than 3
+    elif len(text_list) >=2 or len(text_list) <=3:
 
-    elif "today" in text_list and len(text_list) >2 or len(text_list) < 3:
-        # set date to today
-        today = dateToday()
-        # loop through deviation_type list and match against
-        if len(text_list) >= 2 and len(text_list) <= 3:
-            for dt in deviation_type:
-                if dt in text_list[0]:
-                    type_id = dt
-                    break
-                else:
-                    return make_response("wrong <type> argument: {}".format(text_list[1]), 200)
-        # get hours from last argument proided
-            if re.match('^[0-8]$', ''.join(text_list[-1:])):
-                hours = ''.join(text_list[-1:])
-            # default to 8 hours if not provided
-            else:
-                hours = '8'
+        # is first argument the type_id we have in deviation_type
+        if text_list[0] in deviation_type:
+            type_id = text_list[0]
         else:
-            return make_response("wrong number of arguments {} <type> <today> <hours|optional>".format(command), 200)
+            return make_response("wrong <type> argument: {}".format(text_list[0]), 200)
 
-        submit_menu=[
-        {
-            "fields": [
-                {
-                    "title": "Type",
-                    "value": "{}".format(type_id)
-                },
-                {
-                    "title": "Date",
-                    "value": "{}".format(today)
-                },
-                {
-                    "title": "Hours",
-                    "value": "{}".format(hours)
-                }
-           ],
-        "footer": "Code Labs timereport",
-        "footer_icon": "https://codelabs.se/favicon.ico",
-       "fallback": "Submit these values?",
-       "title": "Submit these values?",
-       "callback_id": "submit",
-       "color": "#3AA3E3",
-       "attachment_type": "default",
-       "actions": [
-                {
-                    "name": "submit",
-                    "text": "submit",
-                    "type": "button",
-                    "style": "primary",
-                    "value": "submit_yes"
-                },
-                {
-                    "name": "no",
-                    "text": "No",
-                    "type": "button",
-                    "style": "danger",
-                    "value": "submit_no"
-                }
-            ]
-       }
-       ]
+        if "today" in text_list[1]:
+            # set date to today
+            date = dateToday()
+           # validate second parameter so it is a correct formatted date (return None if successful)
+        elif validateDate(''.join(text_list[1])) is None:
+            # set date variable
+            date = ''.join(text_list[1])
+        else:
+            return make_response("wrong <date> provided: {}".format(text_list[1]), 200)
 
-        postMessage(submit_menu, channel_id, user_id)
+        # get hours from last argument proided
+        if re.match('^[0-8]$', ''.join(text_list[-1:])):
+            hours = ''.join(text_list[-1:])
+        elif ''.join(text_list[-1:]) == "today" or ''.join(text_list[-1:]) == date:
+            # default to 8 hours if last parameter is the date parameter
+            hours = '8'
+        else:
+            return make_response("wrong <hours> provided: {} instead of [1-8]".format(''.join(text_list[-1:])))
+
+        # if we get here then everything should be fine and we have collected all values
+        postMessage(channel_id, user_id, type_id, date, hours)
+    else:
+        return make_response("wrong number of arguments provided: {}. <type> <date|today> <hours|optional>".format(len(text_list)), 200)
+
+
 
     # return ok here
     return make_response("", 200)
