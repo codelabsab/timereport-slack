@@ -55,6 +55,21 @@ def postEphemeral(attachment, channel_id, user_id):
             attachments=attachment
     )
 
+def postMessage(attachment, channel_id, user_id):
+    slack_client.api_call(
+            "chat.postMessage",
+            channel=channel_id,
+            user=user_id,
+            attachments=attachment
+    )
+def chatUpdate(channel_id, message_ts, text, user_id):
+    slack_client.api_call(
+              "chat.update",
+              channel=channel_id,
+              ts=message_ts,
+              text="<@{}> {}".format(user_id, text),
+              attachments=[] # empty `attachments` to clear the existing massage attachments
+    )
 def dateNow():
     # create today's date stamp
     now = datetime.datetime.now()
@@ -134,13 +149,16 @@ def timereport():
         {
             "fields": [
                 {
-                    "title": "Type: {}".format(type_id)
+                    "title": "Type",
+                    "value": "{}".format(type_id)
                 },
                 {
-                    "title": "Date: {}".format(now)
+                    "title": "Date",
+                    "value": "{}".format(now)
                 },
                 {
-                    "title": "Hours: {}".format(hours)
+                    "title": "Hours",
+                    "value": "{}".format(hours)
                 }
            ],
         "footer": "Code Labs timereport",
@@ -169,7 +187,7 @@ def timereport():
        }
        ]
 
-        postEphemeral(submit_menu, channel_id, user_id)
+        postMessage(submit_menu, channel_id, user_id)
 
     # return ok here
     return make_response("", 200)
@@ -188,29 +206,20 @@ def message_actions():
     channel_id = form_json["channel"]["id"]
     message_ts = form_json["message_ts"]
     user_id = form_json["user"]["id"]
-    print(channel_id)
-    print(message_ts)
-    print(user_id)
-    print(json.dumps(form_json))
     if form_json["type"] == "interactive_message":
         selection = form_json["actions"][0]["value"]
+        input_type_id = json.dumps(form_json["original_message"]["attachments"][0]["fields"][0]["value"])
+        input_date = json.dumps(form_json["original_message"]["attachments"][0]["fields"][1]["value"])
+        input_hours = json.dumps(form_json["original_message"]["attachments"][0]["fields"][2]["value"])
+
         if selection == "submit_yes":
             # do DB stuff here
             print("doing database stuff")
 
+            chatUpdate(channel_id, message_ts, "submitted timereports successfully :thumbsup:", user_id)
 
-
-            # update user with info if successfull
-            slack_client.api_call(
-                "chat.postEphemeral",
-                channel=channel_id,
-                user=user_id,
-                response_type='ephemeral',
-                replace_original='true',
-                delete_original='true',
-                text='submitted',
-                attachment=[]
-            )
+            # Send an HTTP 200 response with empty body so Slack knows we're done here
+            return make_response("", 200)
 
 
         else:
@@ -220,6 +229,7 @@ def message_actions():
         print("regular message stuff")
 
 
+    # Send an HTTP 200 response with empty body so Slack knows we're done here
     return make_response("", 200)
 
 # Start the Flask server
