@@ -70,12 +70,12 @@ def chatUpdate(channel_id, message_ts, text, user_id):
               text="<@{}> {}".format(user_id, text),
               attachments=[] # empty `attachments` to clear the existing massage attachments
     )
-def dateNow():
+def dateToday():
     # create today's date stamp
-    now = datetime.datetime.now()
-    year = now.year
-    month = now.month
-    day = now.day
+    today = datetime.datetime.today()
+    year = today.year
+    month = today.month
+    day = today.day
     date = "{:4d}-{:02d}-{:02d}".format(year, month, day)
     return date
 
@@ -99,24 +99,32 @@ def timereport():
     text_list = text.split(' ')
 
     # the dialog to display if nothing or help was the input
-    if "help" in text_list[0] or not text:
+    if "help" in text_list[0] or len(text) == 0:
         help_menu=[
             {
             "color": "#3A6DE1",
             "pretext": "Help menu",
             "fields": [
                 {
-                    "title": "{} <type> <now> <hours>".format(command),
-                    "value": "create a single day deviation of <type> at this point in time"
+                    "title": "{} <type> <today> <hours|optional>".format(command),
+                    "value": "create a single day deviation of <type> at <today>"
 
                 },
 		{
-                    "title": "{} <type> <YYYY-MM-DD> <hours>".format(command),
-                    "value": "create a single day deviation of <type> at <date> <hours>"
+                    "title": "{} <type> <YYYY-MM-DD> <hours|optional>".format(command),
+                    "value": "create a single day deviation of <type> at <date> <hours|optional>"
                 },
                 {
-                    "title": "Type:",
-                    "value": "{}".format(deviation_type)
+                    "title": "Argument: <type>",
+                    "value": "{}".format(' '.join(deviation_type).replace(' ', ' | '))
+                },
+                {
+                    "title": "Argument: <today|<YYYY-MM-DD>",
+                    "value": "<today> will set todays date or use <YYYY-MM-DD> format to specify date."
+                },
+                {
+                    "title": "Argument: <hours|optional>",
+                    "value": "<hours> will set number of hours.\nThis is optional and will default to 8 hours if not specified."
                 }
             ],
             "footer": "Code Labs timereport",
@@ -126,24 +134,25 @@ def timereport():
 
         postEphemeral(help_menu, channel_id, user_id)
 
-    elif "now" in text_list[0]:
-        # set date to now
-        now = dateNow()
+    elif "today" in text_list and len(text_list) >2 or len(text_list) < 3:
+        # set date to today
+        today = dateToday()
         # loop through deviation_type list and match against
-        if len(text_list) != 3:
-            return make_response("wrong number of arguments {} <now> <type> <hours>".format(command), 200)
-        for dt in deviation_type:
-            if dt in text_list[1]:
-                type_id = dt
-                break
-            else:
-                return make_response("wrong <type> argument: {}".format(text_list[1]), 200)
+        if len(text_list) >= 2 and len(text_list) <= 3:
+            for dt in deviation_type:
+                if dt in text_list[0]:
+                    type_id = dt
+                    break
+                else:
+                    return make_response("wrong <type> argument: {}".format(text_list[1]), 200)
         # get hours from last argument proided
-        hour_input = ''.join(text_list[-1:])
-        if re.match('^[0-8]$', hour_input):
-            hours = hour_input
+            if re.match('^[0-8]$', ''.join(text_list[-1:])):
+                hours = ''.join(text_list[-1:])
+            # default to 8 hours if not provided
+            else:
+                hours = '8'
         else:
-            return make_response("wrong <hours> argument: {}".format(hour_input), 200)
+            return make_response("wrong number of arguments {} <type> <today> <hours|optional>".format(command), 200)
 
         submit_menu=[
         {
@@ -154,7 +163,7 @@ def timereport():
                 },
                 {
                     "title": "Date",
-                    "value": "{}".format(now)
+                    "value": "{}".format(today)
                 },
                 {
                     "title": "Hours",
@@ -218,7 +227,7 @@ def message_actions():
 
             chatUpdate(channel_id, message_ts, "submitted timereports successfully :thumbsup:", user_id)
 
-            # Send an HTTP 200 response with empty body so Slack knows we're done here
+            # Send an HTTP 200 response with empty body so Slack ktodays we're done here
             return make_response("", 200)
 
 
@@ -229,7 +238,7 @@ def message_actions():
         print("regular message stuff")
 
 
-    # Send an HTTP 200 response with empty body so Slack knows we're done here
+    # Send an HTTP 200 response with empty body so Slack ktodays we're done here
     return make_response("", 200)
 
 # Start the Flask server
