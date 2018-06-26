@@ -9,8 +9,7 @@ from flask import Flask, request, make_response, Response, jsonify
 from slackeventsapi import SlackEventAdapter
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
-from flaskext.mysql import MySQL
-
+from flask_pymongo import PyMongo
 
 # load .env file with secrets
 load_dotenv(find_dotenv())
@@ -22,21 +21,17 @@ SLACK_VERIFICATION_TOKEN = os.environ["SLACK_VERIFICATION_TOKEN"]
 # Slack client for Web API requests
 slack_client = SlackClient(SLACK_BOT_TOKEN)
 
-# MYSQL DB VALUES
-MYSQL_DB_ENDPOINT = os.environ["MYSQL_DB_ENDPOINT"]
-MYSQL_DB_NAME = os.environ["MYSQL_DB_NAME"]
-MYSQL_DB_USER = os.environ["MYSQL_DB_USER"]
-MYSQL_DB_PASSWORD = os.environ["MYSQL_DB_PASSWORD"]
-
 # Flask webserver for incoming traffic from Slack
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['MYSQL_HOST'] = MYSQL_DB_ENDPOINT
-app.config['MYSQL_USER'] = MYSQL_DB_USER
-app.config['MYSQL_PASSWORD'] = MYSQL_DB_PASSWORD
-app.config['MYSQL_DB'] = MYSQL_DB_NAME
-mysql = MySQL()
-mysql.init_app(app)
+
+# MONGO DB VALUES
+app.config['MONGO_HOST'] = os.environ["MONGO_HOST"]
+app.config['MONGO_PORT'] = os.environ["MONGO_PORT"]
+app.config['MONGO_USERNAME'] = os.environ["MONGO_USERNAME"]
+app.config['MONGO_PASSWORD'] = os.environ["MONGO_PASSWORD"]
+app.config['MONGO_DBNAME'] = os.environ["MONGO_DBNAME"]
+mongo = PyMongo(app)
 
 # Helper for validating a date string
 def validate(vacation_date):
@@ -52,231 +47,179 @@ def verify_slack_token(request_token):
         print("Received {} but was expecting {}".format(request_token, SLACK_VERIFICATION_TOKEN))
         return make_response("Request contains invalid Slack verification token", 403)
 
-# The endpoint Slack will send the user's menu selection to (Request URL)
-@app.route("/slack/message_actions", methods=["POST"])
-def message_actions():
+def postEphemeral(attachment, channel_id, user_id):
+    slack_client.api_call(
+            "chat.postEphemeral",
+            channel=channel_id,
+            user=user_id,
+            attachments=attachment
+    )
 
-    # Save submissions to hash
-    # Parse the request payload
-    form_json = json.loads(request.form["payload"])
-
-    # Verify that the request came from Slack
-    verify_slack_token(form_json["token"])
-
-    # Set the values from the response and update the message accordingly
-    message_type = form_json["type"]
-    response_url = form_json["response_url"]
-    user_id = form_json["user"]["id"]
-    user_name = form_json["user"]["name"]
-    channel_id = form_json["channel"]["id"]
-    channel_name = form_json["channel"]["name"]
-
-    if message_type == "dialog_submission":
-        # save values from payload of dialog_submission type
-        submission_deviation = form_json["submission"]["Deviation"]
-        submission_month = form_json["submission"]["Month"]
-        submission_day = form_json["submission"]["Day"]
-        submission_hours = form_json["submission"]["Hours"]
-        action_ts = form_json["action_ts"]
-        if not re.match("^([1-8])$", submission_hours):
-             error_payload = {
-	         "errors": [
-		    {
-		     "name": "Hours",
-		     "error": "Only digits between 1-8 allowed"
-		    }
-	         ]
-             }
-             return jsonify(error_payload)
-
-        elif not re.match("^(3[01]|[12][0-9]|[1-9])$", submission_day):
-             # todo validation of days
-             error_payload = {
-	         "errors": [
-                    {
-		    "name": "Day",
-		    "error": "This is not a valid day. Only between 1-31 allowed"
-		    }
-	         ]
-             }
-             return jsonify(error_payload)
-        else:
-            # update user on progress
-            slack_client.api_call(
-              "chat.postEphemeral",
-              channel=channel_id,
-              user=user_id,
-              attachments=[
-            {
-            "color": "#3A6DE1",
-            "pretext": "Submitting to db...",
-            "author_name": "User: {}".format(user_name),
-            "fields": [
-                {
-                    "title": "Type",
-                    "value": submission_deviation
-
-                },
-		{
-                    "title": "Month",
-                    "value": submission_month
-                },
-                {
-                    "title": "Day",
-                    "value": submission_day
-                },
-		{
-                    "title": "Hours",
-                    "value": submission_hours
-                }
-            ],
-            "footer": "Code Labs timereport",
-            "footer_icon": "https://codelabs.se/favicon.ico",
-            "ts": action_ts
-            }
-          ]
-        )
-        return make_response("",200)
-        ## SEND TO DB or CANCEL.
-        ## UPDATE ON STATUS
-
-
-    return make_response("", 200)
+def dateNow():
+    # create today's date stamp
+    now = datetime.datetime.now()
+    year = now.year
+    month = now.month
+    day = now.day
+    date = "{:4d}-{:02d}-{:02d}".format(year, month, day)
+    return date
 
 @app.route("/", methods=["POST"])
 def timereport():
-        # create mysql connection
-#        #conn = mysql.connect()
-#        #cursor = conn.cursor()
-# A Dictionary of message attachment options
-    VACATION_OPTIONS = {}
     # save the token
     slack_token = request.form.get("token")
     # Verify that the request came from Slack
     verify_slack_token(slack_token)
 
     # assign the request values
-    channel_name = request.form.get('channel_id')
+    channel_id = request.form.get('channel_id')
     user_id = request.form.get('user_id')
     text = request.form.get('text')
     command = request.form.get('command')
     response_url = request.form.get('response_url')
     trigger = request.form.get('trigger_id')
-    # the dialog to display
-    dialog = {
-        "title": "Submit Timereport",
-        "submit_label": "Submit",
-        "callback_id": user_id + trigger,
-        "elements": [
+    deviation_type = ["vab", "betald_sjukdag", "obetald_sjukdag", "ledig", "semester", "foraldrar_ledigt", "end" ]
+
+    # split text arguments into list
+    text_list = text.split(' ')
+
+    # the dialog to display if nothing or help was the input
+    if "help" in text_list[0] or not text:
+        help_menu=[
+            {
+            "color": "#3A6DE1",
+            "pretext": "Help menu",
+            "fields": [
+                {
+                    "title": "{} <type> <now> <hours>".format(command),
+                    "value": "create a single day deviation of <type> at this point in time"
+
+                },
+		{
+                    "title": "{} <type> <YYYY-MM-DD> <hours>".format(command),
+                    "value": "create a single day deviation of <type> at <date> <hours>"
+                },
+                {
+                    "title": "Type:",
+                    "value": "{}".format(deviation_type)
+                }
+            ],
+            "footer": "Code Labs timereport",
+            "footer_icon": "https://codelabs.se/favicon.ico",
+            }
+          ]
+
+        postEphemeral(help_menu, channel_id, user_id)
+
+    elif "now" in text_list[0]:
+        # set date to now
+        now = dateNow()
+        # loop through deviation_type list and match against
+        if len(text_list) != 3:
+            return make_response("wrong number of arguments {} <now> <type> <hours>".format(command), 200)
+        for dt in deviation_type:
+            if dt in text_list[1]:
+                type_id = dt
+                break
+            else:
+                return make_response("wrong <type> argument: {}".format(text_list[1]), 200)
+        # get hours from last argument proided
+        hour_input = ''.join(text_list[-1:])
+        if re.match('^[0-8]$', hour_input):
+            hours = hour_input
+        else:
+            return make_response("wrong <hours> argument: {}".format(hour_input), 200)
+
+        submit_menu=[
         {
-            "label": "Deviation",
-            "type": "select",
-            "name": "Deviation",
-            "placeholder": "Select a deviation type",
-            "options": [
+            "fields": [
                 {
-                    "label": "vab",
-                    "value": "vab"
+                    "title": "Type: {}".format(type_id)
                 },
                 {
-                    "label": "semester",
-                    "value": "semester"
+                    "title": "Date: {}".format(now)
                 },
                 {
-                    "label": "betald sjukdag",
-                    "value": "betald_sjukdag"
+                    "title": "Hours: {}".format(hours)
+                }
+           ],
+        "footer": "Code Labs timereport",
+        "footer_icon": "https://codelabs.se/favicon.ico",
+       "fallback": "Submit these values?",
+       "title": "Submit these values?",
+       "callback_id": "submit",
+       "color": "#3AA3E3",
+       "attachment_type": "default",
+       "actions": [
+                {
+                    "name": "submit",
+                    "text": "submit",
+                    "type": "button",
+                    "style": "primary",
+                    "value": "submit_yes"
                 },
                 {
-                    "label": "obetald sjukdag",
-                    "value": "obetald_sjukdag"
-                },
-                {
-                    "label": "ledig",
-                    "value": "ledig"
-                },
-                {
-                    "label": "foraldrar ledigt",
-                    "value": "foraldrar_ledigt"
+                    "name": "no",
+                    "text": "No",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "submit_no"
                 }
             ]
-        },
-        {
-            "label": "Month",
-            "type": "select",
-            "name": "Month",
-            "placeholder": "Select a month",
-            "options": [
-                {
-                    "label": "january",
-                    "value": "january"
-                },
-                {
-                    "label": "februari",
-                    "value": "februari"
-                },
-                {
-                    "label": "mars",
-                    "value": "mars"
-                },
-                {
-                    "label": "april",
-                    "value": "april"
-                },
-                {
-                    "label": "maj",
-                    "value": "maj"
-                },
-                {
-                    "label": "juni",
-                    "value": "juni"
-                },
-                {
-                    "label": "juli",
-                    "value": "juli"
-                },
-                {
-                    "label": "augusti",
-                    "value": "augusti"
-                },
-                {
-                    "label": "september",
-                    "value": "september"
-                },
-                {
-                    "label": "oktober",
-                    "value": "oktober"
-                },
-                {
-                    "label": "november",
-                    "value": "november"
-                },
-                {
-                    "label": "december",
-                    "value": "december"
-                },
-        ]
-        },
-        {
-            "label": "Day",
-            "type": "text",
-            "name": "Day",
-            "placeholder": "Write the Day of month [1-31]"
-       },
-       {
-            "label": "Hours",
-            "type": "text",
-            "name": "Hours",
-            "placeholder": "Write your hours [1-8]"
-        }
-        ]
-    }
+       }
+       ]
 
-    # save to OPTIONS
-    slack_client.api_call(
-    "dialog.open",
-    trigger_id=trigger,
-    dialog=dialog
-    )
+        postEphemeral(submit_menu, channel_id, user_id)
+
+    # return ok here
+    return make_response("", 200)
+
+@app.route("/slack/message_actions", methods=["POST"])
+def message_actions():
+
+    # Parse the request payload
+    form_json = json.loads(request.form["payload"])
+
+    # Verify that the request came from Slack
+    verify_slack_token(form_json["token"])
+
+    # Check to see what the user's selection was and update the message accordingly
+    # save values
+    channel_id = form_json["channel"]["id"]
+    message_ts = form_json["message_ts"]
+    user_id = form_json["user"]["id"]
+    print(channel_id)
+    print(message_ts)
+    print(user_id)
+    print(json.dumps(form_json))
+    if form_json["type"] == "interactive_message":
+        selection = form_json["actions"][0]["value"]
+        if selection == "submit_yes":
+            # do DB stuff here
+            print("doing database stuff")
+
+
+
+            # update user with info if successfull
+            slack_client.api_call(
+                "chat.postEphemeral",
+                channel=channel_id,
+                user=user_id,
+                response_type='ephemeral',
+                replace_original='true',
+                delete_original='true',
+                text='submitted',
+                attachment=[]
+            )
+
+
+        else:
+            return make_response("canceling...", 200)
+
+    else:
+        print("regular message stuff")
+
+
     return make_response("", 200)
 
 # Start the Flask server
