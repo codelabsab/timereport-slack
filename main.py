@@ -4,6 +4,7 @@ import re
 import datetime
 import json
 
+from pprint import pprint
 from dateutil.parser import parse
 from flask import Flask, request, make_response, Response, jsonify
 from slackeventsapi import SlackEventAdapter
@@ -124,6 +125,113 @@ def dateToday():
     validateDate(date)
     return date
 
+def mongoSubmit(user_id, user_name, input_type_id, input_hours, input_date, input_date_end=None):
+    # strip date into smaller chunks
+    date_year = input_date.split('-')[0]
+    date_month = input_date.split('-')[1]
+    date_day = input_date.split('-')[2]
+
+    # set to start date if end is not given
+    if input_date_end is None:
+        date_end = input_date
+        date_month_end = date_month
+        date_day_end = date_day
+
+    return mongo.db.users.insert(
+    {
+        "user_id": user_id,
+        "user_name": user_name,
+        "type_id": input_type_id,
+        "hours": input_hours,
+        "date": {
+            "date": input_date,
+            "date_end": date_end,
+            "date_year": date_year,
+            "date_month": date_month,
+            "date_month_end": date_month_end,
+            "date_day": date_day,
+            "date_day_end": date_day_end
+        }
+    })
+
+
+@app.route("/fetch", methods=["POST"])
+def fetch():
+    # save the token
+    slack_token = request.form.get("token")
+    # Verify that the request came from Slack
+    verify_slack_token(slack_token)
+    # assign the request values
+    channel_id = request.form.get('channel_id')
+    user_id = request.form.get('user_id')
+    user_name = request.form.get('user_name')
+    text = request.form.get('text')
+    command = request.form.get('command')
+    if text:
+        text_list = text.split(' ')
+    else:
+        text_list = []
+    # probably <YYYY-MM> <user> provided
+    if len(text_list) == 2:
+        year = text_list[0].split('-')[0]
+        month = text_list[0].split('-')[1]
+        full_date = "{}-{}".format(year, month)
+        user = text_list[1] # save user second argument
+        if user == "all":
+            mongo_query = { "date.date_month": month, "date.date_year": year }
+        else:
+            mongo_query = { "date.date_month": month, "date.date_year": year, "user_name": user }
+     # are we providing <YYYY-MM> or <user>
+    elif len(text_list) == 1:
+        # date first argument
+        if re.match('^[0-9][0-9][0-9][0-9]-[0-9][0-9]$', text_list[0]):
+            year = text_list[0].split('-')[0]
+            month = text_list[0].split('-')[1]
+            full_date = "{}-{}".format(year, month)
+        # username first argument
+        elif text_list[0] == user_name:
+            date = dateToday()
+            year = date.split('-')[0]
+            month = date.split('-')[1]
+            # fetch todays month entries
+            mongo_query = { "date.date_month": month, "date.date_year": year, "user_name": user_name }
+        # if argument is date format only fetch for this month
+        else:
+            return make_response("wrong first argument <{}>.\n only <YYYY-MM> or <users> or empty allowed.".format(text_list[0]))
+    else:
+        date = dateToday()
+        year = date.split('-')[0]
+        month = date.split('-')[1]
+        mongo_query = { "date.date_month": month, "date.date_year": year }
+        full_date = "{}-{}".format(year, month)
+
+
+    full_date = "{}-{}".format(year, month)
+    try:
+        mongo_query
+    except NameError:
+        mongo_query = { "date.date_month": month, "date.date_year": year }
+    mongo_filter = { "user_name": 1, "date.date": 1, "type_id": 1, "hours": 1, "_id": 0 }
+    users = mongo.db.users.find(mongo_query , mongo_filter)
+    if users.count() >= 1:
+        for u in users:
+            date = u['date']['date']
+            hours = u['hours']
+            type_id = u['type_id']
+            user_name = u['user_name']
+            text = "*****Values for {} ******\nUser: {}\nDate: {}\nType: {}\nHours: {}".format(full_date,user_name,date,type_id,hours)
+            print("*****Values for {} ******\nUser: {}\nDate: {}\nType: {}\nHours: {}".format(full_date,user_name,date,type_id,hours))
+            slack_client.api_call(
+                "chat.postMessage",
+                channel=channel_id,
+                user=user_id,
+                text=text
+            )
+    else:
+        return make_response("Nothing found in database for {} {}".format(command, text))
+
+    return make_response("", 200)
+
 @app.route("/", methods=["POST"])
 def timereport():
     # save the token
@@ -230,15 +338,24 @@ def message_actions():
     channel_id = form_json["channel"]["id"]
     message_ts = form_json["message_ts"]
     user_id = form_json["user"]["id"]
+    user_name = form_json['user']['name']
+
     if form_json["type"] == "interactive_message":
+        # save values
         selection = form_json["actions"][0]["value"]
-        input_type_id = json.dumps(form_json["original_message"]["attachments"][0]["fields"][0]["value"])
-        input_date = json.dumps(form_json["original_message"]["attachments"][0]["fields"][1]["value"])
-        input_hours = json.dumps(form_json["original_message"]["attachments"][0]["fields"][2]["value"])
+        input_type_id = json.dumps(form_json["original_message"]["attachments"][0]["fields"][0]["value"]).strip('"')
+        input_hours = json.dumps(form_json["original_message"]["attachments"][0]["fields"][2]["value"]).strip('"')
+        input_date = json.dumps(form_json["original_message"]["attachments"][0]["fields"][1]["value"]).strip('"')
+        date_month = input_date.split('-')[1]
 
         if selection == "submit_yes":
             # do DB stuff here
             print("doing database stuff")
+            print("user_id: {}\n user_name: {}\n, input_type_id: {}\n, input_hours: {}\n, input_date: {}\n".format(repr(user_id), repr(user_name), repr(input_type_id), repr(input_hours), repr(input_date)))
+            mongoSubmit(user_id, user_name, input_type_id, input_hours, input_date)
+            users = mongo.db.users.find({ "date.date_year": "2018", "date.date_month": "03" })
+            for u in users:
+                pprint(u)
 
             chatUpdate(channel_id, message_ts, "submitted timereports successfully :thumbsup:", user_id)
 
