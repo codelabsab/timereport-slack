@@ -169,8 +169,39 @@ def fetch():
     command = request.form.get('command')
     if text:
         text_list = text.split(' ')
-    else:
+
+    if "help" in text_list[0] or len(text) == 0:
         text_list = []
+        help_menu=[
+            {
+            "color": "#3A6DE1",
+            "pretext": "Help menu",
+            "fields": [
+                {
+                    "title": "{} <YYYY-MM|optional> <user|optional>".format(command),
+                    "value": "fetch from database by providing year month and username or nothing for all"
+
+                },
+		{
+                    "title": "{} <YYYY-MM|optional> <all|optional>".format(command),
+                    "value": "fetch from database all users for a specific month"
+                },
+                {
+                    "title": "Argument: <YYYY-MM>",
+                    "value": "2018-03 or empty for todays month as default value"
+                },
+                {
+                    "title": "Argument: <user|optional>",
+                    "value": "<user> will fetch data for specific user from database"
+                }
+            ],
+            "footer": "Code Labs timereport",
+            "footer_icon": "https://codelabs.se/favicon.ico",
+            }
+          ]
+
+        postEphemeral(help_menu, channel_id, user_id)
+
     # probably <YYYY-MM> <user> provided
     if len(text_list) == 2:
         year = text_list[0].split('-')[0]
@@ -183,6 +214,9 @@ def fetch():
             mongo_query = { "date.date_month": month, "date.date_year": year, "user_name": user }
      # are we providing <YYYY-MM> or <user>
     elif len(text_list) == 1:
+        date = dateToday()
+        year = date.split('-')[0]
+        month = date.split('-')[1]
         # date first argument
         if re.match('^[0-9][0-9][0-9][0-9]-[0-9][0-9]$', text_list[0]):
             year = text_list[0].split('-')[0]
@@ -190,20 +224,18 @@ def fetch():
             full_date = "{}-{}".format(year, month)
         # username first argument
         elif text_list[0] == user_name:
-            date = dateToday()
-            year = date.split('-')[0]
-            month = date.split('-')[1]
             # fetch todays month entries
             mongo_query = { "date.date_month": month, "date.date_year": year, "user_name": user_name }
         # if argument is date format only fetch for this month
         else:
-            return make_response("wrong first argument <{}>.\n only <YYYY-MM> or <users> or empty allowed.".format(text_list[0]))
+            mongo_query = { "date.date_month": month, "date.date_year": year, "user_name": text_list[0] }
     else:
+        return make_response("", 200)
         date = dateToday()
         year = date.split('-')[0]
         month = date.split('-')[1]
-        mongo_query = { "date.date_month": month, "date.date_year": year }
-        full_date = "{}-{}".format(year, month)
+   #     mongo_query = { "date.date_month": month, "date.date_year": year }
+   #     full_date = "{}-{}".format(year, month)
 
 
     full_date = "{}-{}".format(year, month)
