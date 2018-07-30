@@ -23,6 +23,7 @@
             "REDIS_DB" : "redishostname",
             "REDIS_PORT" : "12772",
             "REDIS_PASSWORD" : "Password",
+            "API_DATA_ENDPOINT" : "http://endpoint.aws.api.gateway/data"
        }
     }
 }

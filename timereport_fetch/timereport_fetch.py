@@ -10,7 +10,6 @@ from flask_sessionstore import Session
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
 from flask_pymongo import PyMongo
-from requests import get
 
 # load .env file with secrets
 load_dotenv(find_dotenv())
@@ -27,6 +26,9 @@ slack_client = SlackClient(SLACK_BOT_TOKEN)
 REDIS_DB = os.environ['REDIS_DB']
 REDIS_PORT = os.environ['REDIS_PORT']
 REDIS_PASSWORD = os.environ['REDIS_PASSWORD']
+
+# DATA API endpoint
+API_DATA_ENDPOINT = os.environ['API_DATA_ENDPOINT']
 
 # Flask webserver for incoming traffic from Slack
 app = Flask(__name__)
@@ -56,16 +58,6 @@ mongo = PyMongo(app, connect=False)
 date_regex_start = "([0-9]{4}-[0-9]{2}-[0-9]{2}|today)"
 date_regex_end = ":([0-9]{4}-[0-9]{2}-[0-9]{2})?"
 hour_regex = " ([0-9]) "
-type_regex = "(vab|betald_sjukdag|obetald_sjukdag|ledig|semester|foraldrar_ledigt)"
-
-# hostname ip
-try:
-    get('https://api.ipify.org').text
-except Exception as e:
-    print("Error",e)
-    my_ip = '0.0.0.0'
-else:
-    my_ip = get('https://api.ipify.org').text
 
 def validateRDBConn():
     try:
@@ -83,6 +75,14 @@ def validateDate(date):
     except ValueError:
         return ValueError("Invalid date, should be YYYY-MM-DD")
 
+# Helper to convert datetime.datetime.strftime format to pandas datetime
+def convertDateTime(date):
+    try:
+        pd.to_datetime(date)
+    except ValueError:
+        return ValueError("Invalid date, should be YYYY-MM-DD")
+    else:
+        return pd.to_datetime(date)
 
 def validateRegex(regex, text):
     result = [i for i in finditer(regex, text) if i]
@@ -115,16 +115,15 @@ def delRedisSession():
         rdb.delete(key)
     print("sessions deleted")
 
-@app.route("/")
-def main():
-    return "hello world"
-
-@app.route("/fetch", methods=["POST", "GET"])
+@app.route("/", methods=["POST", "GET"])
 def fetch():
     # validate redis db connection
     if validateRDBConn():
         # delete data here
         delRedisSession()
+    if request.method == 'GET':
+        return make_response("", 200)
+
     if request.method == 'POST':
         # save the token
         slack_token = request.form.get("token")
@@ -167,40 +166,59 @@ def fetch():
             return make_response("", 200)
         # use the global regex
         date_start = validateRegex(date_regex_start, text)
+        print(date_start)
         date_end = validateRegex(date_regex_end, text)
-        type_id = validateRegex(type_regex, text)
+        print(date_end)
 
         if 'empty' in date_start:
             # assume today's date
             date_start = datetime.datetime.now().strftime("%Y-%m-%d")
+            # convert it to pandas datetime format
+            start = convertDateTime(date_start)
         else:
-            # validate date
-            validateDate(date_start)
+            # start date was given so keep as is
+            # convert it to pandas datetime format
+            start = convertDateTime(date_start)
+            start_month = start.month
+
         if 'empty' in date_end:
             # assign date_start to date_end
             date_end = date_start
+            # convert it to pandas datetime format
+            end = convertDateTime(date_end)
+            # if no specific end date was given then increment the month by 1 for the search
+            end_month = end.month+1
+        else:
+            # end date was given so keep as is
+            end = convertDateTime(date_end)
+            end_month = end.month
 
         # TODO USERNAME REGEX
-        user_name_regex = "(?:{typid})?.(?:{start}).(?:{end})?.(.*)".format(typid=type_id, start=date_start,
-                                                                            end=date_end)
-
+        user_name_regex = "^(?:{start}):?(?:{end})?.?([a-zA-Z]+.?[a-zA-Z]+)?$".format(start=date_start, end=date_end)
         user_name = validateRegex(user_name_regex, text)
-        if 'empty' in user_name:
-            user_name = input_user_name
+        if user_name is None:
+            user_name = 'empty'
 
         # validate the dates so they are real
         validateDate(date_start)
         validateDate(date_end)
 
         # convert to datetime
-        start = pd.to_datetime(date_start)
-        year = start.year
-        month_start = start.month
-        month_end = start.month + 1
-        date_start = "{YYYY}-{MM}".format(YYYY=year, MM=month_start)
-        date_end = "{YYYY}-{MM}".format(YYYY=year, MM=month_end)
+        date_start = "{YYYY}-{MM}".format(YYYY=start.year, MM=start_month)
+        date_end = "{YYYY}-{MM}".format(YYYY=end.year, MM=end_month)
+        print("user_name is: {}".format(user_name))
 
-        query = {"start": {"$gte": pd.to_datetime(date_start), "$lt": pd.to_datetime(date_end)}}
+        if 'all' in user_name:
+            # query without filter on user_name
+            query = {"start": {"$gte": pd.to_datetime(date_start), "$lt": pd.to_datetime(date_end)}}
+        elif 'empty' in user_name:
+            # query with the user_name that made the request if no user_name is matched in the regex
+            query = {"start": {"$gte": pd.to_datetime(date_start), "$lt": pd.to_datetime(date_end)}, "user_name": input_user_name}
+        else:
+            # otherwise user_name will be set to what is captured in the user_name_regex
+            query = {"start": {"$gte": pd.to_datetime(date_start), "$lt": pd.to_datetime(date_end)}, "user_name": user_name}
+
+        print(query)
 
         # filter fields to not display : 0
         users = mongo.db.users.find(query, {"_id": 0, "user_id": 0, "end": 0})
@@ -220,7 +238,7 @@ def fetch():
             "chat.postMessage",
             channel=channel_id,
             user=user_id,
-            text="```" + frame.to_string(index=False, justify='center') + "```" + "http://{}:5000/data".format(my_ip)
+            text="```" + frame.to_string(index=False, justify='center') + "```" + API_DATA_ENDPOINT
         )
 
         # save query to redis
