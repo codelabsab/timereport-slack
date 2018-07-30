@@ -14,6 +14,7 @@ pip install zappa
 zappa deploy timereport
 
 ```
+```
 # zappa_settings.json
 {
     "timereport": {
