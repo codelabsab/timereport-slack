@@ -2,18 +2,15 @@
 import os
 import re
 import datetime
-import json
 
-from pprint import pprint
-from dateutil.parser import parse
-from flask import Flask, request, make_response, Response, jsonify
-from slackeventsapi import SlackEventAdapter
+from flask import Flask, request, make_response, jsonify, render_template
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
-from flask_pymongo import PyMongo
+
 
 # load .env file with secrets
 load_dotenv(find_dotenv())
+finditer = re.finditer
 
 # Your app's Slack bot user token
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
@@ -26,22 +23,26 @@ slack_client = SlackClient(SLACK_BOT_TOKEN)
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
-# MONGO DB VALUES
-app.config['MONGO_HOST'] = os.environ["MONGO_HOST"]
-app.config['MONGO_PORT'] = os.environ["MONGO_PORT"]
-app.config['MONGO_USERNAME'] = os.environ["MONGO_USERNAME"]
-app.config['MONGO_PASSWORD'] = os.environ["MONGO_PASSWORD"]
-app.config['MONGO_DBNAME'] = os.environ["MONGO_DBNAME"]
-app.config["MONGO_URI"] = "mongodb://{}:{}@{}:{}/{}".format(os.environ["MONGO_USERNAME"], os.environ["MONGO_PASSWORD"], os.environ["MONGO_HOST"], os.environ["MONGO_PORT"], os.environ["MONGO_DBNAME"])
-
-mongo = PyMongo(app, connect=False)
+# global regex
+date_regex_start = "([0-9]{4}-[0-9]{2}-[0-9]{2}|today)"
+date_regex_end = ":([0-9]{4}-[0-9]{2}-[0-9]{2})?"
+hour_regex = " ([0-9]) "
+type_regex = "(vab|betald_sjukdag|obetald_sjukdag|ledig|semester|foraldrar_ledigt)"
 
 # Helper for validating a date string
 def validateDate(date):
     try:
         datetime.datetime.strptime(date, '%Y-%m-%d')
     except ValueError:
-        return ValueError("Incorrect date format, should be YYYY-MM-DD")
+        return ValueError("Invalid date, should be YYYY-MM-DD")
+
+def validateRegex(regex, text):
+    result = [i for i in finditer(regex, text) if i]
+    if result:
+        for match in result:
+            return match.group(1)
+    else:
+        return ("empty")
 
 # Helper for verifying that requests came from Slack
 def verify_slack_token(request_token):
@@ -58,19 +59,29 @@ def postEphemeral(attachment, channel_id, user_id):
             attachments=attachment
     )
 
-def postMessage(channel_id, user_id, type_id, date, hours, attachment=None):
+def postMessage(channel_id, user_id, user_name, type_id, hours, date_start, date_end, attachment=None):
     if attachment is None:
         attachment=[
         {
             "fields": [
                 {
+                    "title": "User",
+                    "value": "{}".format(user_name)
+                },
+
+                {
                     "title": "Type",
                     "value": "{}".format(type_id)
                 },
                 {
-                    "title": "Date",
-                    "value": "{}".format(date)
+                    "title": "Date start",
+                    "value": "{}".format(date_start)
                 },
+                {
+                    "title": "Date end",
+                    "value": "{}".format(date_end)
+                },
+
                 {
                     "title": "Hours",
                     "value": "{}".format(hours)
@@ -109,16 +120,6 @@ def postMessage(channel_id, user_id, type_id, date, hours, attachment=None):
             attachments=attachment
     )
 
-def dateToday():
-    # create today's date stamp
-    today = datetime.datetime.today()
-    year = today.year
-    month = today.month
-    day = today.day
-    date = "{:4d}-{:02d}-{:02d}".format(year, month, day)
-    validateDate(date)
-    return date
-
 @app.route("/", methods=["POST"])
 def timereport():
     # save the token
@@ -128,18 +129,13 @@ def timereport():
 
     # assign the request values
     channel_id = request.form.get('channel_id')
+    input_user_name = request.form.get('user_name')
     user_id = request.form.get('user_id')
     text = request.form.get('text')
     command = request.form.get('command')
-    response_url = request.form.get('response_url')
-    trigger = request.form.get('trigger_id')
-    deviation_type = ["vab", "betald_sjukdag", "obetald_sjukdag", "ledig", "semester", "foraldrar_ledigt", "end" ]
-
-    # split text arguments into list
-    text_list = text.split(' ')
 
     # the dialog to display if nothing or help was the input
-    if "help" in text_list[0] or len(text) == 0:
+    if "help" in text or len(text) == 0:
         help_menu=[
             {
             "color": "#3A6DE1",
@@ -147,7 +143,7 @@ def timereport():
             "fields": [
                 {
                     "title": "{} <type> <today> <hours|optional>".format(command),
-                    "value": "create a single day deviation of <type> at <today>"
+                    "value": "create a deviation of <type> at <today>"
 
                 },
 		{
@@ -155,12 +151,17 @@ def timereport():
                     "value": "create a single day deviation of <type> at <date> <hours|optional>"
                 },
                 {
+                    "title": "{} <type> <YYYY-MM-DD>:<YYYY-MM-DD|optional> <hours|optional>".format(command),
+                    "value": "create a deviation of <type> at <start date>:<end date|optional> <hours|optional>"
+                },
+
+                {
                     "title": "Argument: <type>",
-                    "value": "{}".format(' '.join(deviation_type).replace(' ', ' | '))
+                    "value": "{}".format(type_regex)
                 },
                 {
-                    "title": "Argument: <today|<YYYY-MM-DD>",
-                    "value": "<today> will set todays date or use <YYYY-MM-DD> format to specify date."
+                    "title": "Argument: <today|<YYYY-MM-DD>:<YYYY-MM-DD>",
+                    "value": "<today> will set todays date or use <YYYY-MM-DD>:<YYYY-MM-DD> format to specify date start or optional date end range."
                 },
                 {
                     "title": "Argument: <hours|optional>",
@@ -173,39 +174,38 @@ def timereport():
           ]
 
         postEphemeral(help_menu, channel_id, user_id)
-    # are we providing at least 2 arguments but not more than 3
-    elif len(text_list) >=2 or len(text_list) <=3:
 
-        # is first argument the type_id we have in deviation_type
-        if text_list[0] in deviation_type:
-            type_id = text_list[0]
-        else:
-            return make_response("wrong <type> argument: {}".format(text_list[0]), 200)
+    # use the global regex
+    date_start = validateRegex(date_regex_start, text)
+    date_end = validateRegex(date_regex_end, text)
+    hours = validateRegex(hour_regex, text)
+    type_id = validateRegex(type_regex, text)
 
-        if "today" in text_list[1]:
-            # set date to today
-            date = dateToday()
-           # validate second parameter so it is a correct formatted date (return None if successful)
-        elif validateDate(''.join(text_list[1])) is None:
-            # set date variable
-            date = ''.join(text_list[1])
-        else:
-            return make_response("wrong <date> provided: {}".format(text_list[1]), 200)
-
-        # get hours from last argument proided
-        if re.match('^[0-8]$', ''.join(text_list[-1:])):
-            hours = ''.join(text_list[-1:])
-        elif ''.join(text_list[-1:]) == "today" or ''.join(text_list[-1:]) == date:
-            # default to 8 hours if last parameter is the date parameter
-            hours = '8'
-        else:
-            return make_response("wrong <hours> provided: {} instead of [1-8]".format(''.join(text_list[-1:])))
-
-        # if we get here then everything should be fine and we have collected all values
-        postMessage(channel_id, user_id, type_id, date, hours)
+    if 'empty' in date_start:
+        # assume today's date
+        date_start = datetime.datetime.now().strftime("%Y-%m-%d")
     else:
-        return make_response("wrong number of arguments provided: {}. <type> <date|today> <hours|optional>".format(len(text_list)), 200)
+        # validate date
+        validateDate(date_start)
+    if 'empty' in date_end:
+        # assign date_start to date_end
+        date_end = date_start
+    if 'empty' in hours:
+        # assign 8 hours as default
+        hours =  8
+    if 'empty' in type_id:
+        return make_response("wrong <type> argument. Allowed {}".format(type_regex, 200))
 
+    # TODO BUILD USERNAME REGEX
+    # capture the user name
+    user_name_regex = "(?:{typid}).(?:{start}).(?:{end})?.(?:{hours})?(.*)".format(typid=type_id, start=date_start, end=date_end, hours=hours)
+    user_name = validateRegex(user_name_regex, text)
+
+    if 'empty' in user_name:
+        user_name = input_user_name
+
+    # post
+    postMessage(channel_id, user_id, user_name, type_id, hours, date_start, date_end)
 
     # return ok here
     return make_response("", 200)
@@ -213,3 +213,4 @@ def timereport():
 # Start the Flask server
 if __name__ == "__main__":
    app.run(host="0.0.0.0", port=os.environ["LISTEN_PORT"])
+

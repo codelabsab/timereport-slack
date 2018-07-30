@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 import os
 import re
-import datetime
 import json
+import pandas as pd
+import redis
 
-from pprint import pprint
-from dateutil.parser import parse
-from flask import Flask, request, make_response, Response, jsonify
-from slackeventsapi import SlackEventAdapter
+from flask import Flask, request, make_response, jsonify, render_template
+from flask_sessionstore import Session
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
 from flask_pymongo import PyMongo
+from requests import get
 
 # load .env file with secrets
 load_dotenv(find_dotenv())
+finditer = re.finditer
 
 # Your app's Slack bot user token
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
@@ -22,9 +23,22 @@ SLACK_VERIFICATION_TOKEN = os.environ["SLACK_VERIFICATION_TOKEN"]
 # Slack client for Web API requests
 slack_client = SlackClient(SLACK_BOT_TOKEN)
 
+# redis db
+REDIS_DB = os.environ['REDIS_DB']
+REDIS_PORT = os.environ['REDIS_PORT']
+REDIS_PASSWORD = os.environ['REDIS_PASSWORD']
+
 # Flask webserver for incoming traffic from Slack
 app = Flask(__name__)
+app.config.from_object(__name__)
 app.config['DEBUG'] = True
+# session data
+app.config['SESSION_TYPE'] = 'redis'
+rdb = redis.Redis(host=REDIS_DB, port=REDIS_PORT, db=0, password=REDIS_PASSWORD)
+app.config['SESSION_REDIS'] = rdb
+app.config['SESSION_EXPIRY_MINUTES'] = 60
+app.config['SESSION_COOKIE_NAME'] = "session"
+Session(app)
 
 # MONGO DB VALUES
 app.config['MONGO_HOST'] = os.environ["MONGO_HOST"]
@@ -32,9 +46,21 @@ app.config['MONGO_PORT'] = os.environ["MONGO_PORT"]
 app.config['MONGO_USERNAME'] = os.environ["MONGO_USERNAME"]
 app.config['MONGO_PASSWORD'] = os.environ["MONGO_PASSWORD"]
 app.config['MONGO_DBNAME'] = os.environ["MONGO_DBNAME"]
-app.config["MONGO_URI"] = "mongodb://{}:{}@{}:{}/{}".format(os.environ["MONGO_USERNAME"], os.environ["MONGO_PASSWORD"], os.environ["MONGO_HOST"], os.environ["MONGO_PORT"], os.environ["MONGO_DBNAME"])
+app.config["MONGO_URI"] = "mongodb://{}:{}@{}:{}/{}".format(os.environ["MONGO_USERNAME"], os.environ["MONGO_PASSWORD"],
+                                                            os.environ["MONGO_HOST"], os.environ["MONGO_PORT"],
+                                                            os.environ["MONGO_DBNAME"])
 
 mongo = PyMongo(app, connect=False)
+
+# global regex
+date_regex_start = "([0-9]{4}-[0-9]{2}-[0-9]{2}|today)"
+date_regex_end = ":([0-9]{4}-[0-9]{2}-[0-9]{2})?"
+hour_regex = " ([0-9]) "
+type_regex = "(vab|betald_sjukdag|obetald_sjukdag|ledig|semester|foraldrar_ledigt)"
+
+# hostname ip
+my_ip = get('https://api.ipify.org').text
+
 
 # Helper for verifying that requests came from Slack
 def verify_slack_token(request_token):
@@ -45,45 +71,31 @@ def verify_slack_token(request_token):
 
 def chatUpdate(channel_id, message_ts, text, user_id):
     slack_client.api_call(
-              "chat.update",
-              channel=channel_id,
-              ts=message_ts,
-              text="<@{}> {}".format(user_id, text),
-              attachments=[] # empty `attachments` to clear the existing massage attachments
+        "chat.update",
+        channel=channel_id,
+        ts=message_ts,
+        text="<@{}> {}".format(user_id, text),
+        attachments=[]  # empty `attachments` to clear the existing massage attachments
     )
 
-def mongoSubmit(user_id, user_name, input_type_id, input_hours, input_date, input_date_end=None):
-    # strip date into smaller chunks
-    date_year = input_date.split('-')[0]
-    date_month = input_date.split('-')[1]
-    date_day = input_date.split('-')[2]
 
-    # set to start date if end is not given
-    if input_date_end is None:
-        date_end = input_date
-        date_month_end = date_month
-        date_day_end = date_day
-
-    return mongo.db.users.insert(
-    {
+def mongoSubmit(user_id, user_name, input_type_id, input_hours, input_date_start, input_date_end):
+    insert = {
         "user_id": user_id,
         "user_name": user_name,
         "type_id": input_type_id,
         "hours": input_hours,
-        "date": {
-            "date": input_date,
-            "date_end": date_end,
-            "date_year": date_year,
-            "date_month": date_month,
-            "date_month_end": date_month_end,
-            "date_day": date_day,
-            "date_day_end": date_day_end
-        }
-    })
+        "start": pd.to_datetime(input_date_start),
+        "end": pd.to_datetime(input_date_end),
+    }
+    mongo.db.users.insert(insert)
+
+
+    return "success"
+
 
 @app.route("/", methods=["POST"])
 def message_actions():
-
     # Parse the request payload
     form_json = json.loads(request.form["payload"])
 
@@ -98,38 +110,42 @@ def message_actions():
     user_name = form_json['user']['name']
 
     if form_json["type"] == "interactive_message":
-        # save values
+        # save values type_id, date, hours
         selection = form_json["actions"][0]["value"]
-        input_type_id = json.dumps(form_json["original_message"]["attachments"][0]["fields"][0]["value"]).strip('"')
-        input_hours = json.dumps(form_json["original_message"]["attachments"][0]["fields"][2]["value"]).strip('"')
-        input_date = json.dumps(form_json["original_message"]["attachments"][0]["fields"][1]["value"]).strip('"')
-        date_month = input_date.split('-')[1]
+
+        fields = form_json["original_message"]["attachments"][0]["fields"]
+
+        input_user_name = fields[0]['value']
+
+        input_type_id = fields[1]['value']
+
+        input_date_start = fields[2]['value']
+
+        input_date_end = fields[3]['value']
+
+        input_hours = fields[4]['value']
 
         if selection == "submit_yes":
-            # do DB stuff here
-            print("doing database stuff")
-            print("user_id: {}\n user_name: {}\n, input_type_id: {}\n, input_hours: {}\n, input_date: {}\n".format(repr(user_id), repr(user_name), repr(input_type_id), repr(input_hours), repr(input_date)))
-            mongoSubmit(user_id, user_name, input_type_id, input_hours, input_date)
-            users = mongo.db.users.find({ "date.date_year": "2018", "date.date_month": "03" })
-            for u in users:
-                pprint(u)
+            # debug
+            # print(input_date_start)
+            # print(input_date_end)
+            # submit to db
+            # submit all ranges if multiple
+            for t in pd.date_range(pd.to_datetime(input_date_start), pd.to_datetime(input_date_end)):
+                mongoSubmit(user_id, input_user_name, input_type_id, input_hours, pd.to_datetime(t), input_date_end)
 
             chatUpdate(channel_id, message_ts, "submitted timereports successfully :thumbsup:", user_id)
 
             # Send an HTTP 200 response with empty body so Slack ktodays we're done here
             return make_response("", 200)
-
-
         else:
             return make_response("canceling...", 200)
-
-    else:
-        print("regular message stuff")
-
 
     # Send an HTTP 200 response with empty body so Slack ktodays we're done here
     return make_response("", 200)
 
+
 # Start the Flask server
 if __name__ == "__main__":
-   app.run(host="0.0.0.0", port=os.environ["LISTEN_PORT"])
+    app.run(host="0.0.0.0", port=os.environ["LISTEN_PORT"])
+
