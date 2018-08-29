@@ -178,8 +178,7 @@ def timereport():
             datetime.datetime.strptime(date, '%Y-%m-%d')
         except ValueError:
             log.warning("Invalid date format. Expected 'YYYY-MM-DD'")
-
-        validateDate(date_start)
+            
     if 'empty' in date_end:
         # assign date_start to date_end
         date_end = date_start
