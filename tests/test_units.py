@@ -1,4 +1,4 @@
-from timereport.validators import validateDate, validateRegex
+from timereport.validators import validateRegex
 
 
 def test_validateRegex_empty():
