@@ -176,7 +176,7 @@ def timereport():
     else:
         # validate date
         try:
-            datetime.datetime.strptime(date, '%Y-%m-%d')
+            datetime.datetime.strptime(date_start, '%Y-%m-%d')
         except ValueError:
             log.warning("Invalid date format. Expected 'YYYY-MM-DD'")
 
