@@ -5,7 +5,7 @@ import datetime
 from flask import Flask, request, make_response
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
-from timereport.validators import validateDate, validateRegex
+from validators import validateDate, validateRegex
 
 
 # load .env file with secrets
