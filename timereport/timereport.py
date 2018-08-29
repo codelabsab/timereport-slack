@@ -6,6 +6,9 @@ from flask import Flask, request, make_response
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
 from validators import validateDate, validateRegex
+import logging
+
+log = logging.getLogger(__name__)
 
 
 # load .env file with secrets
@@ -171,6 +174,11 @@ def timereport():
         date_start = datetime.datetime.now().strftime("%Y-%m-%d")
     else:
         # validate date
+        try:
+            datetime.datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            log.warning("Invalid date format. Expected 'YYYY-MM-DD'")
+
         validateDate(date_start)
     if 'empty' in date_end:
         # assign date_start to date_end
