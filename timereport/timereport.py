@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 import os
-import re
 import datetime
 
-from flask import Flask, request, make_response, jsonify, render_template
+from flask import Flask, request, make_response
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
+from timereport.validators import validateDate, validateRegex
 
 
 # load .env file with secrets
 load_dotenv(find_dotenv())
-finditer = re.finditer
 
 # Your app's Slack bot user token
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
@@ -29,20 +28,6 @@ date_regex_end = ":([0-9]{4}-[0-9]{2}-[0-9]{2})?"
 hour_regex = " ([0-9]) "
 type_regex = "(vab|betald_sjukdag|obetald_sjukdag|ledig|semester|foraldrar_ledigt)"
 
-# Helper for validating a date string
-def validateDate(date):
-    try:
-        datetime.datetime.strptime(date, '%Y-%m-%d')
-    except ValueError:
-        return ValueError("Invalid date, should be YYYY-MM-DD")
-
-def validateRegex(regex, text):
-    result = [i for i in finditer(regex, text) if i]
-    if result:
-        for match in result:
-            return match.group(1)
-    else:
-        return ("empty")
 
 # Helper for verifying that requests came from Slack
 def verify_slack_token(request_token):
