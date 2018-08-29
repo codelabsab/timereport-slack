@@ -1,12 +1,4 @@
-import datetime
 import re
-
-
-def validateDate(date):
-    try:
-        datetime.datetime.strptime(date, '%Y-%m-%d')
-    except ValueError:
-        raise ValueError("Invalid date, should be YYYY-MM-DD")
 
 
 def validateRegex(regex, text):
