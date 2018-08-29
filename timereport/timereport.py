@@ -5,7 +5,7 @@ import datetime
 from flask import Flask, request, make_response
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
-from validators import validateDate, validateRegex
+from validators import validateRegex
 import logging
 
 log = logging.getLogger(__name__)
@@ -178,7 +178,7 @@ def timereport():
             datetime.datetime.strptime(date, '%Y-%m-%d')
         except ValueError:
             log.warning("Invalid date format. Expected 'YYYY-MM-DD'")
-            
+
     if 'empty' in date_end:
         # assign date_start to date_end
         date_end = date_start
