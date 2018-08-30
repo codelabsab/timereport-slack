@@ -5,7 +5,7 @@ import datetime
 from flask import Flask, request, make_response
 from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
-from validators import validateRegex
+from validators import validate_regex
 import logging
 
 log = logging.getLogger(__name__)
@@ -163,10 +163,10 @@ def timereport():
         post_ephemeral(help_menu, channel_id, user_id)
 
     # use the global regex
-    date_start = validateRegex(date_regex_start, text)
-    date_end = validateRegex(date_regex_end, text)
-    hours = validateRegex(hour_regex, text)
-    type_id = validateRegex(type_regex, text)
+    date_start = validate_regex(date_regex_start, text)
+    date_end = validate_regex(date_regex_end, text)
+    hours = validate_regex(hour_regex, text)
+    type_id = validate_regex(type_regex, text)
 
     if 'empty' in date_start:
         # assume today's date
@@ -194,7 +194,7 @@ def timereport():
                                                                                    end=date_end,
                                                                                    hours=hours)
 
-    user_name = validateRegex(user_name_regex, text)
+    user_name = validate_regex(user_name_regex, text)
 
     if 'empty' in user_name:
         user_name = input_user_name
