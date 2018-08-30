@@ -1,8 +1,8 @@
-from timereport.validators import validateRegex
+from timereport.validators import validate_regex
 
 
 def test_validateRegex_empty():
-    test = validateRegex('no', 'match')
+    test = validate_regex('no', 'match')
     assert test == 'empty'
 
 
