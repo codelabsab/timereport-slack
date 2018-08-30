@@ -7,7 +7,7 @@ from slackclient import SlackClient
 from dotenv import load_dotenv, find_dotenv
 from validators import validate_regex
 import logging
-
+import config
 log = logging.getLogger(__name__)
 
 
@@ -24,12 +24,6 @@ slack_client = SlackClient(SLACK_BOT_TOKEN)
 # Flask webserver for incoming traffic from Slack
 app = Flask(__name__)
 app.config['DEBUG'] = True
-
-# global regex
-date_regex_start = "([0-9]{4}-[0-9]{2}-[0-9]{2}|today)"
-date_regex_end = ":([0-9]{4}-[0-9]{2}-[0-9]{2})?"
-hour_regex = " ([0-9]) "
-type_regex = "(vab|betald_sjukdag|obetald_sjukdag|ledig|semester|foraldrar_ledigt)"
 
 
 # Helper for verifying that requests came from Slack
@@ -162,11 +156,11 @@ def timereport():
 
         post_ephemeral(help_menu, channel_id, user_id)
 
-    # use the global regex
-    date_start = validate_regex(date_regex_start, text)
-    date_end = validate_regex(date_regex_end, text)
-    hours = validate_regex(hour_regex, text)
-    type_id = validate_regex(type_regex, text)
+    # use regex from config
+    date_start = validate_regex(config.date_regex_start, text)
+    date_end = validate_regex(config.date_regex_end, text)
+    hours = validate_regex(config.hour_regex, text)
+    type_id = validate_regex(config.type_regex, text)
 
     if 'empty' in date_start:
         # assume today's date
