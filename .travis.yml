@@ -7,9 +7,9 @@ before_install:
   - ./create_aws_credentials.sh
 after_success:
   - cd timereport
-  - pip install -r requirements.txt
   - ./create_zappa.sh
-  - zappa update timereport
+  - pip install -r requirements.txt
+  - zappa update
 env:
   global:
   - secure: CT9GTqsInO4t92faJpv64MZIXNZRkC5ipbJHioVgcDiiRNnyaZZljyVzAdPJ26YhkRziKwgz1XBV1kRM0Lg48jrLf2oAIp7oEYghmKzcAcwLIyCNFFWSPxn7A8zkYbATVRiT2v58jPMPipNW7oy65ebePAs8MmW2cS/alvSMPBQeDzers6lslY4PoZhDpyD+aRfOpFRLOuFzlJHinydr/JEfzXCrikm88qaLM5OElpLIf+ltyCMLEyzFlcyayBo46jdxCoKl4deeyzNT46QBxctWl7KEN47qja4UvPcyWzWad8CqAWsNfYYl6/9FDjRQ+QDTsa5asjItU9gdSSWp+zcbxfL0e33Fp6goJxfhtOfxcxoFs9mfL8Rs3TXxxGL2Zu9RIL0Zv3WKBBzZjDUjtzC4xh2PWVowIXHHbs8iErg3CP/sF3BYPqe7zAArm70jUo7xZFSjqoP6BbJCg1/kJzUrtcs/VYaHpPPDPtdtcgT9DdxB+adVz+hQovkF2C4HNjk+GUxsI0iWEnTK/NOLf6LmsoNNhWOEWphn6laQ4JZphiTcW6cD1U5hxCy4Wxyaa3BDPc9wbpSG9yJ5SZ5AIC3P3uj90E9BK0yLj9GYNUBr7YzqVF6+zBlYwaJfQ3BhEUaLVc9K8AVCvYrq4/g+9O3pqbCjuibqq14OjA+lGRM=

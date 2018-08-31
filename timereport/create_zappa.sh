@@ -7,7 +7,7 @@ cat << EOF > zappa_settings.json
         "app_function": "timereport.app",
         "profile_name": "default",
         "project_name": "slack_timereport",
-        "runtime": "python$TRAVIS_PYTHON_VERSION",
+        "runtime": "python3.6",
         "s3_bucket": "timereport.codelabs.se",
         "aws_region": "us-east-1",
         "aws_environment_variables": {
