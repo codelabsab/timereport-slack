@@ -138,7 +138,7 @@ def timereport():
 
                     {
                         "title": "Argument: <type>",
-                        "value": "{}".format(type_regex)
+                        "value": "{}".format(config.type_regex)
                     },
                     {
                         "title": "Argument: <today|<YYYY-MM-DD>:<YYYY-MM-DD>",
@@ -179,7 +179,7 @@ def timereport():
         # assign 8 hours as default
         hours = 8
     if 'empty' in type_id:
-        return make_response("wrong <type> argument. Allowed {}".format(type_regex, 200))
+        return make_response("wrong <type> argument. Allowed {}".format(config.type_regex, 200))
 
     # TODO BUILD USERNAME REGEX
     # capture the user name
