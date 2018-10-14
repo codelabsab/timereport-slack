@@ -189,6 +189,8 @@ def timereport():
                                                                                    hours=hours)
 
     user_name = validate_regex(user_name_regex, text)
+    # strip empty space
+    user_name = user_name.strip()
 
     if 'empty' in user_name:
         user_name = input_user_name
