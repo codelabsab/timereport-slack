@@ -1,0 +1,23 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - echo install pymongo
+      - pip install pymongo -t $(pwd)
+  pre_build:
+    commands:
+      - echo fix permissions
+      - chmod -R 755 .
+  build:
+    commands:
+      - echo Build started on `date`
+      - zip -r ../myfile.zip .
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo update zip file
+      - aws lambda update-function-code --zip-file fileb://../mongoimportexport.zip --function-name mongodump
+artifacts:
+  files:
+    - ../*.zip
+

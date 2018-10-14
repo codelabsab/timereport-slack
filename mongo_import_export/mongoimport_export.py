@@ -22,13 +22,13 @@ def lambda_handler(event, context):
   db = mongo[MONGO_DBNAME]
 
   # export prod collection
-  with open('users.bson', 'wb+') as f:
+  with open('/tmp/users.bson', 'wb+') as f:
       for doc in db.users.find():
           f.write(BSON.encode(doc))
 
   # drop existing dev collection
   db.users_dev.drop()
   # import new from prod
-  with open('users.bson', 'rb') as f:
+  with open('/tmp/users.bson', 'rb') as f:
       db.users_dev.insert(decode_all(f.read()))
   mongo.close()
