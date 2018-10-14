@@ -5,6 +5,9 @@ name = "pypi"
 
 [packages]
 pytest = "*"
+python-dotenv = "*"
+slackclient = "*"
+flask = "*"
 
 [dev-packages]
 
