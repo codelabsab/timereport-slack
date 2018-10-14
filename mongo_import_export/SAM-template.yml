@@ -1,0 +1,28 @@
+﻿AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Copy Prod mlab database collection to users_dev collection
+Resources:
+  mongodump:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: mongoimport_export.lambda_handler
+      Runtime: python3.6
+      CodeUri: .
+      Description: Copy Prod mlab database collection to users_dev collection
+      MemorySize: 128
+      Timeout: 3
+      Role: 'arn:aws:iam::106618949447:role/lambda_basic_execution'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(4 minutes)
+      Environment:
+        Variables:
+          MONGO_DBNAME: timereport
+          MONGO_HOST: '{{resolve:ssm:MONGO_HOST:1}}'
+          MONGO_PASSWORD: '{{resolve:ssm:MONGO_PASSWORD:1}}'
+          MONGO_PORT: '47451'
+          MONGO_USERNAME: '{{resolve:ssm:MONGO_USERNAME:1}}'
+      Tags:
+        Name: Prod
