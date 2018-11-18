@@ -2,22 +2,45 @@
 ```
 .
 ├── Readme.md
+├── requirements.txt
 ├── responder
 │   ├── __init__.py
 │   ├── __main__.py
 │   ├── api.py
 │   └── validator.py
+├── static
+├── templates
+├── terraform
+│   ├── 01-tags.tf
+│   ├── api_gateway.tf
+│   ├── iam.tf
+│   ├── lambda.tf
+│   ├── main.tf
+│   └── variables.tf
 └── test
     ├── __init__.py
         └── test_validator.py
 
-        2 directories, 7 files
+        5 directories, 14 files
 
 ```
 in project dir run:
 
 ```
 python -m unittest test/test_validator.py -v
+
+python responder/__main__.py
 ```
 
+```
+# to deploy to aws use terraform directory
+# requires ssm parameter store variable set
+# aws credentials configured
+# variables.tf:  updated with your values
+# main.tf : update backend s3 storage values 
+
+terraform init
+terraform plan
+terraform deploy
+```
 ####
