@@ -1,9 +1,11 @@
 import validator
+import api as responder
+
 
 def main():
 
-    v = validator
-    pass
+    # responder api
+    responder.api.run()
 
 if __name__ == '__main__':
     main()
