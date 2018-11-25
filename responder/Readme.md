@@ -29,7 +29,6 @@ in project dir run:
 ```
 python -m unittest test/test_validator.py -v
 
-python responder/__main__.py
 ```
 
 ```
