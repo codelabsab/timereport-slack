@@ -35,8 +35,7 @@ def lambda_handler(event, context):
     )
     if response.status_code != 200:
         raise ValueError(
-            'Request to slack returned an error %s, the response is:\n%s'
-            % (response.status_code, response.text)
+            f"Request to slack returned an error {response.status_code}, the response is:\n{response.text}"
         )
     else:
         return 200
@@ -63,3 +62,4 @@ def add_action():
 
 def list_action():
     pass
+
