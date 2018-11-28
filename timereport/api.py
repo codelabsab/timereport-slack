@@ -16,21 +16,8 @@ def lambda_handler(event, context):
     logger.info(f"Recevied event body is parsed \n {parse_qs(event['body'])}")
 
     body = parse_qs(event['body'])
-
-    # this is what we get back from a slash command as list
-    # so we get the string only using index 0
-
-    token = body['token'][0]
-    team_id = body['team_id'][0]
-    team_domain = body['team_domain'][0]
-    channel_id = body['channel_id'][0]
-    channel_name = body['channel_name'][0]
-    user_id = body['user_id'][0]
-    user_name = body['user_name'][0]
-    command = body['command'][0]
     text = body['text'][0]
     response_url = body['response_url'][0]
-    trigger_id = body['trigger_id'][0]
 
     response = requests.post(
         response_url, data=json.dumps(dict(text=text)),
