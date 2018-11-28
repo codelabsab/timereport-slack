@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 botocore = "*"
 pytest = "*"
+mockito = "*"
 
 [dev-packages]
 
