@@ -4,6 +4,9 @@ from . import test_data
 from mockito import when, mock, unstub
 from botocore.vendored import requests
 import pytest
+import logging
+
+logging.getLogger().setLevel(logging.CRITICAL)
 
 
 def test_lambda_handler():
@@ -11,7 +14,7 @@ def test_lambda_handler():
     response = mock({'status_code': 200, 'text': 'Ok'})
     when(requests).post(
         'https://hooks.slack.com/commands/T2FG58LDV/491076166711/bVUlrKZrnElSOBUqn01FoxNf',
-        data='{"text": "vab today"}',
+        data='{"text": "add vab today"}',
         headers={'Content-Type': 'application/json'}
     ).thenReturn(response)
 
@@ -19,10 +22,12 @@ def test_lambda_handler():
     unstub()
 
 
-def test_validate():
-    assert api.validate_input("add fake args") is None
+def test_validate_add():
+
+    fake_actions = {'add': 'foo'}
+    assert api.get_action("add fake args", [*fake_actions.keys()]) == 'add'
 
 
 def test_faulty_action():
     with pytest.raises(ValueError):
-        assert api.validate_input("fake_argument")
+        assert api.get_action(text="fake_argument", valid_actions=['fake'])

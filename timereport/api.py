@@ -9,8 +9,6 @@ from botocore.vendored import requests
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-valid_actions = ('add', 'list')
-
 
 def lambda_handler(event, context):
     logger.info(f"Received event is dumped in JSON format:\n{json.dumps(event, indent=2)}")
@@ -20,6 +18,14 @@ def lambda_handler(event, context):
     body = parse_qs(event['body'])
     text = body['text'][0]
     logger.info(f"Text is: {text}")
+
+    actions = {
+        'add': add_action,
+        'list': list_action,
+    }
+
+    action = get_action(text, [*actions.keys()])
+    actions[action]()
 
     response_url = body['response_url'][0]
 
@@ -36,14 +42,24 @@ def lambda_handler(event, context):
         return 200
 
 
-def validate_input(text):
+def get_action(text, valid_actions):
     """
-    Validate the commands parsed from Slack
+    Get the action command parsed from Slack
     :param text: A string of commands
+    :param valid_actions: A list of valid actions
+    :return str
     """
 
-    commands = text.split()
-    if commands[0] not in valid_actions:
-        raise ValueError(
-            "Action '%s' is not a valid action" % commands[0]
-        )
+    action = text.split()[0]
+    logger.debug(f"Action is: {action}")
+    if action not in valid_actions:
+        raise ValueError(f"Action '{action}' is not a valid action")
+
+    return action
+
+
+def add_action():
+    pass
+
+def list_action():
+    pass
