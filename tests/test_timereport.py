@@ -3,6 +3,7 @@ import json
 from . import test_data
 from mockito import when, mock, unstub
 from botocore.vendored import requests
+import pytest
 
 
 def test_lambda_handler():
@@ -16,3 +17,12 @@ def test_lambda_handler():
 
     assert api.lambda_handler(fake_event, context=None) == 200
     unstub()
+
+
+def test_validate():
+    assert api.validate_input("add fake args") is None
+
+
+def test_faulty_action():
+    with pytest.raises(ValueError):
+        assert api.validate_input("fake_argument")
