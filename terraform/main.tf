@@ -10,16 +10,16 @@ provider "archive" {
 
 # get accountID
 data "aws_caller_identity" "accountId" {}
-
-data "aws_ssm_parameter" "slack_responder_webhook_url" {
-  name = "/slack/responder/webhook_url"
-}
-
-# responder main lambda
+#
+#data "aws_ssm_parameter" "slack_timereport_webhook_url" {
+#  name = "/slack/timereport/webhook_url"
+#}
+#
+# timereport main lambda
 # archive zip file
 data "archive_file" "__main__" {
   type        = "zip"
-  source_dir = "${path.module}/../responder/"
+  source_dir = "${path.module}/../timereport/"
   output_path = "${path.module}/.terraform/archive_files/__main__.zip"
 }
 
@@ -27,7 +27,7 @@ data "archive_file" "__main__" {
 terraform {
   backend "s3" {
     bucket = "terraform.codelabs.se"
-    key    = "slack/responder/"
+    key    = "slack/timereport/"
     region = "us-east-1"
   }
 }
