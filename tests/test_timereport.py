@@ -31,3 +31,12 @@ def test_validate_add():
 def test_faulty_action():
     with pytest.raises(ValueError):
         assert api.get_action(text="fake_argument", valid_actions=['fake'])
+
+
+def test_add_action():
+    assert api.add_action(['vab', 'args']) is None
+
+
+def test_add_faulty_action():
+    with pytest.raises(ValueError):
+        assert api.add_action(['fake', 'args'])

@@ -5,6 +5,7 @@ import logging
 import json
 from urllib.parse import parse_qs
 from botocore.vendored import requests
+from . import config
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -24,8 +25,9 @@ def lambda_handler(event, context):
         'list': list_action,
     }
 
-    action = get_action(text, [*actions.keys()])
-    actions[action]()
+    command_list = text.split()
+    action = get_action(command_list.pop(0), [*actions.keys()])
+    actions[action](command_list)
 
     response_url = body['response_url'][0]
 
@@ -57,7 +59,10 @@ def get_action(text, valid_actions):
     return action
 
 
-def add_action():
+def add_action(command_list):
+    add_type = command_list.pop(0)
+    if add_type not in config.valid_types:
+        raise ValueError(f"Value '{add_type}' is not a valid type for add")
     pass
 
 
