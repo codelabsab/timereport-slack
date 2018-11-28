@@ -28,10 +28,7 @@ def lambda_handler(event, context):
         headers={'Content-Type': 'application/json'}
     )
     if response.status_code != 200:
-        raise ValueError(
-            'Request to slack returned an error %s, the response is:\n%s'
-            % (response.status_code, response.text)
-        )
+        raise ValueError( f"Request to slack returned an error {response.status_code}, the response is:\n{response.text}")
     else:
         return 200
 
@@ -44,6 +41,4 @@ def validate_input(text):
 
     commands = text.split()
     if commands[0] not in valid_actions:
-        raise ValueError(
-            "Action '%s' is not a valid action" % commands[0]
-        )
+        raise ValueError("Action '{commands[0]}' is not a valid action")
