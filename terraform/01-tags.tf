@@ -13,7 +13,7 @@
 //  The syntax below is ugly, but needed as we are using dynamic key names.
 locals {
   common_tags = "${map(
-    "Name", "responder",
+    "Name", "timereport",
     "Owner", "terraform",
     "Purpose", "slack"
   )}"
