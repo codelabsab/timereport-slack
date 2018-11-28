@@ -11,13 +11,13 @@ logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
-    logger.info(f"Received event is dumped in JSON format:\n{json.dumps(event, indent=2)}")
+    logger.debug(f"Received event is dumped in JSON format:\n{json.dumps(event, indent=2)}")
 
-    logger.info(f"Received event body is parsed \n {parse_qs(event['body'])}")
+    logger.debug(f"Received event body is parsed \n {parse_qs(event['body'])}")
 
     body = parse_qs(event['body'])
     text = body['text'][0]
-    logger.info(f"Text is: {text}")
+    logger.debug(f"Text is: {text}")
 
     actions = {
         'add': add_action,
@@ -59,6 +59,7 @@ def get_action(text, valid_actions):
 
 def add_action():
     pass
+
 
 def list_action():
     pass
