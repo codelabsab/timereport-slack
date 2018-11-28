@@ -68,7 +68,31 @@ def insert_to_db(user_id, user_name, input_type_id, input_hours, input_date):
         "date": pd.to_datetime(input_date),
     }
     mongo.db.events.insert(insert)
-    return
+
+
+def delete_from_db(user_id, input_date):
+    delete_query = {
+        "user_id": user_id,
+        "date": pd.to_datetime(input_date),
+    }
+    deleted = mongo.db.events.delete_one(delete_query)
+    return deleted.deleted_count
+
+
+def update_event_in_db(user_id, input_date, input_type_id, input_hours):
+    find_query = {
+        "user_id": user_id,
+        "date": pd.to_datetime(input_date),
+    }
+    update_data = {
+        "$set": {
+            "type_id": input_type_id,
+            "hours": input_hours,
+        }
+    }
+    updated = mongo.db.events.update_one(find_query, update_data)
+    return updated.modified_count
+
 
 @app.route("/", methods=["POST"])
 def message_actions():

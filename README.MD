@@ -181,7 +181,7 @@ START RequestId: 92d6013b-f303-11e8-af88-773d6f829094 Version: $LATEST
         "domainName": "something.execute-api.us-east-1.amazonaws.com",
         "apiId": "hp2zas87ei"
     },
-    "body": "token=aaabbbbbcccczzztokenxxxxxx&team_id=T2FG58LDV&team_domain=codelabsab&channel_id=CA8THJML6&channel_name=development&user_id=U2FGC795G&user_name=kamger&command=%2Fno-wsgi&text=apa+banan+kokain+kola+fanta+sprite&response_url=https%3A%2F%2Fhooks.slack.com%2Fcommands%2FT2FG58LDV%2F489856937716%2FJUaZIKdO6f73ofdI3M3l6D9F&trigger_id=489288274320.83549292471.8d89a81c398bcbc9dd35addfd54af992",
+    "body": "token=aaabbbbbcccczzztokenxxxxxx&team_id=T2FG58LDV&team_domain=codelabsab&channel_id=CA8THJML6&channel_name=development&user_id=U2FGC795G&user_name=kamger&command=%2Fno-wsgi&text=testing+data&response_url=https%3A%2F%2Fhooks.slack.com%2Fcommands%2FT2FG58LDV%2F489856937716%2FJUaZIKdO6f73ofdI3M3l6D9F&trigger_id=489288274320.83549292471.8d89a81c398bcbc9dd35addfd54af992",
     "isBase64Encoded": false
 }
 ```
