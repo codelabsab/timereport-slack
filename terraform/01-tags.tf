@@ -13,7 +13,7 @@
 //  The syntax below is ugly, but needed as we are using dynamic key names.
 locals {
   common_tags = "${map(
-    "Name", "timereport",
+    "Name", "slack-api-prod",
     "Owner", "terraform",
     "Purpose", "slack"
   )}"

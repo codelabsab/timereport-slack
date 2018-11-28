@@ -4,3 +4,5 @@ message_actions/*.json
 data/*.json
 .pytest_cache/
 .idea
+terraform/.terraform/
+terraform/terraform.tfstate
