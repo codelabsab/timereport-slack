@@ -81,7 +81,7 @@ def execute_add_action(**kwargs):
 
 
 def list_action():
-    pass
+    raise RuntimeError("Function not implemented yet")
 
 
 def validate_date(date_string):

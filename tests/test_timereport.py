@@ -59,4 +59,10 @@ def test_validate_date_invalid_format():
 def test_execute_add_action():
     # TODO: Write a proper test when function is updated
     with pytest.raises(RuntimeError):
-        assert api.execute_add_action(add_type='fake', add_date='fake', add_hours='fake') is None
+        assert api.execute_add_action(add_type='fake', add_date='fake', add_hours='fake')
+
+
+def test_execute_list_action():
+    # TODO: Write a proper test when function is updated
+    with pytest.raises(RuntimeError):
+        assert api.list_action()
