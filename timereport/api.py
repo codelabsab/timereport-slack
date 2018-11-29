@@ -68,6 +68,17 @@ def add_action(command_list):
     add_date = validate_date(command_list.pop(0))
     add_hours = command_list.pop() if command_list else 8
 
+    # TODO: Implement insertion in DB
+    try:
+        execute_add_action(add_type=add_type, add_date=add_date, add_hours=add_hours)
+    except RuntimeError:
+        pass
+
+
+def execute_add_action(**kwargs):
+    logging.debug(f"Got args: {kwargs}")
+    raise RuntimeError("Function not implemented yet")
+
 
 def list_action():
     pass

@@ -54,3 +54,9 @@ def test_validate_date_invalid_month():
 def test_validate_date_invalid_format():
     with pytest.raises(ValueError):
         api.validate_date('2018:12:01')
+
+
+def test_execute_add_action():
+    # TODO: Write a proper test when function is updated
+    with pytest.raises(RuntimeError):
+        assert api.execute_add_action(add_type='fake', add_date='fake', add_hours='fake') is None
