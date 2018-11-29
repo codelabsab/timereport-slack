@@ -5,10 +5,10 @@ name = "pypi"
 
 [packages]
 botocore = "*"
-pytest = "*"
-mockito = "*"
 
 [dev-packages]
+pytest = "*"
+mockito = "*"
 
 [requires]
 python_version = "3.6"
