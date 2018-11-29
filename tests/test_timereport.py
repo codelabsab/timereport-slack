@@ -14,7 +14,7 @@ def test_lambda_handler():
     response = mock({'status_code': 200, 'text': 'Ok'})
     when(requests).post(
         'https://hooks.slack.com/commands/T2FG58LDV/491076166711/bVUlrKZrnElSOBUqn01FoxNf',
-        data='{"text": "add vab today"}',
+        data='{"text": "add vab 2018-10-01"}',
         headers={'Content-Type': 'application/json'}
     ).thenReturn(response)
 
@@ -34,7 +34,7 @@ def test_faulty_action():
 
 
 def test_add_action():
-    assert api.add_action(['vab', 'args']) is None
+    assert api.add_action(['vab', '2018-10-01']) is None
 
 
 def test_add_faulty_action():
@@ -43,7 +43,7 @@ def test_add_faulty_action():
 
 
 def test_validate_date():
-    assert api.validate_date('2018-10-01') is None
+    assert api.validate_date('2018-10-01') == '2018-10-01'
 
 
 def test_validate_date_invalid_month():
