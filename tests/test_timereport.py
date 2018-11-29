@@ -40,3 +40,17 @@ def test_add_action():
 def test_add_faulty_action():
     with pytest.raises(ValueError):
         assert api.add_action(['fake', 'args'])
+
+
+def test_validate_date():
+    assert api.validate_date('2018-10-01') is None
+
+
+def test_validate_date_invalid_month():
+    with pytest.raises(ValueError):
+        api.validate_date('2018-13-01')
+
+
+def test_validate_date_invalid_format():
+    with pytest.raises(ValueError):
+        api.validate_date('2018:12:01')

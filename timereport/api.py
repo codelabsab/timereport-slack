@@ -6,6 +6,7 @@ import json
 from urllib.parse import parse_qs
 from botocore.vendored import requests
 from . import config
+import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -63,9 +64,14 @@ def add_action(command_list):
     add_type = command_list.pop(0)
     if add_type not in config.valid_types:
         raise ValueError(f"Value '{add_type}' is not a valid type for add")
-    pass
 
 
 def list_action():
     pass
 
+
+def validate_date(date_string):
+    try:
+        datetime.datetime.strptime(date_string, '%Y-%m-%d')
+    except ValueError:
+        raise ValueError("Incorrect data format, should be YYYY-MM-DD")
