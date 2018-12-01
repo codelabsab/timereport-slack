@@ -1,0 +1,14 @@
+{
+	"valid_reasons": [
+		"vab",
+		"sjuk",
+		"intern",
+		"semester"
+	],
+	"valid_actions": [
+		"add",
+		"list",
+		"show"
+	],
+    "log_level": "INFO"
+}
