@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+from timereport.model import Event
+
 def factory(order):
     format_str = "%Y-%m-%d"
     dates, events = [], []
@@ -18,8 +20,16 @@ def factory(order):
     else:
         date_obj = datetime.strptime(date_str, format_str)
         dates.append(date_obj)
+
+
     for event_date in dates:
-        e = Event(user_id, user_name, reason, event_date, hours)
+        # create dict
+        order['user_id'] = user_id
+        order['user_name'] = user_name
+        order['reason'] = reason
+        order['event_date'] = event_date
+        order['hours'] = hours
+        e = Event.Event(**order)
         events.append(e)
     return events
 

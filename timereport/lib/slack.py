@@ -1,3 +1,5 @@
+import os
+
 def slack_responder(url, msg):
     headers = {'Content-Type': 'application/json'}
     res = requests.post(url=url, data={"text": f"{msg}"}, headers=headers)

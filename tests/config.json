@@ -10,5 +10,6 @@
 		"list",
 		"show"
 	],
-    "log_level": "INFO"
+    "log_level": "INFO",
+	"SLACK_TOKEN": "OwjK95k89vMbtbyvhvLZkXNl"
 }
