@@ -11,5 +11,6 @@
 		"show"
 	],
     "log_level": "INFO",
-	"SLACK_TOKEN": "OwjK95k89vMbtbyvhvLZkXNl"
+	"SLACK_TOKEN": "OwjK95k89vMbtbyvhvLZkXNl",
+	"backend_url": "https://randomstring.execute-api.us-east-1.amazonaws.com/Prod/api/timereport2"
 }

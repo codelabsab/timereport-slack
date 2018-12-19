@@ -24,6 +24,7 @@ def factory(order):
 
     for event_date in dates:
         # create dict
+        order['action'] = action
         order['user_id'] = user_id
         order['user_name'] = user_name
         order['reason'] = reason
