@@ -1,10 +1,12 @@
 class Event:
-    def __init__(self, **kwargs):
-        self.user_id = kwargs.get('user_id')
-        self.user_name = kwargs.get('user_name')
-        self.reason = kwargs.get('reason', 'add')
-        self.event_date = kwargs.get('event_date', '2018-09-11')
-        self.hours = kwargs.get('hours')
+
+
+    def __init__(self, user_id, user_name, reason, event_date, hours):
+        self.user_id = user_id
+        self.user_name = user_name
+        self.reason = reason
+        self.event_date = event_date
+        self.hours = hours
 
     def __str__(self):
         return str(self.__dict__)
