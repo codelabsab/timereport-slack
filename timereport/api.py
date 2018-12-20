@@ -1,9 +1,9 @@
 import json
 import logging
 
-from timereport.lib import factory
+from timereport.lib.factory import factory
 from timereport.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons
-from timereport.lib import add
+from timereport.lib.add import post_to_backend
 
 logger = logging.getLogger()
 
@@ -16,16 +16,21 @@ with open('config.json') as fd:
 
 def lambda_handler(event, context):
 
-    payload: dict = slack_payload_extractor(event)
-
-    response = factory.factory(payload)
+    payload = slack_payload_extractor(event)
+    events = factory(payload)
+    action = payload['text'].split('+')[0]
+    command = payload['text'].split('+')[1:]
+    auth_token = payload['team_id']
+    print(f"auth_token and team_id: {auth_token}")
+    print(f"action: {action}")
+    print(f"command: {command}")
+    print(f"{events}")
 
     # needs to do something on True or False return statement
     verify_token(payload['token'])
-    verify_reasons(valid_reasons, payload['reason'])
-    verify_actions(valid_actions, payload['action'])
+    verify_reasons(valid_reasons, command[0])
+    verify_actions(valid_actions, action)
 
-    for resp in response:
-        if payload['action'] == 'add':
-            add.post_to_backend(backend_url, resp.__dict__, payload['team_id'])
-            exit(0)
+    if action == "add":
+        for e in events:
+            post_to_backend(backend_url, e.__dict__, auth_token)
