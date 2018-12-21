@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from timereport.model.Event import Event
+from timereport.model.event import createEvent as Event
 
 def factory(order):
     format_str = "%Y-%m-%d"
