@@ -1,19 +1,19 @@
-import json
 import logging
 
 from timereport.lib.factory import factory, date_to_string
 from timereport.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons
 from timereport.lib.add import post_to_backend
 from timereport.lib.list import get_between_date
+from timereport.lib.helpers import parse_config
 
 logger = logging.getLogger()
 
-with open('config.json') as fd:
-    config = json.load(fd)
-    valid_reasons = config['valid_reasons']
-    valid_actions = config['valid_actions']
-    backend_url = config['backend_url']
-    logger.setLevel(config['log_level'])
+
+config = parse_config()
+valid_reasons = config['valid_reasons']
+valid_actions = config['valid_actions']
+backend_url = config['backend_url']
+logger.setLevel(config['log_level'])
 
 
 def lambda_handler(event, context):
