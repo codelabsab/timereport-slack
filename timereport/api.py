@@ -15,6 +15,7 @@ with open('config.json') as fd:
     backend_url = config['backend_url']
     logger.setLevel(config['log_level'])
 
+
 def lambda_handler(event, context):
 
     payload = slack_payload_extractor(event)
@@ -40,9 +41,9 @@ def lambda_handler(event, context):
         start_date = date_to_string(events[0]['event_date'])
         end_date = date_to_string(events.pop()['event_date'])
         get_between_date(
-                          backend_url,
-                          start_date,
-                          auth_token,
-                          end_date,
-                          )
+            backend_url,
+            start_date,
+            auth_token,
+            end_date,
+        )
 
