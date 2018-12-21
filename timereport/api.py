@@ -21,10 +21,6 @@ def lambda_handler(event, context):
     action = payload['text'].split('+')[0]
     command = payload['text'].split('+')[1:]
     auth_token = payload['team_id']
-    print(f"auth_token and team_id: {auth_token}")
-    print(f"action: {action}")
-    print(f"command: {command}")
-    print(f"{events}")
 
     # needs to do something on True or False return statement
     verify_token(payload['token'])
@@ -33,4 +29,4 @@ def lambda_handler(event, context):
 
     if action == "add":
         for e in events:
-            post_to_backend(backend_url, e.__dict__, auth_token)
+            post_to_backend(backend_url, e, auth_token)
