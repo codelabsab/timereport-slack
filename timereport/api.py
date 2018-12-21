@@ -1,9 +1,10 @@
 import json
 import logging
 
-from timereport.lib.factory import factory
+from timereport.lib.factory import factory, date_to_string
 from timereport.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons
 from timereport.lib.add import post_to_backend
+from timereport.lib.list import get_between_date
 
 logger = logging.getLogger()
 
@@ -30,3 +31,18 @@ def lambda_handler(event, context):
     if action == "add":
         for e in events:
             post_to_backend(backend_url, e, auth_token)
+
+    if action == "list":
+
+        # get/fetch from db for user_id with date_range
+        # we only need first and last for listing between date range
+
+        start_date = date_to_string(events[0]['event_date'])
+        end_date = date_to_string(events.pop()['event_date'])
+        get_between_date(
+                          backend_url,
+                          start_date,
+                          auth_token,
+                          end_date,
+                          )
+

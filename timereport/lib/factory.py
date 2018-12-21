@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from timereport.model.event import createEvent as Event
+from timereport.model.event import createEvent
 
 def factory(order):
     format_str = "%Y-%m-%d"
@@ -21,7 +21,7 @@ def factory(order):
         date_obj = datetime.strptime(date_str, format_str)
         dates.append(date_obj)
     for event_date in dates:
-        e = Event(user_id, user_name, reason, event_date, hours)
+        e = createEvent(user_id, user_name, reason, event_date, hours)
         events.append(e)
     return events
 
@@ -31,3 +31,7 @@ def daterange(start_date, stop_date):
     while start_date <= stop_date:
         yield start_date
         start_date += delta
+
+def date_to_string(date):
+    format_str = "%Y-%m-%d"
+    return datetime.strftime(date, format_str)
