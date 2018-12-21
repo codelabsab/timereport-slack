@@ -1,5 +1,6 @@
 import logging
 import os
+
 from timereport.lib.factory import factory, date_to_string
 from timereport.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons
 from timereport.lib.add import post_to_backend
@@ -13,6 +14,7 @@ config = parse_config(f'{dir_path}/config.json')
 valid_reasons = config['valid_reasons']
 valid_actions = config['valid_actions']
 backend_url = config['backend_url']
+python_backend_url = config['python_backend_url']
 logger.setLevel(config['log_level'])
 
 
