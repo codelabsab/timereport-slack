@@ -1,5 +1,5 @@
 import logging
-
+import os
 from timereport.lib.factory import factory, date_to_string
 from timereport.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons
 from timereport.lib.add import post_to_backend
@@ -8,8 +8,8 @@ from timereport.lib.helpers import parse_config
 
 logger = logging.getLogger()
 
-
-config = parse_config()
+dir_path = os.path.dirname(os.path.realpath(__file__))
+config = parse_config(f'{dir_path}/config.json')
 valid_reasons = config['valid_reasons']
 valid_actions = config['valid_actions']
 backend_url = config['backend_url']
