@@ -19,7 +19,6 @@ backend_url = config['backend_url']
 python_backend_url = config['python_backend_url']
 logger.setLevel(config['log_level'])
 
-
 def lambda_handler(event, context):
 
     payload = slack_payload_extractor(event)

@@ -36,4 +36,3 @@ def put_event_by_id(_id):
 @app.route('/timereport/event/{_id}', methods=['DELETE'])
 def delete_event_by_id(_id):
     return {'event_id': _id}
-
