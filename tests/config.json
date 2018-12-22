@@ -11,6 +11,7 @@
 		"show"
 	],
     "log_level": "DEBUG",
-	"SLACK_TOKEN": "fake token",
-	"backend_url": "https://URL.execute-api.us-east-1.amazonaws.com/Prod/api/v2/timereport"
+	"SLACK_TOKEN": "OwjK95k89vMbtbyvhvLZkXNl",
+    "backend_url": "https://URL.execute-api.us-east-1.amazonaws.com/Prod/api/v2/timereport",
+	"python_backend_url": "https://lx5tvdnupf.execute-api.us-east-1.amazonaws.com/api/timereport"
 }
