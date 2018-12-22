@@ -8,13 +8,13 @@ from timereport.lib.list import get_between_date, get_user_by_id
 
 logger = logging.getLogger()
 
-with open('config.json') as fd:
-    config = json.load(fd)
-    valid_reasons = config['valid_reasons']
-    valid_actions = config['valid_actions']
-    backend_url = config['backend_url']
-    python_backend_url = config['python_backend_url']
-    logger.setLevel(config['log_level'])
+dir_path = os.path.dirname(os.path.realpath(__file__))
+config = parse_config(f'{dir_path}/config.json')
+valid_reasons = config['valid_reasons']
+valid_actions = config['valid_actions']
+backend_url = config['backend_url']
+python_backend_url = config['python_backend_url']
+logger.setLevel(config['log_level'])
 
 
 def lambda_handler(event, context):
@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         for e in events:
             # python-backend
             create_event(python_backend_url + '/' + 'event', json.dumps(e, default=json_serial))
-            # node-backend
+            # node-backend (change $backend_url in config.json first)
             post_to_backend(backend_url, e, auth_token)
 
     if action == "list":
@@ -44,7 +44,7 @@ def lambda_handler(event, context):
 
         start_date = date_to_string(events[0]['event_date'])
         end_date = date_to_string(events.pop()['event_date'])
-        # node-backend
+        # node-backend (change $backend_url in config.json first)
         get_between_date(
             backend_url,
             start_date,
