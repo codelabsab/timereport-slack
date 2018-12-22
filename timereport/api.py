@@ -1,7 +1,7 @@
 import logging
 import os
 
-from timereport.lib.factory import factory, date_to_string, json_serial
+from timereport.lib.factory import factory, date_to_string
 from timereport.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons
 from timereport.lib.add import post_to_backend, create_event
 from timereport.lib.list import get_between_date, get_user_by_id
