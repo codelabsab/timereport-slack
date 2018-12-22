@@ -1,5 +1,4 @@
 import timereport.api as api
-
 import tests.test_data as test_data
 import os
 
