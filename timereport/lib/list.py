@@ -36,15 +36,12 @@ def get_between_date(url, start_date, auth_token, end_date):
     :return:
     """
     params = {'access_token': auth_token, 'startDate': start_date, 'endDate': end_date}
-    try:
-        res = requests.get(url=url, params=params)
-        print(f'Response code is: {res.status_code}')
-        print(f'Url is: {res.url}')
-        for resp in res.json():
-            print(f'{resp}')
-        if res.status_code == 200:
-            return True
-        else:
-            return False
-    except:
-        print(f"Can't connect to {url}")
+    res = requests.get(url=url, params=params)
+    print(f'Response code is: {res.status_code}')
+    print(f'Url is: {res.url}')
+    for resp in res.json():
+        print(f'{resp}')
+    if res.status_code == 200:
+        return True
+    else:
+        return False
