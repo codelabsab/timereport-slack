@@ -1,9 +1,9 @@
 import timereport.api as api
 
-from tests.test_data import data as event
+import tests.test_data as test_data
 import os
 
-def test_factory():
+def test_factory(event):
     # set os.environ SLACK_TOKEN
     os.environ["SLACK_TOKEN"] = api.config['SLACK_TOKEN']
     api.lambda_handler(event, None)
@@ -11,4 +11,8 @@ def test_factory():
 
 
 
-test_factory()
+# run test_data.add
+test_factory(test_data.add)
+
+#run test_data.list
+test_factory(test_data.list)

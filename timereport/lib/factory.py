@@ -37,3 +37,10 @@ def date_range(start_date, stop_date):
 def date_to_string(date):
     format_str = "%Y-%m-%d"
     return datetime.strftime(date, format_str)
+
+def json_serial(date):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(date, (datetime, datetime.date)):
+        return date.isoformat()
+    raise TypeError ("Type %s not serializable" % type(date))
