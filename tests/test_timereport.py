@@ -6,14 +6,10 @@ from timereport.model import Dynamo
 from timereport.lib.factory import factory
 from timereport.lib.slack import slack_payload_extractor
 
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 test_config = parse_config(f'{dir_path}/config.json')
-# get tests_data
 data = tests.test_data.add
-# extract payload
 payload = slack_payload_extractor(data)
-# factory build events list
 events = factory(payload)
 
 def test_parsing_config():
@@ -22,7 +18,6 @@ def test_parsing_config():
     assert test_config.get('db_url') == 'http://127.0.0.1:8000'
     assert test_config.get('aws_access_key_id') == 'my_access_key_id'
     assert test_config.get('aws_secret_access_key') == 'my_secret_access_key'
-
 
 def test_payload():
     assert payload.get('token') == 'OwjK95k89vMbtbyvhvLZkXNl'
@@ -45,11 +40,7 @@ def test_events():
     assert events[0].get('hours') == '8'
 
 def test_dynamodb_connection():
-
-
-
     db = Dynamo.EventModel
-    # use db hosts from config file
     db.Meta.host = test_config.get('db_url')
     # set aws credentials for tests (in production it will use IAM roles)
     db.Meta.aws_access_key_id = test_config.get('aws_access_key_id')
@@ -61,7 +52,6 @@ def test_dynamodb_connection():
 
     # create item
     for e in events:
-        # save events into vars
         user_id = e.get('user_id')
         event_date = e.get('event_date')
         user_name = e.get('user_name')
@@ -72,6 +62,7 @@ def test_dynamodb_connection():
         event.user_name = user_name
         event.reason = reason
         event.hours = hours
+        # save tables to database
         event.save()
 
     event_date_start = events[0].get('event_date')
@@ -83,5 +74,3 @@ def test_dynamodb_connection():
         result.append(i.attribute_values)
 
     assert len(result) == 3
-
-
