@@ -1,11 +1,13 @@
-import logging
 import os
+import json
+import logging
 
-from timereport.lib.factory import factory, date_to_string
+from timereport.lib.factory import factory, date_to_string, json_serial
 from timereport.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons
-from timereport.lib.add import post_to_backend
-from timereport.lib.list import get_between_date
+from timereport.lib.add import post_to_backend, create_event
+from timereport.lib.list import get_between_date, get_user_by_id
 from timereport.lib.helpers import parse_config
+
 
 logger = logging.getLogger()
 
@@ -16,7 +18,6 @@ valid_actions = config['valid_actions']
 backend_url = config['backend_url']
 python_backend_url = config['python_backend_url']
 logger.setLevel(config['log_level'])
-
 
 def lambda_handler(event, context):
 
@@ -33,6 +34,9 @@ def lambda_handler(event, context):
 
     if action == "add":
         for e in events:
+            # python-backend
+            create_event(python_backend_url + '/' + 'event', json.dumps(e, default=json_serial))
+            # node-backend (change $backend_url in config.json first)
             post_to_backend(backend_url, e, auth_token)
 
     if action == "list":
@@ -41,7 +45,8 @@ def lambda_handler(event, context):
         # we only need first and last for listing between date range
 
         start_date = date_to_string(events[0]['event_date'])
-        end_date = date_to_string(events.pop()['event_date'])
+        end_date = date_to_string(events[-1]['event_date'])
+        # node-backend (change $backend_url in config.json first)
         get_between_date(
             backend_url,
             start_date,
@@ -49,3 +54,5 @@ def lambda_handler(event, context):
             end_date,
         )
 
+        # python-backend
+        get_user_by_id(python_backend_url + '/' + 'user', payload.get('user_id'))

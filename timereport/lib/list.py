@@ -1,5 +1,27 @@
 import botocore.vendored.requests.api as requests
 
+def get_user_by_id(url, user_id):
+    """
+    Uses new python chalice backend
+    only returns back at this point, no DB connection
+
+    :method: GET
+    :url: /timereport/user/{user_id}
+    :return: {'user_id': user_id}
+    """
+    url = url + '/' + user_id
+    res = requests.get(url=url)
+    print(f'{"="*10}')
+    print(f'python backend')
+    print(f'Response code is: {res.status_code}')
+    print(f'Url is: {res.url}')
+    print(f'{res.text}')
+    print(f'{"="*10}')
+    if res.status_code == 200:
+        return True
+    else:
+        return False
+
 
 def get_between_date(url, start_date, auth_token, end_date):
     """

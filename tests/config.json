@@ -12,5 +12,9 @@
 	],
     "log_level": "DEBUG",
 	"SLACK_TOKEN": "fake token",
-	"backend_url": "https://URL.execute-api.us-east-1.amazonaws.com/Prod/api/v2/timereport"
+	"backend_url": "https://URL.execute-api.us-east-1.amazonaws.com/Prod/api/v2/timereport",
+	"python_backend_url": "https://lx5tvdnupf.execute-api.us-east-1.amazonaws.com/api/timereport",
+	"db_url": "http://127.0.0.1:8000",
+    "aws_access_key_id": "my_access_key_id",
+    "aws_secret_access_key": "my_secret_access_key"
 }
