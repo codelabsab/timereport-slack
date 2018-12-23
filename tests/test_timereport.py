@@ -19,7 +19,7 @@ events = factory(payload)
 def test_parsing_config():
 
     assert test_config.get('SLACK_TOKEN') == 'fake token'
-    assert test_config.get('db_url') == 'http://localhost:8000'
+    assert test_config.get('db_url') == 'http://127.0.0.1:8000'
 
 
 def test_payload():
