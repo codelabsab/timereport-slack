@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         # we only need first and last for listing between date range
 
         start_date = date_to_string(events[0]['event_date'])
-        end_date = date_to_string(events.pop()['event_date'])
+        end_date = date_to_string(events[-1]['event_date'])
         # node-backend (change $backend_url in config.json first)
         get_between_date(
             backend_url,

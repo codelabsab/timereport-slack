@@ -1,3 +1,10 @@
+services:
+  - docker
+before_install:
+  - export PATH=$PATH:$HOME/.local/bin
+  - pip install --user awscli
+  - docker pull amazon/dynamodb-local
+  - docker run -d -p 8000:8000 amazon/dynamodb-local
 language: python
 python:
   - '3.6'
