@@ -20,6 +20,8 @@ def test_parsing_config():
 
     assert test_config.get('SLACK_TOKEN') == 'fake token'
     assert test_config.get('db_url') == 'http://127.0.0.1:8000'
+    assert test_config.get('aws_access_key_id') == 'my_access_key_id'
+    assert test_config.get('aws_secret_access_key') == 'my_secret_access_key'
 
 
 def test_payload():
@@ -49,6 +51,9 @@ def test_dynamodb_connection():
     db = Dynamo.EventModel
     # use db hosts from config file
     db.Meta.host = test_config.get('db_url')
+    # set aws credentials for tests (in production it will use IAM roles)
+    db.Meta.aws_access_key_id = test_config.get('aws_access_key_id')
+    db.Meta.aws_secret_access_key = test_config.get('aws_secret_access_key')
 
     # create the table
     if not db.exists():
