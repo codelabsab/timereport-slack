@@ -19,12 +19,13 @@ backend_url = config['backend_url']
 python_backend_url = config['python_backend_url']
 logger.setLevel(config['log_level'])
 
+
 def lambda_handler(event, context):
 
     payload = slack_payload_extractor(event)
     events = factory(payload)
-    action = payload['text'].split('+')[0]
-    command = payload['text'].split('+')[1:]
+    action = payload['text'].pop()
+    command = payload['text'][1:]
     auth_token = payload['team_id']
 
     # needs to do something on True or False return statement
