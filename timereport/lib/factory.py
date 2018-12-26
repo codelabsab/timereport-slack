@@ -3,6 +3,11 @@ from timereport.model.event import create_event
 
 
 def factory(order):
+    """
+    Create correct format from order
+    :param order: The order object
+    :return: list
+    """
     format_str = "%Y-%m-%d"
     dates, events = [], []
     user_id, user_name = order['user_id'], order['user_name']
@@ -37,6 +42,7 @@ def date_range(start_date, stop_date):
 def date_to_string(date):
     format_str = "%Y-%m-%d"
     return datetime.strftime(date, format_str)
+
 
 def json_serial(date):
     """JSON serializer for objects not serializable by default json code"""
