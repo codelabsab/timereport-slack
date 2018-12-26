@@ -6,3 +6,4 @@ data/*.json
 .idea
 terraform/.terraform/
 terraform/terraform.tfstate
+.coverage

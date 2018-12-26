@@ -9,6 +9,7 @@ botocore = "*"
 [dev-packages]
 pytest = "*"
 mockito = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.6"
