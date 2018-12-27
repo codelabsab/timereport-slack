@@ -1,19 +1,18 @@
 import os
-import tests.test_data
 import datetime
 from timereport.lib.helpers import parse_config
 from timereport.lib.slack import slack_payload_extractor
 from timereport.lib.factory import factory
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-test_config = parse_config(f'{dir_path}/config.json')
+
 
 def test_parsing_config():
-
-    assert test_config.get('SLACK_TOKEN') == 'fake token'
-    assert test_config.get('db_url') == 'http://127.0.0.1:8000'
-    assert test_config.get('aws_access_key_id') == 'my_access_key_id'
-    assert test_config.get('aws_secret_access_key') == 'my_secret_access_key'
+    test_config = parse_config(f'{dir_path}/config.json')
+    mandatory_options = ('SLACK_TOKEN', 'db_url', 'aws_access_key_id', 'aws_secret_access_key')
+    for option in mandatory_options:
+        assert isinstance(option, str)
+        assert test_config.get(option) is not None
 
 
 def test_slack_payload_extractor():
