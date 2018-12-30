@@ -35,5 +35,8 @@ Then simply run `pytest`:
 ```
 pytest
 ```
-
-# added python-backend to test out with chalice
+### test coverage
+If you want to include test coverage:
+```
+pytest --cov=timereport 
+```
