@@ -21,7 +21,7 @@ def slack_payload_extractor(req):
     """
     Extract the body data of the slack request.
 
-    :param req:
+    :param req: The request data from slack
     :return: dict
     """
 
