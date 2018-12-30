@@ -16,7 +16,10 @@ def test_parsing_config():
 
 
 def test_slack_payload_extractor():
-    assert isinstance(slack_payload_extractor({'body': 'fake=fake'}), dict)
+    fake_data = slack_payload_extractor({'body': 'foo=bar&text=fake+text'})
+    assert isinstance(fake_data, dict)
+    assert fake_data.get('foo') == 'bar'
+    assert fake_data.get('text') == 'fake text'
 
 
 def test_factory():
