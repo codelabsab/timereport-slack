@@ -24,8 +24,9 @@ def lambda_handler(event, context):
 
     payload = slack_payload_extractor(event)
     events = factory(payload)
-    action = payload['text'].pop()
-    command = payload['text'][1:]
+    params = payload['text'].split()
+    action = params.pop()
+    command = params[1:]
     auth_token = payload['team_id']
 
     # needs to do something on True or False return statement
