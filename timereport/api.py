@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     events = factory(payload)
     params = payload['text'].split()
     action = params.pop(0)
-    command = params[1:]
+    command = params.pop(0)
     auth_token = payload['team_id']
 
     # needs to do something on True or False return statement
