@@ -1,5 +1,6 @@
 import botocore.vendored.requests.api as requests
 
+
 def create_event(url, data):
     """
     Uses new python chalice backend
@@ -25,6 +26,7 @@ def create_event(url, data):
         return True
     else:
         return False
+
 
 def post_to_backend(url, data, auth_token):
     params = {'access_token': auth_token}

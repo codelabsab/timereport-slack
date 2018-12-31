@@ -2,6 +2,7 @@ import os
 import botocore.vendored.requests.api as requests
 from urllib.parse import parse_qs
 
+
 def slack_responder(url, msg):
     """
     Sends post to slack_response_url

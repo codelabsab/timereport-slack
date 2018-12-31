@@ -11,3 +11,17 @@ def parse_config(path='config.json'):
         config = json.load(fd)
 
     return config
+
+
+def verify_reasons(valid_reasons, reason):
+    if reason in valid_reasons:
+        return True
+    else:
+        return False
+
+
+def verify_actions(valid_actions, action):
+    if action in valid_actions:
+        return True
+    else:
+        return False
