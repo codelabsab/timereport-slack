@@ -13,9 +13,10 @@ def create_event(url, data):
     """
     """
     Uses new python chalice backend
-    only returns back at this point, no DB connection
-    
-    :url: '/timereport/event'
+    if endpoint is correctly configured
+    it will insert data into table 'event'
+
+    :url: '/event'
     :return: boolean
     """
     headers = {'Content-Type': 'application/json'}

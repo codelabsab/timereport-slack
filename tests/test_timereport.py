@@ -1,9 +1,9 @@
 import os
 import datetime
-from timereport.lib.helpers import parse_config, verify_actions, verify_reasons
-from timereport.lib.slack import slack_payload_extractor, verify_token
-from timereport.lib.factory import factory
-from timereport.lib.add import create_event, post_to_backend
+from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
+from timereport.chalicelib.lib.slack import slack_payload_extractor, verify_token
+from timereport.chalicelib.lib.factory import factory
+from timereport.chalicelib.lib.add import create_event, post_to_backend
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 

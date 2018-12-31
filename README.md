@@ -3,7 +3,6 @@
 ## Architecture
 * AWS API Gateway
 * AWS Lambda
-* mongodb
 
 ## Dev
 ### Install dependencies
