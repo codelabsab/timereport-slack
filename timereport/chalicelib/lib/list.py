@@ -18,7 +18,11 @@ def get_user_by_id(url, user_id):
     print(f'{res.text}')
     print(f'{"="*10}')
     if res.status_code == 200:
+<<<<<<< HEAD
         yield res.text
+=======
+        return True
+>>>>>>> chalice: move project dependencies to chalicelib dir
     else:
         return False
 
