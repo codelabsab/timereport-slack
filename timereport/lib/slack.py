@@ -2,6 +2,7 @@ import os
 import botocore.vendored.requests.api as requests
 from urllib.parse import parse_qs
 
+
 def slack_responder(url, msg):
     """
     Sends post to slack_response_url
@@ -30,21 +31,12 @@ def slack_payload_extractor(req):
 
 
 def verify_token(token):
-    if token == os.environ['SLACK_TOKEN']:
-        return True
-    else:
-        return False
-
-
-def verify_reasons(valid_reasons, reason):
-    if reason in valid_reasons:
-        return True
-    else:
-        return False
-
-
-def verify_actions(valid_actions, action):
-    if action in valid_actions:
+    """
+    Verify token
+    :param token: The token from the request
+    :return: boolean
+    """
+    if token == os.environ.get('SLACK_TOKEN'):
         return True
     else:
         return False
