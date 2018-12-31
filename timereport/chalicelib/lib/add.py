@@ -10,6 +10,9 @@ def create_event(url, data):
     :return: current_request.raw_body.decode() (same data you send in)
     """
     headers={'Content-Type': 'application/json'}
+    print(f'data is: {data}')
+    print(f'url is: {url}')
+    print(f'headers are: {headers}')
     res = requests.post(url=url, data=data, headers=headers)
     print(f'{"="*10}')
     print(f'python backend')
