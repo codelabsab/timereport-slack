@@ -29,4 +29,5 @@ def test_factory():
     test_data = fake_result.pop()
     assert isinstance(test_data.get('event_date'), datetime.datetime)
     for item in ('user_id', 'user_name', 'reason', 'hours'):
-        assert isinstance(item, str)
+        assert isinstance(test_data[item], str)
+
