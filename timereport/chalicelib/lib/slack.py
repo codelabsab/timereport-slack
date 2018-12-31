@@ -24,9 +24,6 @@ def slack_payload_extractor(req):
     :param req: The request data from slack
     :return: dict
     """
-
-    print(req)
-    print(type(req))
     # parse_qs makes a list of all values, and that's why the v.pop() is necessary
     return {k: v.pop() for (k,v) in parse_qs(req['body']).items()}
 
