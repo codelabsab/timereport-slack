@@ -4,7 +4,11 @@
   "stages": {
     "dev": {
       "api_gateway_stage": "api",
-      "environment_variables": { "SLACK_TOKEN": "fake_token", "backend_url": "http://127.0.0.1:8080/timereport", "python_backend_url": "https://lo53txxbhb.execute-api.eu-north-1.amazonaws.com/api"
+      "environment_variables": {
+                                "SLACK_TOKEN": "fake_token",
+                                "backend_url": "http://127.0.0.1:8080/timereport",
+                                "python_backend_url": "https://lo53txxbhb.execute-api.eu-north-1.amazonaws.com/api"
+      }
     }
   }
 }
