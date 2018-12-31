@@ -10,7 +10,7 @@ def slack_responder(url, msg):
     :return: boolean
     """
     headers = {'Content-Type': 'application/json'}
-    res = requests.post(url=url, data={"text": f"{msg}"}, headers=headers)
+    res = requests.post(url=url, json={"text": msg}, headers=headers)
     if res.status_code == 200:
         return True
     else:

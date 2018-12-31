@@ -27,16 +27,15 @@ logger.setLevel(config['log_level'])
 @app.route('/', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
     req = app.current_request.raw_body.decode()
-    event = json.loads(req)
+    event = dict(body=req)
     payload = slack_payload_extractor(event)
     events = factory(payload)
+    response_url = payload.get('response_url')
     params = payload['text'].split()
     action = params.pop(0)
     command = params.pop(0)
     auth_token = payload['team_id']
 
-    # was config parsed OK?
-    print(f'type is: {type(python_backend_url)}')
     # needs to do something on True or False return statement
     verify_token(payload['token'])
     #verify_reasons(valid_reasons, command[0])
@@ -47,7 +46,7 @@ def index():
             # python-backend
             create_event(python_backend_url + '/event', json.dumps(e, default=json_serial))
         # post back to slack
-        slack_responder(payload.get('response_url'), "Add action OK")
+        slack_responder(response_url, "Add action OK")
 
     if action == "list":
 
@@ -58,7 +57,8 @@ def index():
         end_date = date_to_string(events[-1]['event_date'])
 
         # python-backend
-        get_user_by_id(python_backend_url + '/' + 'user', payload.get('user_id'))
-
-        # post back to slack
-        slack_responder(payload.get('response_url'), "List action OK")
+        response = get_user_by_id(python_backend_url + '/' + 'user', payload.get('user_id'))
+        # post back to slack as a code formatted output ``` data ```
+        for r in response:
+            slack_responder(response_url, f'```{str(r)}```')
+        return 200

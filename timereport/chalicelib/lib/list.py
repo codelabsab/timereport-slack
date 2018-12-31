@@ -18,7 +18,7 @@ def get_user_by_id(url, user_id):
     print(f'{res.text}')
     print(f'{"="*10}')
     if res.status_code == 200:
-        return True
+        yield res.text
     else:
         return False
 
