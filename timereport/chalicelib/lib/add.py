@@ -13,7 +13,7 @@ def create_event(url, data):
     print(f'data is: {data}')
     print(f'url is: {url}')
     print(f'headers are: {headers}')
-    res = requests.post(url=url, data=data, headers=headers)
+    res = requests.post(url=url, json=data, headers=headers)
     print(f'{"="*10}')
     print(f'python backend')
     print(f'Response code is: {res.status_code}')
