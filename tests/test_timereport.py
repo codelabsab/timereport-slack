@@ -1,7 +1,7 @@
 import os
 import datetime
-from timereport.lib.helpers import parse_config
-from timereport.lib.slack import slack_payload_extractor
+from timereport.lib.helpers import parse_config, verify_actions, verify_reasons
+from timereport.lib.slack import slack_payload_extractor, verify_token
 from timereport.lib.factory import factory
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -31,3 +31,14 @@ def test_factory():
     for item in ('user_id', 'user_name', 'reason', 'hours'):
         assert isinstance(test_data[item], str)
 
+
+def test_slack_token():
+    assert verify_token('faulty fake token') is not True
+    fake_test_token = 'my_fake_token'
+    os.environ['SLACK_TOKEN'] = fake_test_token
+    assert verify_token(fake_test_token) is True
+
+
+def test_verify_reason():
+    assert verify_reasons(['not real reasons'], 'fake') is not True
+    assert verify_reasons(['my fake reason'], 'my fake reason') is True
