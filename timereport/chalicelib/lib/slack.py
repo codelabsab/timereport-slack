@@ -29,7 +29,7 @@ def slack_payload_extractor(req):
 
 
 def verify_token(token):
-    if token == os.getenv('SLACK_TOKEN', 'fake_token'):
+    if token == os.getenv('SLACK_TOKEN'):
         return True
     else:
         return False

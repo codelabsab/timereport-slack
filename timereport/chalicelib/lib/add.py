@@ -1,4 +1,7 @@
 import botocore.vendored.requests.api as requests
+import logging
+
+log = logging.getLogger(__name__)
 
 def create_event(url, data):
     """
@@ -10,17 +13,17 @@ def create_event(url, data):
     :return: current_request.raw_body.decode() (same data you send in)
     """
     headers={'Content-Type': 'application/json'}
-    # these print statements will be removed post-development
-    print(f'data is: {data}')
-    print(f'url is: {url}')
-    print(f'headers are: {headers}')
+    # these log.debug statements will be removed post-development
+    log.debug(f'data is: {data}')
+    log.debug(f'url is: {url}')
+    log.debug(f'headers are: {headers}')
     res = requests.post(url=url, json=data, headers=headers)
-    print(f'{"="*10}')
-    print(f'python backend')
-    print(f'Response code is: {res.status_code}')
-    print(f'Url is: {res.url}')
-    print(f'{res.text}')
-    print(f'{"="*10}')
+    log.debug(f'{"="*10}')
+    log.debug(f'python backend')
+    log.debug(f'Response code is: {res.status_code}')
+    log.debug(f'Url is: {res.url}')
+    log.debug(f'{res.text}')
+    log.debug(f'{"="*10}')
     if res.status_code == 200:
         return True
     else:
@@ -29,9 +32,9 @@ def create_event(url, data):
 def post_to_backend(url, data, auth_token):
     params = {'access_token': auth_token}
     res = requests.post(url=url, data=data, params=params)
-    print(f'Response code is: {res.status_code}')
-    print(f'Url is: {res.url}')
-    print(f'Response is: {res.text}')
+    log.debug(f'Response code is: {res.status_code}')
+    log.debug(f'Url is: {res.url}')
+    log.debug(f'Response is: {res.text}')
     if res.status_code == 200:
         return True
     else:
