@@ -7,6 +7,9 @@ before_install:
 language: python
 python:
   - '3.6'
+install:
+  - 'pip install pipenv'
+  - 'pipenv install --dev'
 script:
   - pytest -v
 env:
