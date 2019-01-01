@@ -26,7 +26,7 @@ def test_slack_payload_extractor():
 
 
 def test_factory():
-    fake_order = dict(user_id='fake', user_name='fake mcFake', text='fake_cmd=do_fake+fake_reason+2018-01-01')
+    fake_order = dict(user_id='fake', user_name='fake mcFake', text='fake_cmd=do_fake fake_reason 2018-01-01')
     fake_result = factory(fake_order)
     assert isinstance(fake_result, list)
     test_data = fake_result.pop()
