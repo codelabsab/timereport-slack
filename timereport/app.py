@@ -48,14 +48,14 @@ def index():
         events = factory(payload)
         for e in events:
             # python-backend
-            create_event(python_backend_url + '/event', json.dumps(e, default=json_serial))
+            create_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
         # post back to slack
         slack_responder(response_url, "Add action OK")
 
     if action == "list":
 
         # python-backend
-        response = get_user_by_id(python_backend_url + '/user', payload.get('user_id'))
+        response = get_user_by_id(f'{python_backend_url}/user', payload.get('user_id'))
         # post back to slack as a code formatted output ``` data ```
         for r in response:
             slack_responder(response_url, f'```{str(r)}```')

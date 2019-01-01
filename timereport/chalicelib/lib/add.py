@@ -10,6 +10,7 @@ def create_event(url, data):
     :return: current_request.raw_body.decode() (same data you send in)
     """
     headers={'Content-Type': 'application/json'}
+    # these print statements will be removed post-development
     print(f'data is: {data}')
     print(f'url is: {url}')
     print(f'headers are: {headers}')

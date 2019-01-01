@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from ..model.event import create_event
+from timereport.chalicelib.model.event import create_event
 
 
 def factory(order):
@@ -11,7 +11,7 @@ def factory(order):
     format_str = "%Y-%m-%d"
     dates, events = [], []
     user_id, user_name = order['user_id'], order['user_name']
-    cmd = order['text'].split(" ")
+    cmd = order['text'].split()
     action, reason, date_str = cmd[:3]
     try:
         hours = cmd[3]
