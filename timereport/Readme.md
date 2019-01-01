@@ -17,9 +17,10 @@ backend_url
 
 - To run this locally just pip install requirements and run
 ```
+cd timereport
 chalice local
 ```
 - To test with data just run
 ```
-./curl_localhost.sh
+./curl_localhost.sh $(chalice url)
 ```

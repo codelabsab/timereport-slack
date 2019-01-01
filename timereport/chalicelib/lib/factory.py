@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from timereport.chalicelib.model.event import create_event
+from ..model.event import create_event
 
 def factory(order):
     """

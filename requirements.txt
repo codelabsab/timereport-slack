@@ -5,4 +5,7 @@ jmespath==0.9.3
 python-dateutil==2.7.5; python_version >= '2.7'
 six==1.11.0
 urllib3==1.24.1; python_version != '3.3.*'
-pynamodb
+pynamodb==3.3.1
+boto3==1.9.71
+botocore==1.12.71
+chalice==1.6.1
