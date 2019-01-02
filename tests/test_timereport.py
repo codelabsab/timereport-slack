@@ -56,7 +56,7 @@ def test_create_event():
     fake_url = 'http://fake.com'
     fake_data = 'fake data'
     when(requests).post(
-        url=fake_url, data=fake_data, headers={'Content-Type': 'application/json'}
+        url=fake_url, json=fake_data, headers={'Content-Type': 'application/json'}
     ).thenReturn(mock({'status_code': 200}))
 
     assert create_event(fake_url, fake_data) is True
@@ -67,7 +67,7 @@ def test_create_event_failure():
     fake_url = 'http://fake.com'
     fake_data = 'fake data'
     when(requests).post(
-        url=fake_url, data=fake_data, headers={'Content-Type': 'application/json'}
+        url=fake_url, json=fake_data, headers={'Content-Type': 'application/json'}
     ).thenReturn(mock({'status_code': 500}))
     assert create_event(fake_url, fake_data) is False
     unstub()

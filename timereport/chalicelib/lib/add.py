@@ -9,7 +9,7 @@ def create_event(url, data):
     only returns back at this point, no DB connection
 
     :method: POST
-    :url: '/timereport/event'
+    :url: '/event'
     :return: current_request.raw_body.decode() (same data you send in)
     """
     headers={'Content-Type': 'application/json'}
