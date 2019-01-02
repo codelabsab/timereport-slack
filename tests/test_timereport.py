@@ -3,6 +3,9 @@ import datetime
 from timereport.lib.helpers import parse_config, verify_actions, verify_reasons
 from timereport.lib.slack import slack_payload_extractor, verify_token
 from timereport.lib.factory import factory
+from timereport.lib.add import create_event, post_to_backend
+from mockito import when, mock, unstub
+import botocore.vendored.requests.api as requests
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -40,5 +43,49 @@ def test_slack_token():
 
 
 def test_verify_reason():
-    assert verify_reasons(['not real reasons'], 'fake') is not True
+    assert verify_reasons(['not real reasons'], 'fake') is False
     assert verify_reasons(['my fake reason'], 'my fake reason') is True
+
+
+def test_verify_action():
+    assert verify_actions(['not a real action'], 'fake action') is False
+    assert verify_actions(['my fake action'], 'my fake action') is True
+
+
+def test_create_event():
+    fake_url = 'http://fake.com'
+    fake_data = 'fake data'
+    when(requests).post(
+        url=fake_url, data=fake_data, headers={'Content-Type': 'application/json'}
+    ).thenReturn(mock({'status_code': 200}))
+
+    assert create_event(fake_url, fake_data) is True
+    unstub()
+
+
+def test_create_event_failure():
+    fake_url = 'http://fake.com'
+    fake_data = 'fake data'
+    when(requests).post(
+        url=fake_url, data=fake_data, headers={'Content-Type': 'application/json'}
+    ).thenReturn(mock({'status_code': 500}))
+    assert create_event(fake_url, fake_data) is False
+    unstub()
+
+
+def test_post_to_backend():
+    fake_url = 'http://fake.com'
+    fake_data = 'fake data'
+    when(requests).post(
+        url=fake_url, data=fake_data, params={'access_token': 'fake'}
+    ).thenReturn(mock({'status_code': 200}))
+    assert post_to_backend(url=fake_url, data=fake_data, auth_token='fake') is True
+
+
+def test_post_to_backend_failure():
+    fake_url = 'http://fake.com'
+    fake_data = 'fake data'
+    when(requests).post(
+        url=fake_url, data=fake_data, params={'access_token': 'fake'}
+    ).thenReturn(mock({'status_code': 500}))
+    assert post_to_backend(url=fake_url, data=fake_data, auth_token='fake') is False
