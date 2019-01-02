@@ -1,45 +1,26 @@
-#####
-```
-.
-├── Readme.md
-├── requirements.txt
-├── timereport
-│   ├── __init__.py
-│   ├── __main__.py
-│   ├── api.py
-│   └── validator.py
-├── static
-├── templates
-├── terraform
-│   ├── 01-tags.tf
-│   ├── api_gateway.tf
-│   ├── iam.tf
-│   ├── lambda.tf
-│   ├── main.tf
-│   └── variables.tf
-└── test
-    ├── __init__.py
-        └── test_validator.py
+# Timereport nextgen
 
-        5 directories, 14 files
+## Architecture
+* AWS API Gateway
+* AWS Lambda
 
+###### pre-req
+- install requirements.txt
+- change config.json to use correct endpoints
+- or set os.environ for
 ```
-in project dir run:
+SLACK_TOKEN
+python_backend_url
+backend_url
+```
+###### chalice
 
+- To run this locally just pip install requirements and run
 ```
-python -m unittest test/test_validator.py -v
-
+cd timereport
+chalice local
 ```
-
+- To test with data just run
 ```
-# to deploy to aws use terraform directory
-# requires ssm parameter store variable set
-# aws credentials configured
-# variables.tf:  updated with your values
-# main.tf : update backend s3 storage values
-
-terraform init
-terraform plan
-terraform deploy
+./curl_localhost.sh $(chalice url)
 ```
-####

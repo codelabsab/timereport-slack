@@ -7,4 +7,3 @@ def create_event(user_id, user_name, reason, event_date, hours):
         'hours': hours,
     }
     return event
-

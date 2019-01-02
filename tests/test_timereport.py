@@ -1,9 +1,9 @@
 import os
 import datetime
-from timereport.lib.helpers import parse_config, verify_actions, verify_reasons
-from timereport.lib.slack import slack_payload_extractor, verify_token
-from timereport.lib.factory import factory
-from timereport.lib.add import create_event, post_to_backend
+from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
+from timereport.chalicelib.lib.slack import slack_payload_extractor, verify_token
+from timereport.chalicelib.lib.factory import factory
+from timereport.chalicelib.lib.add import create_event, post_to_backend
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 
@@ -26,7 +26,7 @@ def test_slack_payload_extractor():
 
 
 def test_factory():
-    fake_order = dict(user_id='fake', user_name='fake mcFake', text='fake_cmd=do_fake+fake_reason+2018-01-01')
+    fake_order = dict(user_id='fake', user_name='fake mcFake', text='fake_cmd=do_fake fake_reason 2018-01-01')
     fake_result = factory(fake_order)
     assert isinstance(fake_result, list)
     test_data = fake_result.pop()
@@ -56,7 +56,7 @@ def test_create_event():
     fake_url = 'http://fake.com'
     fake_data = 'fake data'
     when(requests).post(
-        url=fake_url, data=fake_data, headers={'Content-Type': 'application/json'}
+        url=fake_url, json=fake_data, headers={'Content-Type': 'application/json'}
     ).thenReturn(mock({'status_code': 200}))
 
     assert create_event(fake_url, fake_data) is True
@@ -67,7 +67,7 @@ def test_create_event_failure():
     fake_url = 'http://fake.com'
     fake_data = 'fake data'
     when(requests).post(
-        url=fake_url, data=fake_data, headers={'Content-Type': 'application/json'}
+        url=fake_url, json=fake_data, headers={'Content-Type': 'application/json'}
     ).thenReturn(mock({'status_code': 500}))
     assert create_event(fake_url, fake_data) is False
     unstub()
