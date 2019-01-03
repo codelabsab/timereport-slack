@@ -18,6 +18,7 @@ def get_user_by_id(url, user_id):
     log.debug(f'python backend')
     log.debug(f'Response code is: {res.status_code}')
     log.debug(f'Url is: {res.url}')
+    log.debug(f'function is get_user_by_id')
     log.debug(f'{res.text}')
     log.debug(f'{"="*10}')
     if res.status_code == 200:
@@ -26,25 +27,24 @@ def get_user_by_id(url, user_id):
         return False
 
 
-def get_between_date(url, start_date, auth_token, end_date):
+def get_between_date(url, start_date, end_date):
     """
     URL :
-    /api/v2/timereport?access_token=<slack_team_id>&startDate=<start_date>&endDate=<end_date>
-    /api/v2/timereport?access_token=N2FG58LXY&startDate=2018-10-05&endDate=2018-12-20
+    /user/<userid>?startDate=<start_date>&endDate=<end_date>
+    /user/<user_id>?&startDate=2018-10-05&endDate=2018-12-20
 
     :param url:
-    :param data: startDate
-    :param auth_token:
+    :param start_date
     :param end_date: endDate
     :return:
     """
-    params = {'access_token': auth_token, 'startDate': start_date, 'endDate': end_date}
+    params = {'startDate': start_date, 'endDate': end_date}
     res = requests.get(url=url, params=params)
     log.debug(f'Response code is: {res.status_code}')
     log.debug(f'Url is: {res.url}')
-    for resp in res.json():
-        log.debug(f'{resp}')
+    log.debug(f'function is get_user_between_date')
     if res.status_code == 200:
-        return True
+        log.debug(f'res.text is {res.text}')
+        yield res.text
     else:
         return False
