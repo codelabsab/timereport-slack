@@ -54,10 +54,25 @@ def index():
         slack_responder(response_url, "Add action OK")
 
     if action == "list":
-
         # python-backend
-        response = get_user_by_id(f'{python_backend_url}/user', payload.get('user_id'))
-        # post back to slack as a code formatted output ``` data ```
-        for r in response:
+
+        # get everything
+        get_by_user = get_user_by_id(f'{python_backend_url}/user', payload.get('user_id'))
+        for r in get_by_user:
             slack_responder(response_url, f'```{str(r)}```')
+
+        # get by date
+        event_date = ''.join(params[-1:])
+        if ':' in event_date:
+            # we have provided two dates
+            # maybe we should validate dates as well as we do in factory?
+
+            start_date = event_date.split(':')[0]
+            end_date = event_date.split(':')[1]
+
+            get_by_date = get_between_date(f"{python_backend_url}/user/{payload.get('user_id')}", start_date, end_date)
+
+            for r in get_by_date:
+                slack_responder(response_url, f'```{str(r)}```')
+
         return 200
