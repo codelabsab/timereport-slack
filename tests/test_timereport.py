@@ -3,7 +3,7 @@ import datetime
 from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
 from timereport.chalicelib.lib.slack import slack_payload_extractor, verify_token
 from timereport.chalicelib.lib.factory import factory
-from timereport.chalicelib.lib.add import create_event, post_to_backend
+from timereport.chalicelib.lib.add import create_event
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 
@@ -71,21 +71,3 @@ def test_create_event_failure():
     ).thenReturn(mock({'status_code': 500}))
     assert create_event(fake_url, fake_data) is False
     unstub()
-
-
-def test_post_to_backend():
-    fake_url = 'http://fake.com'
-    fake_data = 'fake data'
-    when(requests).post(
-        url=fake_url, data=fake_data, params={'access_token': 'fake'}
-    ).thenReturn(mock({'status_code': 200}))
-    assert post_to_backend(url=fake_url, data=fake_data, auth_token='fake') is True
-
-
-def test_post_to_backend_failure():
-    fake_url = 'http://fake.com'
-    fake_data = 'fake data'
-    when(requests).post(
-        url=fake_url, data=fake_data, params={'access_token': 'fake'}
-    ).thenReturn(mock({'status_code': 500}))
-    assert post_to_backend(url=fake_url, data=fake_data, auth_token='fake') is False
