@@ -11,7 +11,6 @@
 		"show"
 	],
     "log_level": "DEBUG",
-	"SLACK_TOKEN": "OwjK95k89vMbtbyvhvLZkXNl",
-	"backend_url": "http://127.0.0.1:8080/timereport",
-	"python_backend_url": "http://127.0.0.1:8000"
+    "slack_token": "bot-user-ouath-token-here-from-slack-api-site",
+	"python_backend_url": "https://url.execute-api.region.amazonaws.com/api"
 }
