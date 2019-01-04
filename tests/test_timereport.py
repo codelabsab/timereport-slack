@@ -38,7 +38,7 @@ def test_factory():
 def test_slack_token():
     assert verify_token('faulty fake token') is not True
     fake_test_token = 'my_fake_token'
-    os.environ['SLACK_TOKEN'] = fake_test_token
+    os.environ['slack_token'] = fake_test_token
     assert verify_token(fake_test_token) is True
 
 
