@@ -5,7 +5,7 @@ import logging
 import ast
 
 from chalicelib.lib.factory import factory, date_to_string, json_serial
-from chalicelib.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons, slack_responder
+from chalicelib.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons, slack_responder, slack_client_responder
 
 from chalicelib.lib.add import create_event
 from chalicelib.lib.list import get_between_date, get_user_by_id
@@ -34,12 +34,31 @@ def index():
     else:
         event = dict(body=req)
     payload = slack_payload_extractor(event)
+    app.log.debug(f'payload is {payload}')
     params = payload['text'].split()
     response_url = payload.get('response_url')
     action = params.pop(0)
-
+    channel_id = payload.get('channel_id')
+    user_id = payload.get('user_id')
+    token = payload.get('token')
     # needs to do something on True or False return statement
-    verify_token(payload['token'])
+
+    # this payload token we receive is not the token we use to communicate with slack
+    # and should not be used anymore to verify authentication
+    #
+    # This is a verification token, a deprecated feature that you shouldn't use any more.
+    # It was used to verify that requests were legitimately being sent by Slack to your app,
+    # but you should use the signed secrets functionality to do this instead.
+    # https://api.slack.com/slash-commands
+    #
+    # for the bot user see (so called bot.user access token)
+    # https://api.slack.com/docs/oauth#bots
+    #if verify_token(token):
+    #    app.log.debug(f'token has been verified as OK {config["slack_token"]}')
+    #else:
+    #    app.log.debug(f'token has been verified as False {config["slack_token"]}')
+    #    return 401, "Authentication error"
+
     #verify_reasons(valid_reasons, command[0])
     #verify_actions(valid_actions, action)
 
@@ -99,14 +118,23 @@ def index():
                 ]
             }
         ]
+        slack_client_response = slack_client_responder(token=config['slack_token'], channel_id=channel_id, user_id=user_id, attachment=attachment)
+        if isinstance(slack_client_response, tuple):
+            app.log.debug(f'Failed to return anything: {slack_client_response[1]}')
+        else:
+            app.log.debug(f'response from slack responder is {slack_client_response}')
 
-        app.log.debug(f'attachment is: {attachment}')
-        slack_responder(response_url, attachment)
+            for e in slack_client_response:
+                app.log.debug(f'response is {e}')
+                return 200
+
         for e in events:
             # python-backend
             create_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
         # post back to slack
         slack_responder(response_url, "Add action OK????? - we need to verify")
+
+        return 200
 
     if action == "list":
         # python-backend
