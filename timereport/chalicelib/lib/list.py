@@ -47,4 +47,4 @@ def get_between_date(url, start_date, end_date):
         log.debug(f'res.text is {res.text}')
         yield res.text
     else:
-        return False
+        return False, res.status_code

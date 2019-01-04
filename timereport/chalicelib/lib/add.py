@@ -28,14 +28,3 @@ def create_event(url, data):
         return True
     else:
         return False
-
-def post_to_backend(url, data, auth_token):
-    params = {'access_token': auth_token}
-    res = requests.post(url=url, data=data, params=params)
-    log.debug(f'Response code is: {res.status_code}')
-    log.debug(f'Url is: {res.url}')
-    log.debug(f'Response is: {res.text}')
-    if res.status_code == 200:
-        return True
-    else:
-        return False
