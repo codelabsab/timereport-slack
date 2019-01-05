@@ -67,3 +67,57 @@ def verify_actions(valid_actions, action):
         return True
     else:
         return False
+
+def submit_message_menu(user_name, reason, date_start, date_end, hours):
+    attachment = [
+        {
+            "fields": [
+                {
+                    "title": "User",
+                    "value": user_name
+                },
+
+                {
+                    "title": "Type",
+                    "value": reason
+                },
+                {
+                    "title": "Date start",
+                    "value": date_start
+                },
+                {
+                    "title": "Date end",
+                    "value": date_end
+                },
+
+                {
+                    "title": "Hours",
+                    "value": hours
+                }
+            ],
+            "footer": "Code Labs timereport",
+            "footer_icon": "https://codelabs.se/favicon.ico",
+            "fallback": "Submit these values?",
+            "title": "Submit these values?",
+            "callback_id": "submit",
+            "color": "#3AA3E3",
+            "attachment_type": "default",
+            "actions": [
+                {
+                    "name": "submit",
+                    "text": "submit",
+                    "type": "button",
+                    "style": "primary",
+                    "value": "submit_yes"
+                },
+                {
+                    "name": "no",
+                    "text": "No",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "submit_no"
+                }
+            ]
+        }
+    ]
+    return attachment

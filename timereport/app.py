@@ -5,7 +5,7 @@ import logging
 import ast
 
 from chalicelib.lib.factory import factory, date_to_string, json_serial
-from chalicelib.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons, slack_responder, slack_client_responder
+from chalicelib.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons, slack_responder, slack_client_responder, submit_message_menu
 
 from chalicelib.lib.add import create_event
 from chalicelib.lib.list import get_between_date, get_user_by_id
@@ -21,7 +21,6 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 config = parse_config(f'{dir_path}/chalicelib/config.json')
 valid_reasons = config['valid_reasons']
 valid_actions = config['valid_actions']
-backend_url = config['backend_url']
 python_backend_url = config['python_backend_url']
 logger.setLevel(config['log_level'])
 
@@ -65,59 +64,13 @@ def index():
     if action == "add":
         # list of dicts [{'user_id': 'ABCDE123', 'user_name': 'test.user'}, {'user_id': 'ABCDE456' }]
         events = factory(payload)
-        # verify if we want to submit to slack or not
-        # post_to_slack ?
-        attachment = [
-            {
-                "fields": [
-                    {
-                        "title": "User",
-                        "value": f"{events[0].get('user_name')}"
-                    },
-
-                    {
-                        "title": "Type",
-                        "value": f"{events[0].get('reason')}"
-                    },
-                    {
-                        "title": "Date start",
-                        "value": f"{events[0].get('event_date').isoformat().split('T')[0]}"
-                    },
-                    {
-                        "title": "Date end",
-                        "value": f"{events[-1].get('event_date').isoformat().split('T')[0]}"
-                    },
-
-                    {
-                        "title": "Hours",
-                        "value": f"{events[0].get('hours')}"
-                    }
-                ],
-                "footer": "Code Labs timereport",
-                "footer_icon": "https://codelabs.se/favicon.ico",
-                "fallback": "Submit these values?",
-                "title": "Submit these values?",
-                "callback_id": "submit",
-                "color": "#3AA3E3",
-                "attachment_type": "default",
-                "actions": [
-                    {
-                        "name": "submit",
-                        "text": "submit",
-                        "type": "button",
-                        "style": "primary",
-                        "value": "submit_yes"
-                    },
-                    {
-                        "name": "no",
-                        "text": "No",
-                        "type": "button",
-                        "style": "danger",
-                        "value": "submit_no"
-                    }
-                ]
-            }
-        ]
+        user_name = events[0].get('user_name')
+        reason = events[0].get('reason')
+        date_start = events[0].get('event_date').isoformat().split('T')[0]
+        date_end = events[-1].get('event_date').isoformat().split('T')[0]
+        hours = events[0].get('hours')
+        # create attachment with above values for submit button
+        attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
         slack_client_response = slack_client_responder(token=config['slack_token'], channel_id=channel_id, user_id=user_id, attachment=attachment)
         if isinstance(slack_client_response, tuple):
             app.log.debug(f'Failed to return anything: {slack_client_response[1]}')
