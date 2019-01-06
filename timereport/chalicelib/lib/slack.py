@@ -6,18 +6,12 @@ import logging
 log = logging.getLogger(__name__)
 
 def slack_client_responder(token, channel_id, user_id, attachment):
-    log.debug('we are now inside slack_client_responder')
-
     headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
     res = requests.post(url='https://slack.com/api/chat.postMessage',
                         json={'channel': channel_id, 'text': f'{user_id} from slack.py', 'attachments': attachment},
                         headers=headers
                         )
-    log.debug(f'Response code is: {res.status_code}')
-    log.debug(f'Url is: {res.url}')
-    log.debug(f'function is slack_client_responder')
     if res.status_code == 200:
-        log.debug(f'res.text is {res.text}')
         yield res.text
     else:
         return False, res.status_code

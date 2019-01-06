@@ -24,7 +24,6 @@ valid_actions = config['valid_actions']
 python_backend_url = config['python_backend_url']
 logger.setLevel(config['log_level'])
 
-
 @app.route('/', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
     req = app.current_request.raw_body.decode()
@@ -33,6 +32,24 @@ def index():
     else:
         event = dict(body=req)
     payload = slack_payload_extractor(event['body'])
+    # when we respond to slack message with submit button
+    # we check if type is interactive message
+    for t in payload.values():
+        if 'type' in t:
+            payload = json.loads(t)
+            if payload.get('type') == "interactive_message":
+                selection = payload.get('actions')[0].get('value')
+
+                if selection == "submit_yes":
+                    # here we post to database
+                    # todo
+
+                    return '', 200
+                else:
+                    return 'canceling...', 200
+        else:
+            app.log.debug(f'no type in payload {payload}')
+
     params = payload['text'].split()
     response_url = payload.get('response_url')
     action = params.pop(0)
@@ -58,10 +75,9 @@ def index():
                 app.log.debug(f'response is {e}')
                 return 200
 
-        for e in events:
-            create_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
-        # post back to slack
-        slack_responder(response_url, "Add action OK????? - we need to verify")
+        #for e in events:
+        #    create_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
+        #slack_responder(response_url, "Add action OK????? - we need to verify")
 
         return 200
 
@@ -86,16 +102,3 @@ def index():
                 slack_responder(response_url, f'```{str(r)}```')
 
         return 200
-
-@app.route('/interaction', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
-def interaction():
-    app.log.debug(app.current_request.json_body)
-    req = app.current_request.json_body
-    payload = req.get('payload')
-    type = payload.get('type')
-    if type == "interactive_message":
-        selection = req.get["actions"][0]["value"]
-
-        if selection == "submit_yes":
-            app.log.debug(f'selection is {selection}')
-
