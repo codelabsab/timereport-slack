@@ -32,37 +32,14 @@ def index():
         event = ast.literal_eval(req)
     else:
         event = dict(body=req)
-    payload = slack_payload_extractor(event)
-    app.log.debug(f'payload is {payload}')
+    payload = slack_payload_extractor(event['body'])
     params = payload['text'].split()
     response_url = payload.get('response_url')
     action = params.pop(0)
     channel_id = payload.get('channel_id')
     user_id = payload.get('user_id')
-    token = payload.get('token')
-    # needs to do something on True or False return statement
-
-    # this payload token we receive is not the token we use to communicate with slack
-    # and should not be used anymore to verify authentication
-    #
-    # This is a verification token, a deprecated feature that you shouldn't use any more.
-    # It was used to verify that requests were legitimately being sent by Slack to your app,
-    # but you should use the signed secrets functionality to do this instead.
-    # https://api.slack.com/slash-commands
-    #
-    # for the bot user see (so called bot.user access token)
-    # https://api.slack.com/docs/oauth#bots
-    #if verify_token(token):
-    #    app.log.debug(f'token has been verified as OK {config["slack_token"]}')
-    #else:
-    #    app.log.debug(f'token has been verified as False {config["slack_token"]}')
-    #    return 401, "Authentication error"
-
-    #verify_reasons(valid_reasons, command[0])
-    #verify_actions(valid_actions, action)
 
     if action == "add":
-        # list of dicts [{'user_id': 'ABCDE123', 'user_name': 'test.user'}, {'user_id': 'ABCDE456' }]
         events = factory(payload)
         user_name = events[0].get('user_name')
         reason = events[0].get('reason')
@@ -82,7 +59,6 @@ def index():
                 return 200
 
         for e in events:
-            # python-backend
             create_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
         # post back to slack
         slack_responder(response_url, "Add action OK????? - we need to verify")
@@ -90,9 +66,6 @@ def index():
         return 200
 
     if action == "list":
-        # python-backend
-
-        # get everything
         get_by_user = get_user_by_id(f'{python_backend_url}/user', payload.get('user_id'))
         if isinstance(get_by_user, tuple):
             app.log.debug(f'Failed to return anything: {get_by_user[1]}')
@@ -100,11 +73,8 @@ def index():
             for r in get_by_user:
                 slack_responder(response_url, f'```{str(r)}```')
 
-        # get by date
         event_date = ''.join(params[-1:])
         if ':' in event_date:
-            # we have provided two dates
-            # maybe we should validate dates as well as we do in factory?
             # temporary solution
 
             start_date = event_date.split(':')[0]
@@ -116,3 +86,16 @@ def index():
                 slack_responder(response_url, f'```{str(r)}```')
 
         return 200
+
+@app.route('/interaction', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
+def interaction():
+    app.log.debug(app.current_request.json_body)
+    req = app.current_request.json_body
+    payload = req.get('payload')
+    type = payload.get('type')
+    if type == "interactive_message":
+        selection = req.get["actions"][0]["value"]
+
+        if selection == "submit_yes":
+            app.log.debug(f'selection is {selection}')
+

@@ -45,7 +45,7 @@ def slack_payload_extractor(req):
     :return: dict
     """
     # parse_qs makes a list of all values, and that's why the v.pop() is necessary
-    return {k: v.pop() for (k,v) in parse_qs(req['body']).items()}
+    return {k: v.pop() for (k,v) in parse_qs(req).items()}
 
 
 def verify_token(token):
