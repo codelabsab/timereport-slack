@@ -13,17 +13,7 @@ def create_event(url, data):
     :return: current_request.raw_body.decode() (same data you send in)
     """
     headers={'Content-Type': 'application/json'}
-    # these log.debug statements will be removed post-development
-    log.debug(f'data is: {data}')
-    log.debug(f'url is: {url}')
-    log.debug(f'headers are: {headers}')
     res = requests.post(url=url, json=data, headers=headers)
-    log.debug(f'{"="*10}')
-    log.debug(f'python backend')
-    log.debug(f'Response code is: {res.status_code}')
-    log.debug(f'Url is: {res.url}')
-    log.debug(f'{res.text}')
-    log.debug(f'{"="*10}')
     if res.status_code == 200:
         return True
     else:
