@@ -52,13 +52,30 @@ def index():
     user_id = payload.get('user_id')[0]
 
     if action == "add":
+        '''
+        Events is: [
+        {
+            'user_id': ['U2FG26ZFF'], 
+            'user_name': ['toma'], 
+            'reason': 'vab',
+            'event_date': datetime.datetime(2019, 2, 7, 0, 0),
+            'hours': '8'},
+            {
+                'user_id': ['U2FG26ZFF'],
+                'user_name': ['toma'],
+                'reason': 'vab', 
+                'event_date': datetime.datetime(2019, 2, 8, 0, 0),
+                'hours': '8'
+            }
+        }
+        '''
         events = factory(payload)
         logger.info(f"Events is: {events}")
         user_name = events[0].get('user_name')[0]
-        reason = events[0].get('reason')[0]
-        date_start = events[0].get('event_date').isoformat().split('T')[0]
-        date_end = events[-1].get('event_date').isoformat().split('T')[0]
-        hours = events[0].get('hours')[0]
+        reason = events[0].get('reason')
+        date_start = events[0].get('event_date').isoformat().split('T')
+        date_end = events[-1].get('event_date').isoformat().split('T')
+        hours = events[0].get('hours')
         # create attachment with above values for submit button
         attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
         logger.info(f"Attachment is: {attachment}")
