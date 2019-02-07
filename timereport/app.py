@@ -45,10 +45,10 @@ def index():
 
     logger.info(f'payload is: {payload}')
     params = payload['text'][0].split()
-    response_url = payload.get('response_url')
+    response_url = payload.get('response_url')[0]
     action = params.pop(0)
-    channel_id = payload.get('channel_id')
-    user_id = payload.get('user_id')
+    channel_id = payload.get('channel_id')[0]
+    user_id = payload.get('user_id')[0]
 
     if action == "add":
         events = factory(payload)
@@ -60,7 +60,12 @@ def index():
         # create attachment with above values for submit button
         attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
 
-        slack_client_response = slack_client_responder(token=config['slack_token'], channel_id=channel_id, user_id=user_id, attachment=attachment)
+        slack_client_response = slack_client_responder(
+            token=config['slack_token'],
+            channel_id=channel_id,
+            user_id=user_id,
+            attachment=attachment
+        )
         if isinstance(slack_client_response, tuple):
             app.log.debug(f'Failed to return anything: {slack_client_response[1]}')
         else:
@@ -71,7 +76,7 @@ def index():
                 return 200
 
         #for e in events:
-        post_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
+        #post_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
         #slack_responder(response_url, "Add action OK????? - we need to verify")
 
         return 200
