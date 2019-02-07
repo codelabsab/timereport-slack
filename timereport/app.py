@@ -24,6 +24,7 @@ valid_actions = config['valid_actions']
 python_backend_url = config['python_backend_url']
 logger.setLevel(config['log_level'])
 
+
 @app.route('/', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
     req = app.current_request.raw_body.decode()
@@ -52,6 +53,7 @@ def index():
 
     if action == "add":
         events = factory(payload)
+        logger.info(f"Events is: {events}")
         user_name = events[0].get('user_name')
         reason = events[0].get('reason')
         date_start = events[0].get('event_date').isoformat().split('T')[0]
