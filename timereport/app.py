@@ -75,10 +75,6 @@ def index():
                 app.log.debug(f'response is {e}')
                 return 200
 
-        #for e in events:
-        #post_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
-        #slack_responder(response_url, "Add action OK????? - we need to verify")
-
         return 200
 
     if action == "list":
