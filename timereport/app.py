@@ -54,11 +54,11 @@ def index():
     if action == "add":
         events = factory(payload)
         logger.info(f"Events is: {events}")
-        user_name = events[0].get('user_name')
-        reason = events[0].get('reason')
+        user_name = events[0].get('user_name')[0]
+        reason = events[0].get('reason')[0]
         date_start = events[0].get('event_date').isoformat().split('T')[0]
         date_end = events[-1].get('event_date').isoformat().split('T')[0]
-        hours = events[0].get('hours')
+        hours = events[0].get('hours')[0]
         # create attachment with above values for submit button
         attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
         logger.info(f"Attachment is: {attachment}")
