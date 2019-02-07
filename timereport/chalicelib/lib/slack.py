@@ -1,7 +1,9 @@
 import os
 import botocore.vendored.requests.api as requests
 from urllib.parse import parse_qs
+import ast
 import logging
+import json
 
 log = logging.getLogger(__name__)
 
@@ -15,6 +17,7 @@ def slack_client_responder(token, channel_id, user_id, attachment):
         yield res.text
     else:
         return False, res.status_code
+
 
 def slack_responder(url, msg):
     """
@@ -37,9 +40,102 @@ def slack_payload_extractor(req):
 
     :param req: The request data from slack
     :return: dict
+
+    {
+	'type': 'interactive_message',
+	'actions': [{
+		'name': 'submit',
+		'type': 'button',
+		'value': 'submit_yes'
+	}],
+	'callback_id': 'submit',
+	'team': {
+		'id': 'T2FG58LDV',
+		'domain': 'codelabsab'
+	},
+	'channel': {
+		'id': 'CBCMH0YSZ',
+		'name': 'timereports'
+	},
+	'user': {
+		'id': 'U2FGC795G',
+		'name': 'kamger'
+	},
+	'action_ts': '1549534734.479730',
+	'message_ts': '1549534730.003400',
+	'attachment_id': '1',
+	'token': 'ZfnrFKdHTDIy3f60ahIw4HO4',
+	'is_app_unfurl': False,
+	'original_message': {
+		'type': 'message',
+		'subtype': 'bot_message',
+		'text': 'U2FGC795G from slack.py',
+		'ts': '1549534730.003400',
+		'username': 'timereport-dev',
+		'bot_id': 'BEB7VGM28',
+		'attachments': [{
+			'callback_id': 'submit',
+			'fallback': 'Submit these values?',
+			'title': 'Submit these values?',
+			'footer': 'Code Labs timereport',
+			'id': 1,
+			'footer_icon': 'https://codelabs.se/favicon.ico',
+			'color': '3AA3E3',
+			'fields': [{
+				'title': 'User',
+				'value': 'kamger',
+				'short': False
+			}, {
+				'title': 'Type',
+				'value': 'vab',
+				'short': False
+			}, {
+				'title': 'Date start',
+				'value': '2018-12-03',
+				'short': False
+			}, {
+				'title': 'Date end',
+				'value': '2018-12-03',
+				'short': False
+			}, {
+				'title': 'Hours',
+				'value': '2018-12-05',
+				'short': False
+			}],
+			'actions': [{
+				'id': '1',
+				'name': 'submit',
+				'text': 'submit',
+				'type': 'button',
+				'value': 'submit_yes',
+				'style': 'primary'
+			}, {
+				'id': '2',
+				'name': 'no',
+				'text': 'No',
+				'type': 'button',
+				'value': 'submit_no',
+				'style': 'danger'
+			}]
+		}]
+	},
+	'response_url': 'https://hooks.slack.com/actions/T2FG58LDV/544051725409/hFalBemCS5sOQYWARMTvJVyB',
+	'trigger_id': '544051725457.83549292471.e4c1ada0676cb35dc512881689b3b01c'
+}
     """
-    # parse_qs makes a list of all values, and that's why the v.pop() is necessary
-    return {k: v.pop() for (k,v) in parse_qs(req).items()}
+    data = parse_qs(req)
+
+    log.debug(f"data is: {data}")
+
+    if data.get("payload"):
+        extracted_data = json.loads(data.get('payload')[0])
+        log.info(f'Extracted data: {extracted_data}')
+        return extracted_data
+
+    if data.get('command'):
+        return data
+    else:
+        return "failed extracting payload", 200
 
 
 def verify_token(token):

@@ -3,7 +3,7 @@ import datetime
 from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
 from timereport.chalicelib.lib.slack import slack_payload_extractor, verify_token
 from timereport.chalicelib.lib.factory import factory
-from timereport.chalicelib.lib.add import create_event
+from timereport.chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 
@@ -59,7 +59,7 @@ def test_create_event():
         url=fake_url, json=fake_data, headers={'Content-Type': 'application/json'}
     ).thenReturn(mock({'status_code': 200}))
 
-    assert create_event(fake_url, fake_data) is True
+    assert post_event(fake_url, fake_data) is True
     unstub()
 
 
@@ -69,5 +69,5 @@ def test_create_event_failure():
     when(requests).post(
         url=fake_url, json=fake_data, headers={'Content-Type': 'application/json'}
     ).thenReturn(mock({'status_code': 500}))
-    assert create_event(fake_url, fake_data) is False
+    assert post_event(fake_url, fake_data) is False
     unstub()
