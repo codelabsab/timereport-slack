@@ -97,7 +97,7 @@ def index():
         return 200
 
     if action == "list":
-        get_by_user = get_user_by_id(f'{python_backend_url}/user', payload.get('user_id'))
+        get_by_user = get_user_by_id(f'{python_backend_url}/user', user_id)
         if isinstance(get_by_user, tuple):
             app.log.debug(f'Failed to return anything: {get_by_user[1]}')
         else:
@@ -108,10 +108,9 @@ def index():
         if ':' in event_date:
             # temporary solution
 
-            start_date = event_date.split(':')[0]
-            end_date = event_date.split(':')[1]
+            start_date, end_date = event_date.split(':')
 
-            get_by_date = get_between_date(f"{python_backend_url}/user/{payload.get('user_id')}", start_date, end_date)
+            get_by_date = get_between_date(f"{python_backend_url}/user/{user_id}", start_date, end_date)
 
             for r in get_by_date:
                 slack_responder(response_url, f'```{str(r)}```')
