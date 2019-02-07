@@ -2,12 +2,12 @@ from chalice import Chalice
 import os
 import json
 import logging
-import ast
 
-from chalicelib.lib.factory import factory, date_to_string, json_serial
-from chalicelib.lib.slack import slack_payload_extractor, verify_token, verify_actions, verify_reasons, slack_responder, slack_client_responder, submit_message_menu
+from chalicelib.lib.factory import factory, json_factory
+from chalicelib.lib.add import post_event
+from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
+                                 slack_client_responder, submit_message_menu)
 
-from chalicelib.lib.add import create_event
 from chalicelib.lib.list import get_between_date, get_user_by_id
 from chalicelib.lib.helpers import parse_config
 
@@ -27,35 +27,24 @@ logger.setLevel(config['log_level'])
 @app.route('/', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
     req = app.current_request.raw_body.decode()
-    logger.info(f"req is {req}")
-
-    if 'body' in req:
-        event = ast.literal_eval(req)
-        logger.info(f"event ast.literal is {event}")
-    else:
-        event = dict(body=req)
-        logger.info(f"event body dict is {event}")
-    payload = slack_payload_extractor(event['body'])
-    logger.info(f"payload extractor is {payload}")
-    # when we respond to slack message with submit button
-    # we check if type is interactive message
-    for t in payload.values():
-        if 'type' in t:
-            payload = json.loads(t)
-            if payload.get('type') == "interactive_message":
-                selection = payload.get('actions')[0].get('value')
-
-                if selection == "submit_yes":
-                    # here we post to database
-                    # todo
-
-                    return '', 200
-                else:
-                    return 'canceling...', 200
+    payload = slack_payload_extractor(req)
+    # interactive session
+    if payload.get('type') == "interactive_message":
+        selection = payload.get('actions')[0].get('value')
+        logger.info(f"Selection is: {selection}")
+        if selection == "submit_yes":
+            events = json_factory(payload)
+            logger.info(f"{events}")
+            for event in events:
+                # post_event(python_backend_url, event)
+                post_event(f'{python_backend_url}/event', json.dumps(event))
+            logger.info(f'python url is: {python_backend_url}')
+            return '', 200
         else:
-            app.log.debug(f'no type in payload {payload}')
+            return 'canceling...', 200
 
-    params = payload['text'].split()
+    logger.info(f'payload is: {payload}')
+    params = payload['text'][0].split()
     response_url = payload.get('response_url')
     action = params.pop(0)
     channel_id = payload.get('channel_id')
@@ -70,6 +59,7 @@ def index():
         hours = events[0].get('hours')
         # create attachment with above values for submit button
         attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
+
         slack_client_response = slack_client_responder(token=config['slack_token'], channel_id=channel_id, user_id=user_id, attachment=attachment)
         if isinstance(slack_client_response, tuple):
             app.log.debug(f'Failed to return anything: {slack_client_response[1]}')
@@ -81,7 +71,7 @@ def index():
                 return 200
 
         #for e in events:
-        #    create_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
+        post_event(f'{python_backend_url}/event', json.dumps(e, default=json_serial))
         #slack_responder(response_url, "Add action OK????? - we need to verify")
 
         return 200

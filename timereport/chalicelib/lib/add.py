@@ -3,7 +3,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-def create_event(url, data):
+def post_event(url, data):
     """
     Uses new python chalice backend
     only returns back at this point, no DB connection
