@@ -73,8 +73,8 @@ def index():
         logger.info(f"Events is: {events}")
         user_name = events[0].get('user_name')[0]
         reason = events[0].get('reason')
-        date_start = events[0].get('event_date').isoformat().split('T')
-        date_end = events[-1].get('event_date').isoformat().split('T')
+        date_start = events[0].get('event_date')
+        date_end = events[-1].get('event_date')
         hours = events[0].get('hours')
         # create attachment with above values for submit button
         attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
