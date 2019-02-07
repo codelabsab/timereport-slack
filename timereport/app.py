@@ -61,7 +61,7 @@ def index():
         hours = events[0].get('hours')
         # create attachment with above values for submit button
         attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
-
+        logger.info(f"Attachment is: {attachment}")
         slack_client_response = slack_client_responder(
             token=config['slack_token'],
             channel_id=channel_id,
