@@ -18,8 +18,8 @@ def test_parsing_config():
         assert test_config.get(option) is not None
 
 
-def test_slack_payload_extractor():
-    fake_data = slack_payload_extractor('foo=bar&text=fake+text')
+def test_slack_payload_extractor_message():
+    fake_data = slack_payload_extractor('body=bar&text=fake+text')
     assert isinstance(fake_data, dict)
     assert fake_data.get('foo') == 'bar'
     assert fake_data.get('text') == 'fake text'
