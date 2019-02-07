@@ -27,11 +27,16 @@ logger.setLevel(config['log_level'])
 @app.route('/', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
     req = app.current_request.raw_body.decode()
+    logger.info(f"req is {req}")
+
     if 'body' in req:
         event = ast.literal_eval(req)
+        logger.info(f"event ast.literal is {event}")
     else:
         event = dict(body=req)
+        logger.info(f"event body dict is {event}")
     payload = slack_payload_extractor(event['body'])
+    logger.info(f"payload extractor is {payload}")
     # when we respond to slack message with submit button
     # we check if type is interactive message
     for t in payload.values():
