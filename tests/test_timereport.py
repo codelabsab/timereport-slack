@@ -19,18 +19,18 @@ def test_parsing_config():
 
 
 def test_slack_payload_extractor_message():
-    fake_data = slack_payload_extractor('body=bar&text=fake+text')
+    fake_data = slack_payload_extractor('command=bar&text=fake+text')
     assert isinstance(fake_data, dict)
-    assert fake_data.get('foo') == 'bar'
-    assert fake_data.get('text') == 'fake text'
+    assert fake_data.get('command') == ['bar']
+    assert fake_data.get('text') == ['fake text']
 
 
 def test_factory():
-    fake_order = dict(user_id='fake', user_name='fake mcFake', text='fake_cmd=do_fake fake_reason 2018-01-01')
+    fake_order = dict(user_id='fake', user_name='fake mcFake', text=['fake_cmd=do_fake fake_reason 2018-01-01'])
     fake_result = factory(fake_order)
     assert isinstance(fake_result, list)
     test_data = fake_result.pop()
-    assert isinstance(test_data.get('event_date'), datetime.datetime)
+    assert isinstance(test_data.get('event_date'), str)
     for item in ('user_id', 'user_name', 'reason', 'hours'):
         assert isinstance(test_data[item], str)
 
