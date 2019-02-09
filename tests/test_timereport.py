@@ -11,8 +11,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def test_parsing_config():
-    test_config = parse_config(f'{dir_path}/config.json')
-    mandatory_options = ('SLACK_TOKEN', 'db_url', 'aws_access_key_id', 'aws_secret_access_key')
+    test_config = parse_config(f'{dir_path}/config.yaml')
+    mandatory_options = ('log_level', 'backend_url')
     for option in mandatory_options:
         assert isinstance(option, str)
         assert test_config.get(option) is not None

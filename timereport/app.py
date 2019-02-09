@@ -18,12 +18,11 @@ app.debug = True
 logger = logging.getLogger()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-config = parse_config(f'{dir_path}/chalicelib/config.json')
+config = parse_config(f'{dir_path}/chalicelib/config.yaml')
 valid_reasons = config['valid_reasons']
 valid_actions = config['valid_actions']
-python_backend_url = config['python_backend_url']
+backend_url = config['backend_url']
 logger.setLevel(config['log_level'])
-
 
 @app.route('/', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
@@ -37,9 +36,8 @@ def index():
             events = json_factory(payload)
             logger.info(f"{events}")
             for event in events:
-                # post_event(python_backend_url, event)
-                post_event(f'{python_backend_url}/event', json.dumps(event))
-            logger.info(f'python url is: {python_backend_url}')
+                post_event(f'{backend_url}/event', json.dumps(event))
+            logger.info(f'python url is: {backend_url}')
             return '', 200
         else:
             return 'canceling...', 200
@@ -80,7 +78,7 @@ def index():
         attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
         logger.info(f"Attachment is: {attachment}")
         slack_client_response = slack_client_responder(
-            token=config['slack_token'],
+            token=os.getenv('slack_token'),
             channel_id=channel_id,
             user_id=user_id,
             attachment=attachment
@@ -97,7 +95,7 @@ def index():
         return 200
 
     if action == "list":
-        get_by_user = get_user_by_id(f'{python_backend_url}/user', user_id)
+        get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
         if isinstance(get_by_user, tuple):
             app.log.debug(f'Failed to return anything: {get_by_user[1]}')
         else:
@@ -110,7 +108,7 @@ def index():
 
             start_date, end_date = event_date.split(':')
 
-            get_by_date = get_between_date(f"{python_backend_url}/user/{user_id}", start_date, end_date)
+            get_by_date = get_between_date(f"{backend_url}/user/{user_id}", start_date, end_date)
 
             for r in get_by_date:
                 slack_responder(response_url, f'```{str(r)}```')
