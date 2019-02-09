@@ -1,5 +1,5 @@
 import os
-import datetime
+import pytest
 from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
 from timereport.chalicelib.lib.slack import slack_payload_extractor, verify_token
 from timereport.chalicelib.lib.factory import factory
@@ -8,7 +8,6 @@ from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
 
 def test_parsing_config():
     test_config = parse_config(f'{dir_path}/config.yaml')
@@ -24,9 +23,9 @@ def test_slack_payload_extractor_message():
     assert fake_data.get('command') == ['bar']
     assert fake_data.get('text') == ['fake text']
 
-
-def fake_factory(order):
-    fake_order = order
+@pytest.mark.parametrize("date_string", [ "2018-01-01", "today" ])
+def test_factory(date_string):
+    fake_order = dict(user_id='fake', user_name='fake mcFake', text=[f'fake_cmd=do_fake fake_reason {date_string}'])
     fake_result = factory(fake_order)
     assert isinstance(fake_result, list)
     test_data = fake_result.pop()
@@ -34,13 +33,6 @@ def fake_factory(order):
     for item in ('user_id', 'user_name', 'reason', 'hours'):
         assert isinstance(test_data[item], str)
 
-def test_date_today():
-    fake_order = dict(user_id='fake', user_name='fake mcFake', text=['fake_cmd=do_fake fake_reason today'])
-    fake_factory(fake_order)
-
-def test_date_string():
-    fake_order = dict(user_id='fake', user_name='fake mcFake', text=['fake_cmd=do_fake fake_reason 2018-12-01'])
-    fake_factory(fake_order)
 
 def test_slack_token():
     assert verify_token('faulty fake token') is not True
