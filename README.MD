@@ -1,69 +1,61 @@
-### Instructions
+# Timereport nextgen
 
-Simple flask app that runs a /slash command
-for generating timereport deviations
+## Architecture
+* AWS API Gateway
+* AWS Lambda
 
-Create a .env file with TOKEN information for your slack app or use Zappa
-with the following zappa_settings.json file.
+## Dev
+### Install dependencies
+__Install dev packages__
 
-deploy with zappa.
-
+with `pipenv`:
 ```
-pip install zappa
-
-zappa deploy timereport
-
-```
-```
-# zappa_settings.json
-{
-    "timereport": {
-        "app_function": "timereport.app",
-        "profile_name": "default",
-        "project_name": "slack_timereport",
-        "runtime": "python3.6",
-        "s3_bucket": "timereport.s3.bucketname.com",
-        "aws_region": "us-east-1",
-        "aws_environment_variables": {
-            "LISTEN_PORT" : "5000",
-            "SLACK_BOT_TOKEN" :"",
-            "SLACK_APP_ID" :"",
-            "SLACK_SECRET" :"",
-            "SLACK_CLIENT_ID" :"",
-            "SLACK_VERIFICATION_TOKEN" :"",
-            "SLACK_OAUTH_ACCESS_TOKEN" :"",
-            "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN" :"",
-            "MONGO_HOST" :"mongohostname.com",
-            "MONGO_PORT" :"47451",
-            "MONGO_USERNAME" :"User",
-            "MONGO_PASSWORD" :"Password",
-            "MONGO_DBNAME" : "DBname",
-            "REDIS_DB" : "redishostname",
-            "REDIS_PORT" : "12772",
-            "REDIS_PASSWORD" : "Password",
-       }
-    }
-}
+pipenv shell
+pipenv install --dev
 ```
 
+If you don't have `pipenv`:
 ```
-# information
+pip install -r requirements.txt
+pip install -r dev-requirements.txt
+```
+### Update dependencies
+To generate new `requirements.txt`:
+```
+pipenv lock --requirements > requirements.txt
+```
+And for dev packages:
+```
+pipenv lock --requirements --dev > dev-requirements.txt
+```
+### Run unit tests
+Go to root of project.
+Then simply run `pytest`:
+```
+pytest
+```
+### test coverage
+If you want to include test coverage:
+```
+pytest --cov=timereport 
+```
+### Packaing secrets for chalice to travis-ci
+```
+$ tar cvf chalice_secrets.tar timereport/.chalice/{config.json,deployed} timereport/chalicelib/config.json
+a timereport/.chalice/config.json
+a timereport/.chalice/deployed
+a timereport/.chalice/deployed/dev.json
+a timereport/chalicelib/config.json
 
-this particular setup runs everything in separate endpoints
-on aws lambda.
+$ travis encrypt-file chalice_secrets.tar --add
+encrypting chalice_secrets.tar for codelabsab/timereport
+storing result as chalice_secrets.tar.enc
+storing secure env variables for decryption
 
-Deployed through zappa.
+Make sure to add chalice_secrets.tar.enc to the git repository.
+Make sure not to add chalice_secrets.tar to the git repository.
+Commit all changes to your .travis.yml.
 
-- zappa
-- flask
-- redis
-- pandas
-- mongodb
-- aws lambda
-- aws api gateway
-- aws s3
+$ git add chalice_secrets.tar.enc .travis.yml
 
-you need to set up api.slack.com for your app
-with interactive_messaging and correct endpoint urls
-as well as slash commands.
 ```
