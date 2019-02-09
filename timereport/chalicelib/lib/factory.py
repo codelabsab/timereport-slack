@@ -26,7 +26,7 @@ def factory(order):
         date_obj_stop = datetime.strptime(date_str_stop, format_str)
         for d in date_range(date_obj_start, date_obj_stop):
             dates.append(d)
-    elif "today" in date_str:
+    if "today" in date_str:
         date_obj = datetime.now().date()
         dates.append(date_obj)
     else:
