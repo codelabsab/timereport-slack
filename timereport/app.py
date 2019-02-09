@@ -53,15 +53,15 @@ def index():
         '''
         Events is: [
         {
-            'user_id': ['U2FG26ZFF'], 
-            'user_name': ['toma'], 
+            'user_id': ['U2FG26ZFF'],
+            'user_name': ['toma'],
             'reason': 'vab',
             'event_date': datetime.datetime(2019, 2, 7, 0, 0),
             'hours': '8'},
             {
                 'user_id': ['U2FG26ZFF'],
                 'user_name': ['toma'],
-                'reason': 'vab', 
+                'reason': 'vab',
                 'event_date': datetime.datetime(2019, 2, 8, 0, 0),
                 'hours': '8'
             }
