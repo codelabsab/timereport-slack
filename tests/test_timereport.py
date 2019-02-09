@@ -25,8 +25,8 @@ def test_slack_payload_extractor_message():
     assert fake_data.get('text') == ['fake text']
 
 
-def test_factory():
-    fake_order = dict(user_id='fake', user_name='fake mcFake', text=['fake_cmd=do_fake fake_reason 2018-01-01'])
+def fake_factory(order):
+    fake_order = order
     fake_result = factory(fake_order)
     assert isinstance(fake_result, list)
     test_data = fake_result.pop()
@@ -34,6 +34,13 @@ def test_factory():
     for item in ('user_id', 'user_name', 'reason', 'hours'):
         assert isinstance(test_data[item], str)
 
+def test_date_today():
+    fake_order = dict(user_id='fake', user_name='fake mcFake', text=['fake_cmd=do_fake fake_reason today'])
+    fake_factory(fake_order)
+
+def test_date_string():
+    fake_order = dict(user_id='fake', user_name='fake mcFake', text=['fake_cmd=do_fake fake_reason 2018-12-01'])
+    fake_factory(fake_order)
 
 def test_slack_token():
     assert verify_token('faulty fake token') is not True
