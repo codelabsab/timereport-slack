@@ -8,3 +8,5 @@ terraform/.terraform/
 terraform/terraform.tfstate
 .coverage
 timereport/chalicelib/lib/__pycache__/
+timereport/.chalice/config.json
+timereport/chalicelib/config.json
