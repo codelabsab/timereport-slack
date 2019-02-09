@@ -10,11 +10,6 @@ slackclient = "*"
 flask = "*"
 
 [dev-packages]
-botocore = "*"
-chalice = "*"
-pyyaml = "*"
-
-[dev-packages]
 pytest = "*"
 mockito = "*"
 pytest-cov = "*"
