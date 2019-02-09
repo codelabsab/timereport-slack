@@ -1,14 +1,14 @@
-import json
+import yaml
 
 
-def parse_config(path='config.json'):
+def parse_config(path='config.yaml'):
     """
-    Parse config written in json
-    :param path: the path to the config file. config.json is default
+    Parse config written in yaml
+    :param path: the path to the config file. config.yaml is default
     :return: config
     """
     with open(path) as fd:
-        config = json.load(fd)
+        config = yaml.load(fd)
 
     return config
 
