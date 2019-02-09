@@ -1,1 +1,11 @@
-valid_reasons:   - vab  - sjuk  - intern  - semestervalid_actions:  - add  - list  - showlog_level: DEBUGbackend_url: https://ywdi37qne9.execute-api.eu-north-1.amazonaws.com/api
+valid_reasons: 
+  - vab
+  - sjuk
+  - intern
+  - semester
+valid_actions:
+  - add
+  - list
+  - show
+log_level: DEBUG
+backend_url: https://ywdi37qne9.execute-api.eu-north-1.amazonaws.com/api
