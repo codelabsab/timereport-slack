@@ -1,4 +1,6 @@
-import yaml
+from ruamel.yaml import YAML
+
+yaml=YAML(typ='safe')
 
 
 def parse_config(path='config.yaml'):
