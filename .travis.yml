@@ -19,3 +19,4 @@ notifications:
 before_install:
 - openssl aes-256-cbc -K $encrypted_ee7d07fff8d2_key -iv $encrypted_ee7d07fff8d2_iv
   -in chalice_secrets.tar.enc -out chalice_secrets.tar -d
+- tar xvf chalice_secrets.tar
