@@ -6,8 +6,7 @@ import logging
 from chalicelib.lib.factory import factory, json_factory
 from chalicelib.lib.add import post_event
 from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
-                                  slack_client_responder, submit_message_menu,
-                                  delete_message_menu)
+                                 slack_client_responder, submit_message_menu)
 
 from chalicelib.lib.list import get_between_date, get_user_by_id
 from chalicelib.lib.helpers import parse_config
@@ -51,7 +50,7 @@ def index():
     channel_id = payload.get('channel_id')[0]
     user_id = payload.get('user_id')[0]
 
-    if action == "add" or action == 'delete':
+    if action == "add":
 
         '''
         Events is: [
@@ -75,6 +74,7 @@ def index():
         if not events:
             return slack_responder(response_url, 'Wrong arguments for add command')
 
+
         logger.info(f"Events is: {events}")
         logger.info(f"Token from os.environ is: {os.getenv('slack_token')}")
         user_name = events[0].get('user_name')[0]
@@ -82,14 +82,8 @@ def index():
         date_start = events[0].get('event_date')
         date_end = events[-1].get('event_date')
         hours = events[0].get('hours')
-
         # create attachment with above values for submit button
-        if action == 'add':
-            attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
-
-        if action == 'delete':
-            attachment = delete_message_menu(user_name, date_start)
-
+        attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
         logger.info(f"Attachment is: {attachment}")
         slack_client_response = slack_client_responder(
             token=os.getenv('slack_token'),
@@ -128,5 +122,8 @@ def index():
                 slack_responder(response_url, f'```{str(r)}```')
 
         return 200
+
+    if action == "delete":
+        slack_responder(response_url, "Delete not implemented yet")
 
     slack_responder(response_url, "Unsupported action")
