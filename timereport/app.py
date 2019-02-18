@@ -30,11 +30,16 @@ logger.setLevel(config['log_level'])
 def index():
     req = app.current_request.raw_body.decode()
     payload = slack_payload_extractor(req)
+
     # interactive session
     if payload.get('type') == "interactive_message":
         selection = payload.get('actions')[0].get('value')
         logger.info(f"Selection is: {selection}")
+
         if selection == "submit_yes":
+            if payload.get('callback_id') == 'delete':
+                return 'Delete action not implemented yet'
+
             events = json_factory(payload)
             logger.info(f"{events}")
             for event in events:
@@ -127,8 +132,7 @@ def index():
     if action == "delete":
         app.log.debug(f"Running delete action with: {params}")
         date = params.pop()
-
-        attachment = delete_message_menu(user_id, date)
+        attachment = delete_message_menu(payload['user_name'], date)
         app.log.debug(f"Attachment is: {attachment}")
 
         slack_client_response = slack_client_responder(

@@ -1,11 +1,11 @@
 import os
 import botocore.vendored.requests.api as requests
 from urllib.parse import parse_qs
-import ast
 import logging
 import json
 
 log = logging.getLogger(__name__)
+
 
 def slack_client_responder(token, channel_id, user_id, attachment):
     headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
@@ -228,7 +228,7 @@ def delete_message_menu(user_name, date):
             "footer_icon": "https://codelabs.se/favicon.ico",
             "fallback": "Submit these values?",
             "title": "Submit these values?",
-            "callback_id": "submit",
+            "callback_id": "delete",
             "color": "#3AA3E3",
             "attachment_type": "default",
             "actions": [
