@@ -100,7 +100,7 @@ def index():
                 app.log.debug(f'response is {e}')
                 return 200
 
-        return 200
+        return ''
 
     if action == "list":
         get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
