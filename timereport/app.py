@@ -40,14 +40,15 @@ def index():
             if payload.get('callback_id') == 'delete':
                 return 'Delete action not implemented yet'
 
-            events = json_factory(payload)
-            logger.info(f"{events}")
-            for event in events:
-                post_event(f'{backend_url}/event', json.dumps(event))
-            logger.info(f'python url is: {backend_url}')
-            return '', 200
+            if payload.get('callback_id') == 'submit':
+                events = json_factory(payload)
+                logger.info(f"{events}")
+                for event in events:
+                    post_event(f'{backend_url}/event', json.dumps(event))
+                    logger.info(f'python url is: {backend_url}')
+                return ''
         else:
-            return 'canceling...', 200
+            return 'canceling...'
 
     logger.info(f'payload is: {payload}')
     params = payload['text'][0].split()
@@ -132,8 +133,8 @@ def index():
     if action == "delete":
         app.log.debug(f"Running delete action with: {params}")
         date = params.pop()
-        attachment = delete_message_menu(payload['user_name'], date)
-        app.log.debug(f"Attachment is: {attachment}")
+        attachment = delete_message_menu(payload.get('user_name'), date)
+        app.log.debug(f"Attachment is: {attachment}. user_name is {payload.get('user_name')}")
 
         slack_client_response = slack_client_responder(
             token=os.getenv('slack_token'),
