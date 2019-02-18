@@ -23,7 +23,8 @@ def test_slack_payload_extractor_message():
     assert fake_data.get('command') == ['bar']
     assert fake_data.get('text') == ['fake text']
 
-@pytest.mark.parametrize("date_string", [ "2018-01-01", "today" ])
+
+@pytest.mark.parametrize("date_string", ["2018-01-01", "today"])
 def test_factory(date_string):
     fake_order = dict(user_id='fake', user_name='fake mcFake', text=[f'fake_cmd=do_fake fake_reason {date_string}'])
     fake_result = factory(fake_order)
