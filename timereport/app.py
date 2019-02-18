@@ -6,7 +6,8 @@ import logging
 from chalicelib.lib.factory import factory, json_factory
 from chalicelib.lib.add import post_event
 from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
-                                 slack_client_responder, submit_message_menu)
+                                  slack_client_responder, submit_message_menu,
+                                  delete_message_menu)
 
 from chalicelib.lib.list import get_between_date, get_user_by_id
 from chalicelib.lib.helpers import parse_config
@@ -121,9 +122,20 @@ def index():
             for r in get_by_date:
                 slack_responder(response_url, f'```{str(r)}```')
 
-        return 200
+        return ''
 
     if action == "delete":
-        slack_responder(response_url, "Delete not implemented yet")
+        date = params.pop()
+        attachment = delete_message_menu(user_id, date)
+
+        slack_client_response = slack_client_responder(
+            token=os.getenv('slack_token'),
+            channel_id=channel_id,
+            user_id=user_id,
+            attachment=attachment
+        )
+        app.log.debug(f'response from slack is {slack_client_response}')
+
+        return ''
 
     slack_responder(response_url, "Unsupported action")
