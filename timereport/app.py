@@ -125,7 +125,9 @@ def index():
         return ''
 
     if action == "delete":
+        app.log.debug(f"Running delete action with: {params}")
         date = params.pop()
+
         attachment = delete_message_menu(user_id, date)
 
         slack_client_response = slack_client_responder(
