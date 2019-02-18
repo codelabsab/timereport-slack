@@ -99,7 +99,7 @@ def index():
 
             for e in slack_client_response:
                 app.log.debug(f'response is {e}')
-                return 200
+                return ''
 
         return ''
 
@@ -129,6 +129,7 @@ def index():
         date = params.pop()
 
         attachment = delete_message_menu(user_id, date)
+        app.log.debug(f"Attachment is: {attachment}")
 
         slack_client_response = slack_client_responder(
             token=os.getenv('slack_token'),
@@ -136,7 +137,10 @@ def index():
             user_id=user_id,
             attachment=attachment
         )
-        app.log.debug(f'response from slack is {slack_client_response}')
+
+        for event in slack_client_response:
+            app.log.debug(f'response for delete message menu is {event}')
+            return ''
 
         return ''
 
