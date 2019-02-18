@@ -28,10 +28,7 @@ def slack_responder(url, msg):
     """
     headers = {'Content-Type': 'application/json'}
     res = requests.post(url=url, json={"text": msg}, headers=headers)
-    if res.status_code == 200:
-        return True
-    else:
-        return False
+    return res.status_code
 
 
 def slack_payload_extractor(req):

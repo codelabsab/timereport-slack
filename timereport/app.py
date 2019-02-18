@@ -72,8 +72,8 @@ def index():
 
         events = factory(payload)
         if not events:
-            slack_responder(response_url, 'Wrong arguments for add command')
-            exit(0)
+            return slack_responder(response_url, 'Wrong arguments for add command')
+
 
         logger.info(f"Events is: {events}")
         logger.info(f"Token from os.environ is: {os.getenv('slack_token')}")
