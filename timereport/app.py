@@ -123,4 +123,7 @@ def index():
 
         return 200
 
+    if action == "delete":
+        slack_responder(response_url, "Delete not implemented yet")
+
     slack_responder(response_url, "Unsupported action")
