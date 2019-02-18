@@ -51,6 +51,7 @@ def index():
     user_id = payload.get('user_id')[0]
 
     if action == "add":
+
         '''
         Events is: [
         {
@@ -68,6 +69,7 @@ def index():
             }
         }
         '''
+
         events = factory(payload)
         if not events:
             slack_responder(response_url, 'Wrong arguments for add command')
@@ -120,3 +122,5 @@ def index():
                 slack_responder(response_url, f'```{str(r)}```')
 
         return 200
+
+    slack_responder(response_url, "Unsupported action")

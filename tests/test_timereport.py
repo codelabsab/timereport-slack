@@ -49,6 +49,18 @@ def test_wrong_hours_data_type():
     assert factory(fake_order) is False
 
 
+@pytest.mark.parametrize(
+    "args_list",
+    [["one", "two", "three", "four", "five"], ["one_argument"]],
+)
+def test_wrong_number_of_args_for_add(args_list):
+    fake_order = dict(
+        user_id='fake',
+        user_name='fake mcFake',
+        text=args_list
+    )
+    assert factory(fake_order) is False
+
 
 def test_slack_token():
     assert verify_token('faulty fake token') is not True

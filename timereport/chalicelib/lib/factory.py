@@ -14,8 +14,13 @@ def factory(order):
     format_str = "%Y-%m-%d"
     dates, events = [], []
     user_id, user_name = order['user_id'], order['user_name']
+
     cmd = order['text'][0].split()
-    action, reason, date_str = cmd[:3]
+
+    if len(cmd) < 3 or len(cmd) > 4:
+        return False
+
+    reason, date_str = cmd[1:3]
 
     try:
         hours = round(float(cmd[3]), 1)
