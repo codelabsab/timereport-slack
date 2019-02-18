@@ -16,16 +16,24 @@ def factory(order):
     user_id, user_name = order['user_id'], order['user_name']
     cmd = order['text'][0].split()
     action, reason, date_str = cmd[:3]
+
     try:
-        hours = cmd[3]
+        hours = round(float(cmd[3]), 1)
+        if 0 < hours > 8:
+            hours = 8
     except IndexError:
-        hours = "8"
+        hours = 8
+
+    except ValueError:
+        return False
+
     if ":" in date_str:
         date_str_start, date_str_stop = date_str.split(":")
         date_obj_start = datetime.strptime(date_str_start, format_str)
         date_obj_stop = datetime.strptime(date_str_stop, format_str)
         for d in date_range(date_obj_start, date_obj_stop):
             dates.append(d)
+
     if "today" in date_str:
         date_obj = datetime.now().date()
         dates.append(date_obj)
@@ -36,6 +44,7 @@ def factory(order):
         e = create_event(user_id, user_name, reason, event_date, hours)
         events.append(e)
     return events
+
 
 def json_factory(json_order):
     '''[{

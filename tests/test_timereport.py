@@ -24,15 +24,17 @@ def test_slack_payload_extractor_message():
     assert fake_data.get('text') == ['fake text']
 
 
-@pytest.mark.parametrize("date_string", ["2018-01-01", "today"])
+@pytest.mark.parametrize("date_string", ["2018-01-01", "today", "today 8", "today 24"])
 def test_factory(date_string):
     fake_order = dict(user_id='fake', user_name='fake mcFake', text=[f'fake_cmd=do_fake fake_reason {date_string}'])
     fake_result = factory(fake_order)
     assert isinstance(fake_result, list)
     test_data = fake_result.pop()
     assert isinstance(test_data.get('event_date'), str)
-    for item in ('user_id', 'user_name', 'reason', 'hours'):
+    for item in ('user_id', 'user_name', 'reason'):
         assert isinstance(test_data[item], str)
+
+    assert int(test_data['hours']) <= 8
 
 
 def test_slack_token():

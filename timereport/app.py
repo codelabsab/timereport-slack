@@ -24,6 +24,7 @@ valid_actions = config['valid_actions']
 backend_url = config['backend_url']
 logger.setLevel(config['log_level'])
 
+
 @app.route('/', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
     req = app.current_request.raw_body.decode()
@@ -68,6 +69,10 @@ def index():
         }
         '''
         events = factory(payload)
+        if not events:
+            slack_responder(response_url, 'Wrong arguments for add command')
+            return 200
+
         logger.info(f"Events is: {events}")
         logger.info(f"Token from os.environ is: {os.getenv('slack_token')}")
         user_name = events[0].get('user_name')[0]
