@@ -5,6 +5,7 @@ import logging
 
 from chalicelib.lib.factory import factory, json_factory
 from chalicelib.lib.add import post_event
+from chalicelib.lib.delete import delete_event
 from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
                                   slack_client_responder, submit_message_menu,
                                   delete_message_menu)
@@ -38,7 +39,12 @@ def index():
 
         if selection == "submit_yes":
             if payload.get('callback_id') == 'delete':
-                return 'Delete action not implemented yet'
+                message = payload['original_message']['attachments'][0]['fields']
+                user_id = message['user']['id']
+                date = message[2]['value']
+                delete_event(f'{backend_url}/event', user_id, date)
+                logger.info('delete event posted')
+                return f'successfully deleted entry: {date}'
 
             if payload.get('callback_id') == 'add':
                 events = json_factory(payload)
