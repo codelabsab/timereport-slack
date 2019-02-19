@@ -40,13 +40,12 @@ def index():
             if payload.get('callback_id') == 'delete':
                 return 'Delete action not implemented yet'
 
-            if payload.get('callback_id') == 'submit':
+            if payload.get('callback_id') == 'add':
                 events = json_factory(payload)
-                logger.info(f"{events}")
                 for event in events:
                     post_event(f'{backend_url}/event', json.dumps(event))
-                    logger.info(f'python url is: {backend_url}')
-                return ''
+                logger.info(f'python url is: {backend_url}')
+                return 'successful'
         else:
             return 'canceling...'
 

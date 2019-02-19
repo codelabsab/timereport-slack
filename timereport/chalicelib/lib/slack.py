@@ -187,7 +187,7 @@ def submit_message_menu(user_name, reason, date_start, date_end, hours):
             "footer_icon": "https://codelabs.se/favicon.ico",
             "fallback": "Submit these values?",
             "title": "Submit these values?",
-            "callback_id": "submit",
+            "callback_id": "add",
             "color": "#3AA3E3",
             "attachment_type": "default",
             "actions": [
