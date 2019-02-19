@@ -40,9 +40,15 @@ def index():
         if selection == "submit_yes":
             if payload.get('callback_id') == 'delete':
                 message = payload['original_message']['attachments'][0]['fields']
-                user_id = message['user']['id']
-                date = message[2]['value']
-                delete_event(f'{backend_url}/event', user_id, date)
+                user_id = payload['user']['id']
+                date = message[1]['value']
+                response_url = payload['response_url']
+                delete_by_date = delete_event(f'{backend_url}/event', user_id, date)
+                if isinstance(delete_by_date, tuple):
+                    app.log.debug(f'Failed to return anything: {delete_by_date[1]}')
+                else:
+                    for r in delete_by_date:
+                        slack_responder(response_url, f'```{str(r)}```')
                 logger.info('delete event posted')
                 return f'successfully deleted entry: {date}'
 
@@ -138,8 +144,8 @@ def index():
     if action == "delete":
         app.log.debug(f"Running delete action with: {params}")
         date = params.pop()
-        attachment = delete_message_menu(payload.get('user_name'), date)
-        app.log.debug(f"Attachment is: {attachment}. user_name is {payload.get('user_name')}")
+        attachment = delete_message_menu(payload.get('user_name')[0], date)
+        app.log.debug(f"Attachment is: {attachment}. user_name is {payload.get('user_name')[0]}")
 
         slack_client_response = slack_client_responder(
             token=os.getenv('slack_token'),
