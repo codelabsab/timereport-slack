@@ -16,7 +16,7 @@ def delete_event(url, user_id, date):
     """
     url = f'{url}/{user_id}'
     params = {'date': date}
-    res = requests.get(url=url, params=params)
+    res = requests.delete(url=url, params=params)
     if res.status_code == 200:
         yield res.text
     else:
