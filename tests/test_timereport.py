@@ -8,14 +8,6 @@ from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 
 
-import logging
-import sys
-
-logging.basicConfig(
-    # Change to logging.DEBUG to get debugging messages to stdout
-    stream=sys.stdout, level=logging.DEBUG, format="%(message)s"
-)
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
