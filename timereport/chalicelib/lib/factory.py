@@ -54,31 +54,12 @@ def factory(order):
 
 
 def json_factory(json_order):
-    '''[{
-                    "title": "User",
-                    "value": "kamger",
-                    "short": false
-                }, {
-                    "title": "Type",
-                    "value": "vab",
-                    "short": false
-                }, {
-                    "title": "Date start",
-                    "value": "2018-12-03",
-                    "short": false
-                }, {
-                    "title": "Date end",
-                    "value": "2018-12-05",
-                    "short": false
-                }, {
-                    "title": "Hours",
-                    "value": "2018-12-05",
-                    "short": false
-                }]
+    """
+    Extract necessary values from the interactive message sent via slack
 
-
-
-                '''
+    :param json_order: A dict based on slack interactive message payload
+    :return: list
+    """
     format_str = "%Y-%m-%d"
 
     payload = json_order['original_message']['attachments'][0]['fields']
@@ -103,6 +84,7 @@ def json_factory(json_order):
         }
         events.append(document)
     return events
+
 
 def date_range(start_date, stop_date):
     delta = timedelta(days=1)

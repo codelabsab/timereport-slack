@@ -2,7 +2,7 @@ import os
 import pytest
 from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
 from timereport.chalicelib.lib.slack import slack_payload_extractor, verify_token
-from timereport.chalicelib.lib.factory import factory
+from timereport.chalicelib.lib.factory import factory, json_factory
 from timereport.chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
@@ -105,3 +105,12 @@ def test_create_event_failure():
     ).thenReturn(mock({'status_code': 500}))
     assert post_event(fake_url, fake_data) is False
     unstub()
+
+
+def test_json_factory():
+    from .test_data import interactive_message
+
+    fake_result = json_factory(interactive_message)
+    assert isinstance(fake_result, list)
+    for item in ('user_id', 'user_name', 'reason', 'event_date', 'hours'):
+        assert item in fake_result[0]
