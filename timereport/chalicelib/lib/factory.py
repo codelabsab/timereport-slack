@@ -39,14 +39,14 @@ def factory(order):
         date_obj_stop = datetime.strptime(date_str_stop, format_str)
         for d in date_range(date_obj_start, date_obj_stop):
             dates.append(d)
-
-    if "today" in date_str:
+    elif "today" in date_str:
         date_obj = datetime.now().date()
         dates.append(date_obj)
     else:
         log.debug(f"Will try to convert string {date_str} to a datetime object")
         date_obj = datetime.strptime(date_str, format_str)
         dates.append(date_obj)
+
     for event_date in dates:
         e = create_event(user_id, user_name, reason, event_date, hours)
         events.append(e)
