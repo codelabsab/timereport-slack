@@ -7,7 +7,17 @@ from timereport.chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 
+
+import logging
+import sys
+
+logging.basicConfig(
+    # Change to logging.DEBUG to get debugging messages to stdout
+    stream=sys.stdout, level=logging.DEBUG, format="%(message)s"
+)
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
 
 def test_parsing_config():
     test_config = parse_config(f'{dir_path}/config.yaml')
@@ -26,10 +36,15 @@ def test_slack_payload_extractor_message():
 
 @pytest.mark.parametrize(
     "date_string",
-    ["2018-01-01", "today", "today 8", "today 24"]
+    ["2018-01-01", "today", "today 8", "today 24", "2019-01-01:2019-02-01"]
 )
 def test_factory(date_string):
-    fake_order = dict(user_id='fake', user_name='fake mcFake', text=[f'fake_cmd=do_fake fake_reason {date_string}'])
+    fake_order = dict(
+        user_id='fake',
+        user_name='fake mcFake',
+        text=[f'fake_cmd=do_fake fake_reason {date_string}']
+    )
+
     fake_result = factory(fake_order)
     assert isinstance(fake_result, list)
     test_data = fake_result.pop()

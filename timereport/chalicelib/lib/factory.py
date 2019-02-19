@@ -21,6 +21,7 @@ def factory(order):
         return False
 
     reason, date_str = cmd[1:3]
+    log.debug(f"Date string is: {date_str}")
 
     try:
         hours = round(float(cmd[3]), 1)
@@ -43,6 +44,7 @@ def factory(order):
         date_obj = datetime.now().date()
         dates.append(date_obj)
     else:
+        log.debug(f"Will try to convert string {date_str} to a datetime object")
         date_obj = datetime.strptime(date_str, format_str)
         dates.append(date_obj)
     for event_date in dates:
