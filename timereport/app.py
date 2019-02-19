@@ -149,3 +149,4 @@ def index():
         return ''
 
     slack_responder(response_url, "Unsupported action")
+    return ''
