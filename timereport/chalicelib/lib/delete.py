@@ -14,7 +14,7 @@ def delete_event(url, user_id, date):
     :param start_date
     :return:
     """
-    url = url + '/' + user_id
+    url = f'{url}/{user_id}'
     params = {'date': date}
     res = requests.get(url=url, params=params)
     if res.status_code == 200:
