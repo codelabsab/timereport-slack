@@ -1,7 +1,8 @@
 import os
 import pytest
 from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
-from timereport.chalicelib.lib.slack import slack_payload_extractor, verify_token
+from timereport.chalicelib.lib.slack import (slack_payload_extractor, verify_token,
+                                             slack_client_responder)
 from timereport.chalicelib.lib.factory import factory, json_factory, date_to_string
 from timereport.chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
@@ -120,3 +121,23 @@ def test_json_factory():
 def test_date_to_string():
     test_data = date_to_string(datetime.now())
     assert isinstance(test_data, str)
+
+
+def test_slack_client_responder():
+    fake_url = 'http://fake.com'
+    fake_data = {'channel': 'fake', 'text': 'fake from slack.py', 'attachments': 'fake'}
+    fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
+    when(requests).post(
+        url=fake_url, json=fake_data, headers=fake_headers
+    ).thenReturn(mock({'status_code': 200, 'text': 'fake response'}))
+
+    test_result = slack_client_responder(
+        token='fake',
+        channel_id='fake',
+        user_id='fake',
+        attachment='fake',
+        url=fake_url,
+    )
+    for generator in test_result:
+        assert generator == 'fake response'
+    unstub()

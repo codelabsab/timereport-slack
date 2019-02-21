@@ -7,9 +7,9 @@ import json
 log = logging.getLogger(__name__)
 
 
-def slack_client_responder(token, channel_id, user_id, attachment):
+def slack_client_responder(token, channel_id, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
     headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
-    res = requests.post(url='https://slack.com/api/chat.postMessage',
+    res = requests.post(url=url,
                         json={'channel': channel_id, 'text': f'{user_id} from slack.py', 'attachments': attachment},
                         headers=headers
                         )
