@@ -93,8 +93,14 @@ def date_range(start_date, stop_date):
         start_date += delta
 
 
-def date_to_string(date):
-    format_str = "%Y-%m-%d"
+def date_to_string(date, format_str='%Y-%m-%d'):
+    """
+    Converts datetime object to date string.
+
+    :param date: A datetime object
+    :param format_str: The format (accepted by datetime.strftime)
+    :return: The date as a string
+    """
     return datetime.strftime(date, format_str)
 
 

@@ -2,10 +2,11 @@ import os
 import pytest
 from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
 from timereport.chalicelib.lib.slack import slack_payload_extractor, verify_token
-from timereport.chalicelib.lib.factory import factory, json_factory
+from timereport.chalicelib.lib.factory import factory, json_factory, date_to_string
 from timereport.chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
+from datetime import datetime
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -114,3 +115,8 @@ def test_json_factory():
     assert isinstance(fake_result, list)
     for item in ('user_id', 'user_name', 'reason', 'event_date', 'hours'):
         assert item in fake_result[0]
+
+
+def test_date_to_string():
+    test_data = date_to_string(datetime.now())
+    assert isinstance(test_data, str)
