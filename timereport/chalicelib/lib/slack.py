@@ -8,15 +8,22 @@ log = logging.getLogger(__name__)
 
 
 def slack_client_responder(token, channel_id, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
+    """
+    Send a response to slack
+
+    :param token: slack token
+    :param channel_id: The slack channel id
+    :param user_id: The user id
+    :param attachment: The slack attachment
+    :param url: The slack URL
+    :return: request respone object
+    """
     headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
-    res = requests.post(url=url,
-                        json={'channel': channel_id, 'text': f'{user_id} from slack.py', 'attachments': attachment},
-                        headers=headers
-                        )
-    if res.status_code == 200:
-        yield res.text
-    else:
-        return False, res.status_code
+    return requests.post(
+        url=url,
+        json={'channel': channel_id, 'text': f'{user_id} from slack.py', 'attachments': attachment},
+        headers=headers
+    )
 
 
 def slack_responder(url, msg):
