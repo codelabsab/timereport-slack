@@ -103,21 +103,19 @@ def index():
         # create attachment with above values for submit button
         attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
         logger.info(f"Attachment is: {attachment}")
+
         slack_client_response = slack_client_responder(
             token=os.getenv('slack_token'),
             channel_id=channel_id,
             user_id=user_id,
             attachment=attachment
         )
-        if isinstance(slack_client_response, tuple):
-            app.log.debug(f'Failed to return anything: {slack_client_response[1]}')
-        else:
-            app.log.debug(f'response from slack responder is {slack_client_response}')
 
-            for e in slack_client_response:
-                app.log.debug(f'response is {e}')
-                return ''
-
+        if slack_client_response.status_code != 200:
+            app.log.error(
+                f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
+                The response from slack was: {slack_client_response.text}"""
+            )
         return ''
 
     if action == "list":
@@ -153,11 +151,11 @@ def index():
             user_id=user_id,
             attachment=attachment
         )
-
-        for event in slack_client_response:
-            app.log.debug(f'response for delete message menu is {event}')
-            return ''
-
+        if slack_client_response.status_code != 200:
+            app.log.error(
+                f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
+                The response from slack was: {slack_client_response.text}"""
+            )
         return ''
 
     slack_responder(response_url, "Unsupported action")

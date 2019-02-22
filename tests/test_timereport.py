@@ -129,7 +129,7 @@ def test_slack_client_responder():
     fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
     when(requests).post(
         url=fake_url, json=fake_data, headers=fake_headers
-    ).thenReturn(mock({'status_code': 200, 'text': 'fake response'}))
+    ).thenReturn(mock({'status_code': 200}))
 
     test_result = slack_client_responder(
         token='fake',
@@ -138,6 +138,23 @@ def test_slack_client_responder():
         attachment='fake',
         url=fake_url,
     )
-    for generator in test_result:
-        assert generator == 'fake response'
-    unstub()
+
+    assert test_result.status_code == 200
+
+
+def test_slack_client_responder_failure():
+    fake_url = 'http://fake2.com'
+    fake_data = {'channel': 'fake', 'text': 'fake from slack.py', 'attachments': 'fake'}
+    fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
+    when(requests).post(
+        url=fake_url, json=fake_data, headers=fake_headers
+    ).thenReturn(mock({'status_code': 500}))
+
+    test_result = slack_client_responder(
+        token='fake',
+        channel_id='fake',
+        user_id='fake',
+        attachment='fake',
+        url=fake_url,
+    )
+    assert test_result.status_code != 200
