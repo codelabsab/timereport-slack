@@ -1,14 +1,11 @@
 import os
 import pytest
 from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
-from timereport.chalicelib.lib.slack import (slack_payload_extractor, verify_token,
-                                             slack_client_responder, slack_responder)
 from timereport.chalicelib.lib.factory import factory, json_factory, date_to_string
 from timereport.chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 from datetime import datetime
-
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -19,13 +16,6 @@ def test_parsing_config():
     for option in mandatory_options:
         assert isinstance(option, str)
         assert test_config.get(option) is not None
-
-
-def test_slack_payload_extractor_message():
-    fake_data = slack_payload_extractor('command=bar&text=fake+text')
-    assert isinstance(fake_data, dict)
-    assert fake_data.get('command') == ['bar']
-    assert fake_data.get('text') == ['fake text']
 
 
 @pytest.mark.parametrize(
@@ -69,13 +59,6 @@ def test_wrong_number_of_args_for_add(args_list):
         text=args_list
     )
     assert factory(fake_order) is False
-
-
-def test_slack_token():
-    assert verify_token('faulty fake token') is not True
-    fake_test_token = 'my_fake_token'
-    os.environ['slack_token'] = fake_test_token
-    assert verify_token(fake_test_token) is True
 
 
 def test_verify_reason():
@@ -122,48 +105,3 @@ def test_date_to_string():
     test_data = date_to_string(datetime.now())
     assert isinstance(test_data, str)
 
-
-def test_slack_client_responder():
-    fake_url = 'http://fake.com'
-    fake_data = {'channel': 'fake', 'text': 'fake from slack.py', 'attachments': 'fake'}
-    fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
-    when(requests).post(
-        url=fake_url, json=fake_data, headers=fake_headers
-    ).thenReturn(mock({'status_code': 200}))
-
-    test_result = slack_client_responder(
-        token='fake',
-        channel_id='fake',
-        user_id='fake',
-        attachment='fake',
-        url=fake_url,
-    )
-
-    assert test_result.status_code == 200
-    unstub()
-
-
-def test_slack_client_responder_failure():
-    fake_url = 'http://fake2.com'
-    fake_data = {'channel': 'fake', 'text': 'fake from slack.py', 'attachments': 'fake'}
-    fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
-    when(requests).post(
-        url=fake_url, json=fake_data, headers=fake_headers
-    ).thenReturn(mock({'status_code': 500}))
-
-    test_result = slack_client_responder(
-        token='fake',
-        channel_id='fake',
-        user_id='fake',
-        attachment='fake',
-        url=fake_url,
-    )
-    assert test_result.status_code != 200
-    unstub()
-
-
-def test_slack_responder():
-    when(requests).post(
-        url='fake', json={'text': 'fake message'}, headers={'Content-Type': 'application/json'}
-    ).thenReturn(mock({'status_code': 200}))
-    assert slack_responder(url='fake', msg='fake message') == 200
