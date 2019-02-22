@@ -2,7 +2,7 @@ import os
 import pytest
 from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
 from timereport.chalicelib.lib.slack import (slack_payload_extractor, verify_token,
-                                             slack_client_responder)
+                                             slack_client_responder, slack_responder)
 from timereport.chalicelib.lib.factory import factory, json_factory, date_to_string
 from timereport.chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
@@ -140,6 +140,7 @@ def test_slack_client_responder():
     )
 
     assert test_result.status_code == 200
+    unstub()
 
 
 def test_slack_client_responder_failure():
@@ -158,3 +159,11 @@ def test_slack_client_responder_failure():
         url=fake_url,
     )
     assert test_result.status_code != 200
+    unstub()
+
+
+def test_slack_responder():
+    when(requests).post(
+        url='fake', json={'text': 'fake message'}, headers={'Content-Type': 'application/json'}
+    ).thenReturn(mock({'status_code': 200}))
+    assert slack_responder(url='fake', msg='fake message') == 200
