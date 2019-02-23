@@ -36,13 +36,13 @@ def index():
     if payload.get('type') == "interactive_message":
         selection = payload.get('actions')[0].get('value')
         logger.info(f"Selection is: {selection}")
+        response_url = payload['response_url']
 
         if selection == "submit_yes":
             if payload.get('callback_id') == 'delete':
                 message = payload['original_message']['attachments'][0]['fields']
                 user_id = payload['user']['id']
                 date = message[1]['value']
-                response_url = payload['response_url']
                 delete_by_date = delete_event(f'{backend_url}/event', user_id, date)
                 if isinstance(delete_by_date, tuple):
                     app.log.debug(f'Failed to return anything: {delete_by_date[1]}')
@@ -50,16 +50,19 @@ def index():
                     for r in delete_by_date:
                         slack_responder(response_url, f'```{str(r)}```')
                 logger.info('delete event posted')
-                return f'successfully deleted entry: {date}'
+                slack_responder(url=response_url, msg=f'successfully deleted entry: {date}')
+                return ''
 
             if payload.get('callback_id') == 'add':
                 events = json_factory(payload)
                 for event in events:
                     post_event(f'{backend_url}/event', json.dumps(event))
                 logger.info(f'python url is: {backend_url}')
-                return 'successful'
+                slack_responder(url=response_url, msg='Added successfully')
+                return ''
         else:
-            return 'canceling...'
+            slack_responder(url=response_url, msg="Action canceled")
+            return ''
 
     logger.info(f'payload is: {payload}')
     params = payload['text'][0].split()
