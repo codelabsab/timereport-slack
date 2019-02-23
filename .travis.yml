@@ -26,10 +26,13 @@ stages:
 jobs:
   include:
     - stage: Test
-      script: pytest -v
+      script:
+      - pytest -v
+      - cd timereport
+      - chalice deploy --stage dev
     - stage: Deploy
       on:
         branch: master
       script: 
       - cd timereport
-      - chalice deploy
+      - chalice deploy --stage prod
