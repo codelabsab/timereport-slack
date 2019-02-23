@@ -33,7 +33,7 @@ def test_slack_client_responder():
     fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
     when(requests).post(
         url=fake_url, json=fake_data, headers=fake_headers
-    ).thenReturn(mock({'status_code': 200, 'text': {"ok": 'true', "message_ts": "xxxxx"}}))
+    ).thenReturn(mock({'status_code': 200, 'text': '{"ok": "true", "message_ts": "xxxxx"}'}))
 
     test_result = slack_client_responder(
         token='fake',
