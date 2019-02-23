@@ -24,7 +24,7 @@ def slack_client_responder(token, channel_id, user_id, attachment, url='https://
     headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
     return requests.post(
         url=url,
-        json={'channel': channel_id, 'text': f'{user_id} from slack.py', 'attachments': attachment},
+        json={'channel': channel_id, 'text': 'From timereport', 'attachments': attachment, 'user': user_id},
         headers=headers
     )
 
