@@ -23,7 +23,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 config = parse_config(f'{dir_path}/chalicelib/config.yaml')
 valid_reasons = config['valid_reasons']
 valid_actions = config['valid_actions']
-backend_url = config['backend_url']
+backend_url = os.getenv('backend_url')
 logger.setLevel(config['log_level'])
 
 
