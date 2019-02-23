@@ -29,11 +29,11 @@ def test_slack_token():
 
 def test_slack_client_responder():
     fake_url = 'http://fake.com'
-    fake_data = {'channel': 'fake', 'text': 'fake from slack.py', 'attachments': 'fake'}
+    fake_data = {'channel': 'fake', 'text': 'From timereport', 'attachments': 'fake', 'user': 'fake'}
     fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
     when(requests).post(
         url=fake_url, json=fake_data, headers=fake_headers
-    ).thenReturn(mock({'status_code': 200}))
+    ).thenReturn(mock({'status_code': 200, 'text': {"ok": 'true', "message_ts": "xxxxx"}}))
 
     test_result = slack_client_responder(
         token='fake',
@@ -49,7 +49,7 @@ def test_slack_client_responder():
 
 def test_slack_client_responder_failure():
     fake_url = 'http://fake_slack_url.com'
-    fake_data = {'channel': 'fake', 'text': 'fake from slack.py', 'attachments': 'fake'}
+    fake_data = {'channel': 'fake', 'text': 'From timereport', 'attachments': 'fake', 'user': 'fake'}
     fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
     when(requests).post(
         url=fake_url, json=fake_data, headers=fake_headers
