@@ -10,3 +10,6 @@ terraform/terraform.tfstate
 timereport/chalicelib/lib/__pycache__/
 timereport/.chalice/config.json
 timereport/chalicelib/config.json
+timereport/.chalice/deployed/
+chalice_secrets.tar
+timereport/.chalice/config.json
