@@ -48,7 +48,7 @@ def test_slack_client_responder():
 
 
 def test_slack_client_responder_failure():
-    fake_url = 'http://fake2.com'
+    fake_url = 'http://fake_slack_url.com'
     fake_data = {'channel': 'fake', 'text': 'fake from slack.py', 'attachments': 'fake'}
     fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
     when(requests).post(
