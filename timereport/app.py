@@ -116,6 +116,10 @@ def index():
                 f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
                 The response from slack was: {slack_client_response.text}"""
             )
+            return "Slack response to user failed"
+        else:
+            app.log.debug(f"Slack client response was: {slack_client_response.text}")
+
         return ''
 
     if action == "list":
@@ -156,6 +160,10 @@ def index():
                 f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
                 The response from slack was: {slack_client_response.text}"""
             )
+            return "Slack response to user failed"
+        else:
+            app.log.debug(f"Slack client response was: {slack_client_response.text}")
+            
         return ''
 
     slack_responder(response_url, "Unsupported action")
