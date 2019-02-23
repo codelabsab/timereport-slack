@@ -62,6 +62,8 @@ def json_factory(json_order):
     """
     format_str = "%Y-%m-%d"
 
+    log.debug(f"json_order is: {json_order}")
+
     payload = json_order['original_message']['attachments'][0]['fields']
 
     user_id = json_order['user']['id']
