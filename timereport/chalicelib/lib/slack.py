@@ -19,6 +19,8 @@ def slack_client_responder(token, channel_id, user_id, attachment, url='https://
     :param url: The slack URL
     :return: request response object
     """
+
+    log.debug(f"Will try to post message to channel {channel_id} and to user {user_id}")
     headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
     return requests.post(
         url=url,

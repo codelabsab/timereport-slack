@@ -92,7 +92,6 @@ def index():
         if not events:
             return slack_responder(response_url, 'Wrong arguments for add command')
 
-
         logger.info(f"Events is: {events}")
         logger.info(f"Token from os.environ is: {os.getenv('slack_token')}")
         user_name = events[0].get('user_name')[0]
@@ -163,7 +162,7 @@ def index():
             return "Slack response to user failed"
         else:
             app.log.debug(f"Slack client response was: {slack_client_response.text}")
-            
+
         return ''
 
     slack_responder(response_url, "Unsupported action")
