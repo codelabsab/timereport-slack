@@ -29,7 +29,7 @@ def test_slack_token():
 
 def test_slack_client_responder():
     fake_url = 'http://fake.com'
-    fake_data = {'channel': 'fake', 'text': 'From timereport', 'attachments': 'fake', 'user': 'fake'}
+    fake_data = {'channel': 'fake', 'text': 'From timereport', 'attachments': 'fake'}
     fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
     when(requests).post(
         url=fake_url, json=fake_data, headers=fake_headers
@@ -37,7 +37,6 @@ def test_slack_client_responder():
 
     test_result = slack_client_responder(
         token='fake',
-        channel_id='fake',
         user_id='fake',
         attachment='fake',
         url=fake_url,
@@ -49,7 +48,7 @@ def test_slack_client_responder():
 
 def test_slack_client_responder_failure():
     fake_url = 'http://fake_slack_url.com'
-    fake_data = {'channel': 'fake', 'text': 'From timereport', 'attachments': 'fake', 'user': 'fake'}
+    fake_data = {'channel': 'fake', 'text': 'From timereport', 'attachments': 'fake'}
     fake_headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer fake'}
     when(requests).post(
         url=fake_url, json=fake_data, headers=fake_headers
@@ -57,7 +56,6 @@ def test_slack_client_responder_failure():
 
     test_result = slack_client_responder(
         token='fake',
-        channel_id='fake',
         user_id='fake',
         attachment='fake',
         url=fake_url,

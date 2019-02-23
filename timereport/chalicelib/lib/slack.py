@@ -7,24 +7,23 @@ import json
 log = logging.getLogger(__name__)
 
 
-def slack_client_responder(token, channel_id, user_id, attachment, url='https://slack.com/api/chat.postEphemeral'):
+def slack_client_responder(token, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
     """
-    Sends an ephemeral message to a user in a channel.
+    Sends an direct message to a user.
     https://api.slack.com/methods/chat.postEphemeral
 
     :param token: slack token
-    :param channel_id: The slack channel id
     :param user_id: The user id
     :param attachment: The slack attachment
     :param url: The slack URL
     :return: request response object
     """
 
-    log.debug(f"Will try to post message to channel {channel_id} and to user {user_id}")
+    log.debug(f"Will try to post direct message to user {user_id}")
     headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
     return requests.post(
         url=url,
-        json={'channel': channel_id, 'text': 'From timereport', 'attachments': attachment, 'user': user_id},
+        json={'channel': user_id, 'text': 'From timereport', 'attachments': attachment},
         headers=headers
     )
 

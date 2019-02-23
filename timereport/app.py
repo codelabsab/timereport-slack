@@ -108,7 +108,6 @@ def index():
 
         slack_client_response = slack_client_responder(
             token=os.getenv('slack_token'),
-            channel_id=channel_id,
             user_id=user_id,
             attachment=attachment
         )
@@ -153,7 +152,6 @@ def index():
 
         slack_client_response = slack_client_responder(
             token=os.getenv('slack_token'),
-            channel_id=channel_id,
             user_id=user_id,
             attachment=attachment
         )
