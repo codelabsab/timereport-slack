@@ -2,7 +2,8 @@ import os
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 from timereport.chalicelib.lib.slack import (slack_payload_extractor, verify_token,
-                                             slack_client_responder, slack_responder)
+                                             slack_client_responder, slack_responder,
+                                             submit_message_menu, delete_message_menu)
 
 
 def test_slack_payload_extractor_command():
@@ -69,3 +70,32 @@ def test_slack_responder():
         url='fake', json={'text': 'fake message'}, headers={'Content-Type': 'application/json'}
     ).thenReturn(mock({'status_code': 200}))
     assert slack_responder(url='fake', msg='fake message') == 200
+
+
+def test_submit_menu():
+    test_result = submit_message_menu(
+        user_name='fake user',
+        reason='fake reason',
+        date_start='2018-01-01',
+        date_end='2018-02-01',
+        hours='8',
+    )
+
+    assert isinstance(test_result, list)
+    test_result_dict = test_result.pop()
+
+    assert isinstance(test_result_dict, dict)
+    assert test_result_dict.get('fields')
+
+
+def test_delete_menu():
+    test_result = delete_message_menu(
+        user_name='fake user',
+        date='2018-01-01',
+    )
+
+    assert isinstance(test_result, list)
+    test_result_dict = test_result.pop()
+
+    assert isinstance(test_result_dict, dict)
+    assert test_result_dict.get('fields')
