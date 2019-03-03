@@ -128,9 +128,13 @@ def index():
         if 'total' in params:
             app.log.debug('get total workdays here for year/month')
             # params should be ['total', '2019', '02']
-            if validate_year(params[1]):
+            try:
+                validate_year(params[1])
+            except:
+                slack_responder(response_url, 'requires <YYYY> <MM>')
+            try:
                 total_workdays = get_total_workdays(params[1], params[2])
-            else:
+            except:
                 # no year provided set to current
                 year = current_year
                 total_workdays = get_total_workdays(year, params[1])
