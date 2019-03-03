@@ -38,3 +38,18 @@ def get_between_date(url, start_date, end_date):
         yield res.text
     else:
         return False, res.status_code
+
+def get_total_workdays(year, month):
+    """
+    URL: api.codelabs.se/year-month.json
+    :param year:
+    :param month:
+    :return:
+
+    {"status":"OK","meddelande":"","fran":"2019-02-01","till":"2019-02-28","antal_dagar":28,"antal_vardagar":20,"antal_arbetsdagar":20,"antal_helgdagar":0,"helgdagar":[]}
+
+    """
+
+    res = requests.get(url=f'http://api.codelabs.se/{year, month}.json')
+    if res.status_code == 200:
+        return res.json()
