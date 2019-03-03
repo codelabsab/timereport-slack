@@ -140,7 +140,7 @@ def index():
                 year = current_year
                 # no year provided set to current
 
-            total_workdays = get_total_workdays(year, month)
+            total_workdays = get_total_workdays(year, f'{month:02d}')
             total_workdays = json.loads(total_workdays)
             slack_responder(response_url, f'```{total_workdays}```')
 
