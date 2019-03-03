@@ -50,6 +50,7 @@ def get_total_workdays(year, month):
 
     """
     url = f'http://api.codelabs.se/{year}-{month}.json'
+    log.info('get_total_workdays url is ' + url)
     res = requests.get(url=url)
     if res.status_code == 200:
         return res.text

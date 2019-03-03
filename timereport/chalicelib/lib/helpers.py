@@ -38,3 +38,10 @@ def validate_year(date_string):
 
 def current_year():
     return datetime.utcnow().year
+
+def validate_month(date_string):
+    try:
+        datetime.datetime.strptime(date_string, '%m')
+        return True
+    except:
+        return False
