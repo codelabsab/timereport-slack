@@ -49,7 +49,7 @@ def get_total_workdays(year, month):
     {"status":"OK","meddelande":"","fran":"2019-02-01","till":"2019-02-28","antal_dagar":28,"antal_vardagar":20,"antal_arbetsdagar":20,"antal_helgdagar":0,"helgdagar":[]}
 
     """
-
-    res = requests.get(url=f'http://api.codelabs.se/{year, month}.json')
+    url = f'http://api.codelabs.se/{year}-{month}.json'
+    res = requests.get(url=url)
     if res.status_code == 200:
-        return res.json()
+        return res.text
