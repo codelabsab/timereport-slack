@@ -11,7 +11,7 @@ from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
                                   delete_message_menu)
 
 from chalicelib.lib.list import get_between_date, get_user_by_id, get_total_workdays
-from chalicelib.lib.helpers import parse_config
+from chalicelib.lib.helpers import parse_config, validate_year, current_year
 
 app = Chalice(app_name='timereport')
 app.debug = True
@@ -126,9 +126,16 @@ def index():
     if action == "list":
         app.log.debug(f"Running list action with: {params}")
         if 'total' in params:
-            app.log.debug('inside total list')
             app.log.debug('get total workdays here for year/month')
-            slack_responder(response_url, f'```{params}```')
+            # params should be ['total', '2019', '02']
+            if validate_year(params[1]):
+                total_workdays = get_total_workdays(params[1], params[2])
+            else:
+                # no year provided set to current
+                year = current_year
+                total_workdays = get_total_workdays(year, params[1])
+
+            slack_responder(response_url, f'```{total_workdays.get("antal_arbetsdagar")}```')
 
         get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
         if isinstance(get_by_user, tuple):

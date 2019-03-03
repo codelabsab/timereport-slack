@@ -1,4 +1,5 @@
 from ruamel.yaml import YAML
+from datetime import datetime
 
 yaml=YAML(typ='safe')
 
@@ -27,3 +28,13 @@ def verify_actions(valid_actions, action):
         return True
     else:
         return False
+
+def validate_year(date_string):
+    try:
+        datetime.datetime.strptime(date_string, '%Y')
+        return True
+    except:
+        return False
+
+def current_year():
+    return datetime.utcnow().year
