@@ -131,20 +131,19 @@ def index():
             try:
                 validate_year(params[1])
                 validate_month(params[2])
+                year = params[1]
             except:
                 slack_responder(response_url, 'requires <YYYY> <MM>')
-            try:
-                if len(params[2] != 2):
-                    month = "0" + params[2]
-                else:
-                    month = params[2]
-                total_workdays = get_total_workdays(params[1], month)
-            except:
-                # no year provided set to current
-                year = current_year
-                total_workdays = get_total_workdays(year, params[1])
-                total_workdays = json.loads(total_workdays)
 
+            if len(params[2] != 2):
+                month = "0" + params[2]
+            else:
+                month = params[2]
+                year = current_year
+                # no year provided set to current
+
+            total_workdays = get_total_workdays(year, month)
+            total_workdays = json.loads(total_workdays)
             slack_responder(response_url, f'```{total_workdays}```')
 
         get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
