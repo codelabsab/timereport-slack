@@ -144,7 +144,7 @@ def index():
                 year = current_year
                 total_workdays = get_total_workdays(year, params[1])
 
-            slack_responder(response_url, f'```{total_workdays.antal_arbetsdagar}```')
+            slack_responder(response_url, f'```{json.loads(total_workdays).get('antal_arbetsdagar'}```')
 
         get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
         if isinstance(get_by_user, tuple):
