@@ -76,15 +76,15 @@ def index():
         '''
         Events is: [
         {
-            'user_id': ['U2FG26ZFF'], 
-            'user_name': ['toma'], 
+            'user_id': ['U2FG26ZFF'],
+            'user_name': ['toma'],
             'reason': 'vab',
             'event_date': datetime.datetime(2019, 2, 7, 0, 0),
             'hours': '8'},
             {
                 'user_id': ['U2FG26ZFF'],
                 'user_name': ['toma'],
-                'reason': 'vab', 
+                'reason': 'vab',
                 'event_date': datetime.datetime(2019, 2, 8, 0, 0),
                 'hours': '8'
             }
@@ -143,8 +143,9 @@ def index():
                 # no year provided set to current
                 year = current_year
                 total_workdays = get_total_workdays(year, params[1])
+                total_workdays = json.loads(total_workdays)
 
-            slack_responder(response_url, f'```{json.loads(total_workdays).get('antal_arbetsdagar'}```')
+            slack_responder(response_url, f'```{total_workdays}```')
 
         get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
         if isinstance(get_by_user, tuple):
