@@ -143,6 +143,7 @@ def index():
             total_workdays = get_total_workdays(year, f'{int(month):02d}')
             total_workdays = json.loads(total_workdays)
             slack_responder(response_url, f'```{total_workdays}```')
+            exit(0)
 
         get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
         if isinstance(get_by_user, tuple):
