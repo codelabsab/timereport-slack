@@ -132,6 +132,7 @@ def index():
                 validate_year(params[1])
                 validate_month(params[2])
                 year = params[1]
+                month = params[2]
             except:
                 slack_responder(response_url, 'requires <YYYY> <MM>')
 
