@@ -135,9 +135,6 @@ def index():
             except:
                 slack_responder(response_url, 'requires <YYYY> <MM>')
 
-            if len(params[2] != 2):
-                month = "0" + params[2]
-            else:
                 month = params[2]
                 year = current_year
                 # no year provided set to current
