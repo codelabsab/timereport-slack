@@ -16,7 +16,6 @@ from chalicelib.lib.helpers import parse_config, validate_year, current_year, va
 app = Chalice(app_name='timereport')
 app.debug = True
 
-
 logger = logging.getLogger()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -124,10 +123,8 @@ def index():
         return ''
 
     if action == "list":
-        app.log.debug(f"Running list action with: {params}")
+        get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
         if 'total' in params:
-            app.log.debug('get total workdays here for year/month')
-            # params should be ['total', '2019', '02']
             try:
                 validate_year(params[1])
                 validate_month(params[2])
@@ -142,10 +139,21 @@ def index():
 
             total_workdays = get_total_workdays(year, f'{int(month):02d}')
             total_workdays = json.loads(total_workdays)
-            slack_responder(response_url, f'```{total_workdays}```')
-            exit(0)
+            total_start = total_workdays.get('fran')
+            total_end = total_workdays.get('end')
+            total_hour_count = 0
+            for r in get_by_user:
+                for hour in json.loads(r):
+                    total_hour_count += int(hour.get('hours'))
+            total_working_hours = int(total_workdays.get('antal_arbetsdagar') * 8)
 
-        get_by_user = get_user_by_id(f'{backend_url}/user', user_id)
+            response_total = {
+                'antal_arbetstimmar': total_working_hours,
+                'avvikelse_timmar': total_hour_count,
+                'fakturerbara_timmar': total_working_hours - total_hour_count
+            }
+            slack_responder(response_url, f'```{response_total}```')
+
         if isinstance(get_by_user, tuple):
             app.log.debug(f'Failed to return anything: {get_by_user[1]}')
         else:
