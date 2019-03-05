@@ -26,11 +26,9 @@ jobs:
   - stage: Dev
     script:
     - pytest -v
-    - cd timereport
     - chalice deploy --stage dev
   - stage: Prod
     on:
       branch: master
     script:
-    - cd timereport
     - chalice deploy --stage prod
