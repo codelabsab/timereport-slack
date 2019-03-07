@@ -1,9 +1,6 @@
 language: python
 python:
 - '3.6'
-install:
-- pip install pipenv
-- pipenv install --dev
 env:
   global:
   - AWS_DEFAULT_REGION: eu-north-1
@@ -21,15 +18,20 @@ stages:
 - name: Deploy to dev
   if: type = push AND branch = master
 - name: Deploy to prod
-  if: branch = master AND tag IS present
 jobs:
   include:
   - stage: Run tests
     script:
+    - pip install pytest
     - pytest -v
   - stage: Deploy to dev
     script:
+    - pip install chalice
     - chalice deploy --stage dev
   - stage: Deploy to prod
+    on:
+      branch: master
+      tags: true
     script:
+    - pip install chalice
     - chalice deploy --stage prod
