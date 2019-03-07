@@ -27,7 +27,7 @@ class Action:
             pass
         
         if self.action == 'list':
-            pass
+            return self._list_action()
 
 
     def _add_action(self):
