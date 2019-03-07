@@ -21,7 +21,7 @@ stages:
 - name: Deploy to dev
   if: type = push AND branch = master
 - name: Deploy to prod
-  if: type = push AND branch = master AND tag IS present
+  if: branch = master AND tag IS present
 jobs:
   include:
   - stage: Run tests
@@ -31,7 +31,5 @@ jobs:
     script:
     - chalice deploy --stage dev
   - stage: Deploy to prod
-    on:
-      branch: master
     script:
     - chalice deploy --stage prod
