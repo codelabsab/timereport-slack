@@ -1,4 +1,5 @@
 language: python
+install:
 python:
 - '3.6'
 env:
@@ -22,16 +23,16 @@ jobs:
   include:
   - stage: Run tests
     script:
-    - pip install pytest ruamel-yaml
+    - pip install -r test-requirements.txt
     - pytest -v
   - stage: Deploy to dev
     script:
-    - pip install chalice botocore
+    - pip install -r deploy-requirements.txt
     - chalice deploy --stage dev
   - stage: Deploy to prod
     on:
       branch: master
       tags: true
     script:
-    - pip install chalice botocore
+    - pip install -r deploy-requirements.txt
     - chalice deploy --stage prod
