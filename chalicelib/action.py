@@ -1,6 +1,7 @@
 import logging
 from chalicelib.lib.list import get_between_date, get_user_by_id
-from chalicelib.lib.slack import slack_responder
+from chalicelib.lib.slack import slack_responder, submit_message_menu, slack_client_responder
+from chalicelib.lib.factory import factory
 
 log = logging.getLogger(__name__)
 
@@ -10,6 +11,7 @@ class Action:
         self.payload = payload
         self.params = self.payload['text'][0].split()
         self.config = config
+        self.slack_token = config['slack_token']
     
 
     def perform_action(self):
@@ -31,8 +33,36 @@ class Action:
 
 
     def _add_action(self):
-        pass
-    
+        events = factory(self.payload)
+        if not events:
+            return slack_responder(self.payload['response_url'], 'Wrong arguments for add command')
+
+        log.info(f"Events is: {events}")
+        user_name = events[0].get('user_name')[0]
+        reason = events[0].get('reason')
+        date_start = events[0].get('event_date')
+        date_end = events[-1].get('event_date')
+        hours = events[0].get('hours')
+        # create attachment with above values for submit button
+        attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
+        log.info(f"Attachment is: {attachment}")
+
+        slack_client_response = slack_client_responder(
+            token=self.slack_token,
+            user_id=self.user_id,
+            attachment=attachment
+        )
+
+        if slack_client_response.status_code != 200:
+            log.error(
+                f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
+                The response from slack was: {slack_client_response.text}"""
+            )
+            return "Slack response to user failed"
+        else:
+            log.debug(f"Slack client response was: {slack_client_response.text}")
+
+        return ''    
 
     def _list_action(self):
         get_by_user = get_user_by_id(f"{self.config['backend_url']}/user", self.user_id)

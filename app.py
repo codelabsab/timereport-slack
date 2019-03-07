@@ -22,6 +22,7 @@ logger = logging.getLogger()
 dir_path = os.path.dirname(os.path.realpath(__file__))
 config = parse_config(f'{dir_path}/chalicelib/config.yaml')
 config['backend_url'] = os.getenv('backend_url')
+config['slack_token'] = os.getenv('slack_token')
 logger.setLevel(config['log_level'])
 
 @app.route('/interactive', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
