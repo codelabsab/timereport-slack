@@ -88,7 +88,7 @@ class Action:
 
 
     def _delete_action(self):
-        date = self.params[0]
+        date = self.params[1]
         attachment = delete_message_menu(self.payload.get('user_name')[0], date)
         log.debug(f"Attachment is: {attachment}. user_name is {self.payload.get('user_name')[0]}")
 
