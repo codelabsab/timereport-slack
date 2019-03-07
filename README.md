@@ -41,11 +41,10 @@ pytest --cov=timereport
 ```
 ### Packaing secrets for chalice to travis-ci
 ```
-$ tar cvf chalice_secrets.tar timereport/.chalice/{config.json,deployed} timereport/chalicelib/config.json
-a timereport/.chalice/config.json
-a timereport/.chalice/deployed
-a timereport/.chalice/deployed/dev.json
-a timereport/chalicelib/config.json
+$ tar cvf chalice_secrets.tar .chalice/{config.json,deployed}
+a .chalice/config.json
+a .chalice/deployed
+a .chalice/deployed/dev.json
 
 $ travis encrypt-file chalice_secrets.tar --add
 encrypting chalice_secrets.tar for codelabsab/timereport
