@@ -1,6 +1,7 @@
 import logging
 from chalicelib.lib.list import get_between_date, get_user_by_id
-from chalicelib.lib.slack import slack_responder, submit_message_menu, slack_client_responder
+from chalicelib.lib.slack import (slack_responder, submit_message_menu, slack_client_responder,
+                                  delete_message_menu)
 from chalicelib.lib.factory import factory
 
 log = logging.getLogger(__name__)
@@ -23,10 +24,10 @@ class Action:
             return self._add_action()
         
         if self.action == 'edit':
-            pass
+            return self._edit_action()
 
         if self.action == 'delete':
-            pass
+            return self._delete_action()
         
         if self.action == 'list':
             return self._list_action()
@@ -87,8 +88,24 @@ class Action:
 
 
     def _delete_action(self):
-        pass
+        date = self.params[0]
+        attachment = delete_message_menu(self.payload.get('user_name')[0], date)
+        log.debug(f"Attachment is: {attachment}. user_name is {self.payload.get('user_name')[0]}")
+
+        slack_client_response = slack_client_responder(
+            token=self.slack_token,
+            user_id=self.user_id,
+            attachment=attachment
+        )
+        if slack_client_response.status_code != 200:
+            log.error(
+                f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
+                The response from slack was: {slack_client_response.text}"""
+            )
+            return "Slack response to user failed"
+        else:
+            log.debug(f"Slack client response was: {slack_client_response.text}")
     
 
     def _edit_action(self):
-        pass
+        slack_responder(self.response_url, 'Edit not implemented yet')
