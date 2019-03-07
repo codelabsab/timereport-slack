@@ -1,2 +1,3 @@
 chalice
 botocore
+ruamel.yaml
