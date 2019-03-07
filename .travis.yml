@@ -17,19 +17,21 @@ before_install:
   -in chalice_secrets.tar.enc -out chalice_secrets.tar -d
 - tar xvf chalice_secrets.tar
 stages:
-- name: Dev
-  if: type = pull_request
-- name: Prod
+- name: Run tests
+- name: Deploy to dev
   if: type = push AND branch = master
+- name: Deploy to prod
+  if: type = push AND branch = master AND tag IS present
 jobs:
   include:
-  - stage: Dev
+  - stage: Run tests
     script:
     - pytest -v
+  - stage: Deploy to dev
+    script:
     - chalice deploy --stage dev
-  - stage: Prod
+  - stage: Deploy to prod
     on:
       branch: master
     script:
-    - chalice deploy --stage dev
     - chalice deploy --stage prod
