@@ -1,9 +1,9 @@
 import os
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
-from timereport.chalicelib.lib.slack import (slack_payload_extractor, verify_token,
-                                             slack_client_responder, slack_responder,
-                                             submit_message_menu, delete_message_menu)
+from chalicelib.lib.slack import (slack_payload_extractor, verify_token,
+                                  slack_client_responder, slack_responder,
+                                  submit_message_menu, delete_message_menu)
 
 
 def test_slack_payload_extractor_command():

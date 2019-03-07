@@ -1,8 +1,8 @@
 import os
 import pytest
-from timereport.chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
-from timereport.chalicelib.lib.factory import factory, json_factory, date_to_string
-from timereport.chalicelib.lib.add import post_event
+from chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
+from chalicelib.lib.factory import factory, json_factory, date_to_string
+from chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 from datetime import datetime
