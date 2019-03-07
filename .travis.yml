@@ -1,5 +1,6 @@
 language: python
 install:
+  - echo "Skipping install step"
 python:
 - '3.6'
 env:
@@ -32,7 +33,7 @@ jobs:
   - stage: Deploy to prod
     on:
       branch: master
-      tags: true
+      tag: true
     script:
     - pip install -r deploy-requirements.txt
     - chalice deploy --stage prod
