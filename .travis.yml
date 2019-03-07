@@ -22,16 +22,16 @@ jobs:
   include:
   - stage: Run tests
     script:
-    - pip install pytest
+    - pip install pytest ruamel-yaml
     - pytest -v
   - stage: Deploy to dev
     script:
-    - pip install chalice
+    - pip install chalice botocore
     - chalice deploy --stage dev
   - stage: Deploy to prod
     on:
       branch: master
       tags: true
     script:
-    - pip install chalice
+    - pip install chalice botocore
     - chalice deploy --stage prod
