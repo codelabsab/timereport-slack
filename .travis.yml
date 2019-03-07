@@ -33,7 +33,7 @@ jobs:
   - stage: Deploy to prod
     on:
       branch: master
-      tag: true
     script:
+    - if [ -z "$TRAVIS_TAG" ];then echo "Skipping deploying to prod because of missing tag." && exit 0; fi
     - pip install -r deploy-requirements.txt
     - chalice deploy --stage prod
