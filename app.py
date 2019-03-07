@@ -39,7 +39,7 @@ def interactive():
             message = payload['original_message']['attachments'][0]['fields']
             user_id = payload['user']['id']
             date = message[1]['value']
-            delete_by_date = delete_event(f'{backend_url}/event', user_id, date)
+            delete_by_date = delete_event(f"{config['backend_url']}/event", user_id, date)
             if isinstance(delete_by_date, tuple):
                 app.log.debug(f'Failed to return anything: {delete_by_date[1]}')
             else:
@@ -52,8 +52,8 @@ def interactive():
         if payload.get('callback_id') == 'add':
             events = json_factory(payload)
             for event in events:
-                post_event(f'{backend_url}/event', json.dumps(event))
-            logger.info(f'python url is: {backend_url}')
+                post_event(f"{config['backend_url']}/event", json.dumps(event))
+            logger.info(f"python url is: {config['backend_url']}")
             slack_responder(url=response_url, msg='Added successfully')
             return ''
     else:
