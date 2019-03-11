@@ -70,13 +70,6 @@ def index():
 
     action = Action(payload, config)
 
-    #params = payload['text'][0].split()
-    #response_url = payload.get('response_url')[0]
-    #action = params.pop(0)
-    #channel_id = payload.get('channel_id')[0]
-    #user_id = payload.get('user_id')[0]
-
     action.perform_action()
 
- 
     return ''
