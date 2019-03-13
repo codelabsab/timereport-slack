@@ -7,30 +7,35 @@ from chalicelib.lib.factory import factory
 log = logging.getLogger(__name__)
 
 class Action:
-    
+
     def __init__(self, payload, config):
         self.payload = payload
         self.params = self.payload['text'][0].split()
         self.config = config
         self.slack_token = config['slack_token']
-    
+        self.response_url = self.payload['response_url'][0]
 
     def perform_action(self):
         self.action = self.params[0]
-        self.response_url = self.payload['response_url'][0]
         self.user_id = self.payload['user_id'][0]
 
         if self.action == 'add':
             return self._add_action()
-        
+
         if self.action == 'edit':
             return self._edit_action()
 
         if self.action == 'delete':
             return self._delete_action()
-        
+
         if self.action == 'list':
             return self._list_action()
+
+        return self._unsupported_action()
+
+    def _unsupported_action(self):
+        slack_responder(self.response_url, f'Unsupported action: {self.action}')
+        return ''
 
 
     def _add_action(self):
@@ -63,7 +68,7 @@ class Action:
         else:
             log.debug(f"Slack client response was: {slack_client_response.text}")
 
-        return ''    
+        return ''
 
     def _list_action(self):
         get_by_user = get_user_by_id(f"{self.config['backend_url']}/user", self.user_id)
@@ -105,7 +110,7 @@ class Action:
             return "Slack response to user failed"
         else:
             log.debug(f"Slack client response was: {slack_client_response.text}")
-    
+
 
     def _edit_action(self):
         slack_responder(self.response_url, 'Edit not implemented yet')
