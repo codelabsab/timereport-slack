@@ -3,8 +3,4 @@ valid_reasons:
   - sjuk
   - intern
   - semester
-valid_actions:
-  - add
-  - list
-  - delete
 log_level: DEBUG

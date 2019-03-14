@@ -1,6 +1,6 @@
 import os
 import pytest
-from chalicelib.lib.helpers import parse_config, verify_actions, verify_reasons
+from chalicelib.lib.helpers import parse_config, verify_reasons
 from chalicelib.lib.factory import factory, json_factory, date_to_string
 from chalicelib.lib.add import post_event
 from mockito import when, mock, unstub
@@ -64,11 +64,6 @@ def test_wrong_number_of_args_for_add(args_list):
 def test_verify_reason():
     assert verify_reasons(['not real reasons'], 'fake') is False
     assert verify_reasons(['my fake reason'], 'my fake reason') is True
-
-
-def test_verify_action():
-    assert verify_actions(['not a real action'], 'fake action') is False
-    assert verify_actions(['my fake action'], 'my fake action') is True
 
 
 def test_create_event():
