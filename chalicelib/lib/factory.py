@@ -18,6 +18,7 @@ def factory(order):
     cmd = order['text'][0].split()
 
     if len(cmd) < 3 or len(cmd) > 4:
+        log.error(f'Wrong amount of arguments: {len(cmd)}')
         return False
 
     reason, date_str = cmd[1:3]
