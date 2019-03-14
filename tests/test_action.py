@@ -1,7 +1,20 @@
-from chalicelib.action import Action
+import pytest
+from mockito import when, mock, unstub
+import botocore.vendored.requests.api as requests
 
-def test_action_init():
-    fake_payload = dict(text=['fake', 'test'])
+@pytest.fixture
+def action():
+    fake_payload = dict(
+        text=['fake action', 'test'],
+        response_url=['http://fakeurl.nowhere'],
+        user_id=['fake user']
+    )
     fake_config = dict(slack_token='fake token')
-    test = Action(fake_payload, fake_config)
-    assert isinstance(test, Action)
+    from chalicelib.action import Action
+    return Action(fake_payload, fake_config)
+
+def test_perform_unsupported_action(action):
+    when(requests).post(
+        url=action.response_url, json={'text': 'Unsupported action: fake'}, headers={'Content-Type': 'application/json'}
+    ).thenReturn(mock({'status_code': 200}))
+    assert action.perform_action() == ''
