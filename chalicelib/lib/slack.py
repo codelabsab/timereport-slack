@@ -158,13 +158,6 @@ def verify_reasons(valid_reasons, reason):
         return False
 
 
-def verify_actions(valid_actions, action):
-    if action in valid_actions:
-        return True
-    else:
-        return False
-
-
 def submit_message_menu(user_name, reason, date_start, date_end, hours):
     attachment = [
         {

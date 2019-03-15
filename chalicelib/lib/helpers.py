@@ -20,10 +20,3 @@ def verify_reasons(valid_reasons, reason):
         return True
     else:
         return False
-
-
-def verify_actions(valid_actions, action):
-    if action in valid_actions:
-        return True
-    else:
-        return False
