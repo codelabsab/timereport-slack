@@ -73,3 +73,10 @@ def index():
     action.perform_action()
 
     return ''
+
+@app.route('/event', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
+def event():
+    req = app.current_request.raw_body.decode()
+    payload = slack_payload_extractor(req)
+    logger.info(f'payload is: {payload}')
+    return payload.get('challenge')
