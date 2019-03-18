@@ -8,7 +8,7 @@ from chalicelib.lib.add import post_event
 from chalicelib.lib.delete import delete_event
 from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
                                   slack_client_responder, submit_message_menu,
-                                  delete_message_menu)
+                                  delete_message_menu, verify_token)
 
 from chalicelib.lib.helpers import parse_config
 from chalicelib.action import Action
@@ -64,6 +64,10 @@ def interactive():
 @app.route('/command', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
     req = app.current_request.raw_body.decode()
+
+    if not verify_token(req, config.slack_token):
+        return 'Slack token not valid'
+
     payload = slack_payload_extractor(req)
 
     logger.info(f'payload is: {payload}')
