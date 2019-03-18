@@ -21,6 +21,7 @@ class Action:
 
     def perform_action(self):
         self.action = self.params[0]
+        log.debug(f"Action is: {self.action}")
         self.user_id = self.payload["user_id"][0]
 
         if self.action == "add":
@@ -35,10 +36,13 @@ class Action:
         if self.action == "list":
             return self._list_action()
 
+        if self.action == "help" or self.action is None:
+            return self._help_action()
+
         return self._unsupported_action()
 
     def _unsupported_action(self):
-        log.info(f"Got unsupported action: {self.action}")
+        log.info(f"Action: {self.action} is not supported")
         slack_responder(self.response_url, f"Unsupported action: {self.action}")
         return ""
 
@@ -111,3 +115,7 @@ class Action:
         else:
             log.debug(f"Slack client response was: {slack_client_response.text}")
         return slack_client_response
+
+    def _help_action(self):
+        slack_responder(self.response_url, "Help not implemented yet")
+        return ""

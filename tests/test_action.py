@@ -52,3 +52,18 @@ def test_perform_delete_action():
     when(action).send_response().thenReturn()
     assert action.perform_action() == ""
     unstub()
+
+
+def test_perform_help_action(caplog):
+    import logging
+    caplog.set_level(logging.DEBUG)
+    fake_payload["text"] = ["help"]
+    fake_payload["user_name"] = "fake_username"
+    action = Action(fake_payload, fake_config)
+    when(requests).post(
+        url=action.response_url,
+        json={"text": "Help not implemented yet"},
+        headers={"Content-Type": "application/json"},
+    ).thenReturn(mock({"status_code": 200}))
+    assert action.perform_action() == ""
+    unstub()
