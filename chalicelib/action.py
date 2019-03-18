@@ -14,7 +14,13 @@ log = logging.getLogger(__name__)
 class Action:
     def __init__(self, payload, config):
         self.payload = payload
-        self.params = self.payload["text"][0].split()
+
+        try:
+            self.params = self.payload["text"][0].split()
+        except IndexError:
+            log.info("No parameters received. Defaulting to help action")
+            self.params = ["help"]
+
         self.config = config
         self.slack_token = config["slack_token"]
         self.response_url = self.payload["response_url"][0]

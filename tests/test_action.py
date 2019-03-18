@@ -53,11 +53,12 @@ def test_perform_delete_action():
     assert action.perform_action() == ""
     unstub()
 
-
-def test_perform_help_action(caplog):
-    import logging
-    caplog.set_level(logging.DEBUG)
-    fake_payload["text"] = ["help"]
+@pytest.mark.parametrize("test_input", [
+    (["help"]),
+    (""),
+])
+def test_perform_help_action(test_input):
+    fake_payload["text"] = test_input
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
     when(requests).post(
