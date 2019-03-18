@@ -64,8 +64,8 @@ def interactive():
 @app.route('/command', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def index():
     req = app.current_request.raw_body.decode()
-    req_headers = app.current_request.raw_body
-    req_raw_body = app.current_request.headers
+    req_headers = app.current_request.headers
+    req_raw_body = app.current_request.raw_body
     if not verify_token(req_headers, req_raw_body, config.slack_token):
         return 'Slack token not valid'
 
