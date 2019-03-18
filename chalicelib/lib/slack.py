@@ -3,6 +3,9 @@ import botocore.vendored.requests.api as requests
 from urllib.parse import parse_qs
 import logging
 import json
+import hmac
+import hashlib
+import base64
 
 log = logging.getLogger(__name__)
 
@@ -144,12 +147,23 @@ def slack_payload_extractor(req):
         return "failed extracting payload", 200
 
 
-def verify_token(token):
-    if token == os.getenv('slack_token'):
+def verify_token(request, token):
+    #https://api.slack.com/docs/verifying-requests-from-slack
+
+    request_timestamp = request.headers['X-Slack-Request-Timestamp']
+
+    # create basestring out of v0 + timestamp + req_body
+    request_basestring = bytes('v0:' + request_timestamp + ':' + request, 'utf-8')
+    slack_signature = bytes(request.headers['X-Slack-Signature'], 'utf-8')
+    slack_token = token
+
+    # create a signature from slack-token and request basestring
+    my_sig = hmac.new(slack_token, request_basestring , hashlib.sha256).hexdigest()
+    # compare to slack-signature
+    if hmac.compare_digest(my_sig, slack_signature):
         return True
     else:
         return False
-
 
 def verify_reasons(valid_reasons, reason):
     if reason in valid_reasons:
