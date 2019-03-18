@@ -15,11 +15,7 @@ fake_config = dict(slack_token="fake token")
 
 def test_perform_unsupported_action():
     action = Action(fake_payload, fake_config)
-    when(requests).post(
-        url=action.response_url,
-        json={"text": "Unsupported action: unsupported"},
-        headers={"Content-Type": "application/json"},
-    ).thenReturn(mock({"status_code": 200}))
+    when(action).send_response(message='Unsupported action: unsupported').thenReturn("")
     assert action.perform_action() == ""
     unstub()
 
@@ -27,11 +23,7 @@ def test_perform_unsupported_action():
 def test_perform_edit_action():
     fake_payload["text"] = ["edit fake argument"]
     action = Action(fake_payload, fake_config)
-    when(requests).post(
-        url=action.response_url,
-        json={"text": "Edit not implemented yet"},
-        headers={"Content-Type": "application/json"},
-    ).thenReturn(mock({"status_code": 200}))
+    when(action).send_response(message='Edit not implemented yet').thenReturn("")
     assert action.perform_action() == ""
     unstub()
 
@@ -50,5 +42,17 @@ def test_perform_delete_action():
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
     when(action).send_response().thenReturn()
+    assert action.perform_action() == ""
+    unstub()
+
+@pytest.mark.parametrize("test_input", [
+    (["help"]),
+    (""),
+])
+def test_perform_help_action(test_input):
+    fake_payload["text"] = test_input
+    fake_payload["user_name"] = "fake_username"
+    action = Action(fake_payload, fake_config)
+    when(action).send_response(message=action.perform_action.__doc__).thenReturn("")
     assert action.perform_action() == ""
     unstub()

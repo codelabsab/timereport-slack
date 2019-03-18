@@ -14,13 +14,31 @@ log = logging.getLogger(__name__)
 class Action:
     def __init__(self, payload, config):
         self.payload = payload
-        self.params = self.payload["text"][0].split()
+
+        try:
+            self.params = self.payload["text"][0].split()
+        except IndexError:
+            log.info("No parameters received. Defaulting to help action")
+            self.params = ["help"]
+
         self.config = config
         self.slack_token = config["slack_token"]
         self.response_url = self.payload["response_url"][0]
 
     def perform_action(self):
+        """
+        Perform action.
+
+        Supported actions are:
+        add - Add new post in timereport
+        edit - Not implemented yet
+        delete - Delete post in timereport
+        list - List posts in timereport
+        help - Provide this helpful output
+        """
+
         self.action = self.params[0]
+        log.debug(f"Action is: {self.action}")
         self.user_id = self.payload["user_id"][0]
 
         if self.action == "add":
@@ -35,19 +53,19 @@ class Action:
         if self.action == "list":
             return self._list_action()
 
+        if self.action == "help":
+            return self._help_action()
+
         return self._unsupported_action()
 
     def _unsupported_action(self):
-        log.info(f"Got unsupported action: {self.action}")
-        slack_responder(self.response_url, f"Unsupported action: {self.action}")
-        return ""
+        log.info(f"Action: {self.action} is not supported")
+        return self.send_response(message=f"Unsupported action: {self.action}")
 
     def _add_action(self):
         events = factory(self.payload)
         if not events:
-            return slack_responder(
-                self.payload["response_url"], "Wrong arguments for add command"
-            )
+            return self.send_response(message="Wrong arguments for add command")
 
         log.info(f"Events is: {events}")
         user_name = events[0].get("user_name")[0]
@@ -66,7 +84,7 @@ class Action:
             log.debug(f"Failed to return anything: {get_by_user[1]}")
         else:
             for r in get_by_user:
-                slack_responder(self.response_url, f"```{str(r)}```")
+                self.send_response(message=f"```{str(r)}```")
 
         event_date = "".join(self.params[-1:])
         if ":" in event_date:
@@ -81,7 +99,7 @@ class Action:
             )
 
             for r in get_by_date:
-                slack_responder(self.response_url, f"```{str(r)}```")
+                self.send_response(message=f"```{str(r)}```")
 
         return ""
 
@@ -95,10 +113,19 @@ class Action:
         return ""
 
     def _edit_action(self):
-        slack_responder(self.response_url, "Edit not implemented yet")
-        return ""
+        return self.send_response(message="Edit not implemented yet")
 
-    def send_response(self):
+    def send_response(self, message=False):
+        """
+        Send a response to slack
+
+        If param message is False the attribute self.attachment is excpected
+        to exist.
+        """
+        if message:
+            slack_responder(url=self.response_url, msg=message)
+            return ""
+
         slack_client_response = slack_client_responder(
             token=self.slack_token, user_id=self.user_id, attachment=self.attachment
         )
@@ -111,3 +138,6 @@ class Action:
         else:
             log.debug(f"Slack client response was: {slack_client_response.text}")
         return slack_client_response
+
+    def _help_action(self):
+        return self.send_response(message=f"{self.perform_action.__doc__}")
