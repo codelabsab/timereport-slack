@@ -42,7 +42,7 @@ class Action:
         if self.action == "list":
             return self._list_action()
 
-        if self.action == "help" or self.action is None:
+        if self.action == "help":
             return self._help_action()
 
         return self._unsupported_action()
