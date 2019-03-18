@@ -45,14 +45,20 @@ def test_perform_delete_action():
     assert action.perform_action() == ""
     unstub()
 
-@pytest.mark.parametrize("test_input", [
-    (["help"]),
-    (""),
-])
-def test_perform_help_action(test_input):
-    fake_payload["text"] = test_input
+
+def test_perform_help_action():
+    fake_payload["text"] = ["help"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
     when(action).send_response(message=action.perform_action.__doc__).thenReturn("")
     assert action.perform_action() == ""
+    unstub()
+
+def test_perform_empty_action():
+    fake_payload.pop('text', None)
+    fake_payload["user_name"] = "fake_username"
+    action = Action(fake_payload, fake_config)
+    when(action).send_response(message=action.perform_action.__doc__).thenReturn("")
+    assert action.perform_action() == ""
+    assert action.action == "help"
     unstub()

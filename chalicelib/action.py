@@ -17,7 +17,7 @@ class Action:
 
         try:
             self.params = self.payload["text"][0].split()
-        except IndexError:
+        except KeyError:
             log.info("No parameters received. Defaulting to help action")
             self.params = ["help"]
 
