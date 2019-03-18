@@ -147,18 +147,14 @@ def slack_payload_extractor(req):
         return "failed extracting payload", 200
 
 
-def verify_token(request, token):
-    #https://api.slack.com/docs/verifying-requests-from-slack
-
-    request_timestamp = request.headers['X-Slack-Request-Timestamp']
-
-    # create basestring out of v0 + timestamp + req_body
-    request_basestring = bytes('v0:' + request_timestamp + ':' + request, 'utf-8')
-    slack_signature = bytes(request.headers['X-Slack-Signature'], 'utf-8')
-    slack_token = token
-
+def verify_token(headers, body, token):
+    request_timestamp = headers['X-Slack-Request-Timestamp']
+    # create basestring out of v0 + timestamp + body
+    request_basestring = bytes(f'v0:{request_timestamp}:{body}', 'utf-8')
+    slack_signature = headers['X-Slack-Signature']
+    token = bytes(token, 'utf-8')
     # create a signature from slack-token and request basestring
-    my_sig = hmac.new(slack_token, request_basestring , hashlib.sha256).hexdigest()
+    my_sig = f'v0={hmac.new(token, request_basestring, hashlib.sha256).hexdigest()}'
     # compare to slack-signature
     if hmac.compare_digest(my_sig, slack_signature):
         return True
