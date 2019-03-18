@@ -38,6 +38,7 @@ class Action:
         return self._unsupported_action()
 
     def _unsupported_action(self):
+        log.info(f"Got unsupported action: {self.action}")
         slack_responder(self.response_url, f"Unsupported action: {self.action}")
         return ""
 
@@ -54,23 +55,9 @@ class Action:
         date_start = events[0].get("event_date")
         date_end = events[-1].get("event_date")
         hours = events[0].get("hours")
-        # create attachment with above values for submit button
-        attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
-        log.info(f"Attachment is: {attachment}")
-
-        slack_client_response = slack_client_responder(
-            token=self.slack_token, user_id=self.user_id, attachment=attachment
-        )
-
-        if slack_client_response.status_code != 200:
-            log.error(
-                f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
-                The response from slack was: {slack_client_response.text}"""
-            )
-            return "Slack response to user failed"
-        else:
-            log.debug(f"Slack client response was: {slack_client_response.text}")
-
+        self.attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
+        log.info(f"Attachment is: {self.attachment}")
+        self.send_response()
         return ""
 
     def _list_action(self):
@@ -100,13 +87,20 @@ class Action:
 
     def _delete_action(self):
         date = self.params[1]
-        attachment = delete_message_menu(self.payload.get("user_name")[0], date)
+        self.attachment = delete_message_menu(self.payload.get("user_name")[0], date)
         log.debug(
-            f"Attachment is: {attachment}. user_name is {self.payload.get('user_name')[0]}"
+            f"Attachment is: {self.attachment}. user_name is {self.payload.get('user_name')[0]}"
         )
+        self.send_response()
+        return ""
 
+    def _edit_action(self):
+        slack_responder(self.response_url, "Edit not implemented yet")
+        return ""
+
+    def send_response(self):
         slack_client_response = slack_client_responder(
-            token=self.slack_token, user_id=self.user_id, attachment=attachment
+            token=self.slack_token, user_id=self.user_id, attachment=self.attachment
         )
         if slack_client_response.status_code != 200:
             log.error(
@@ -116,8 +110,4 @@ class Action:
             return "Slack response to user failed"
         else:
             log.debug(f"Slack client response was: {slack_client_response.text}")
-
-    def _edit_action(self):
-        slack_responder(self.response_url, "Edit not implemented yet")
-        return ""
-
+        return slack_client_response
