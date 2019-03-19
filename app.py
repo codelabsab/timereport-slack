@@ -66,8 +66,7 @@ def interactive():
 def index():
     req = app.current_request.raw_body.decode()
     req_headers = app.current_request.headers
-    req_raw_body = app.current_request.raw_body
-    if not verify_token(req_headers, req_raw_body, config['signing_secret']):
+    if not verify_token(req_headers, req, config['signing_secret']):
         return 'Slack signing secret not valid'
 
     payload = slack_payload_extractor(req)

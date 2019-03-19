@@ -157,14 +157,16 @@ def verify_token(headers, body, signing_secret):
     4. Compare digest to slack signature from header
     """
     request_timestamp = headers['X-Slack-Request-Timestamp']
-    request_basestring = bytes(f'v0:{request_timestamp}:{body}', 'utf-8')
     slack_signature = headers['X-Slack-Signature']
-    my_sig = f'v0={hmac.new(bytes(signing_secret, "utf-8"), request_basestring, hashlib.sha256).hexdigest()}'
+
+    request_basestring = f'v0:{request_timestamp}:{body}'
+    my_sig = f'v0={hmac.new(bytes(signing_secret, "utf-8"), bytes(request_basestring, "utf-8"), hashlib.sha256).hexdigest()}'
 
     if hmac.compare_digest(my_sig, slack_signature):
         return True
     else:
         return False
+
 
 def verify_reasons(valid_reasons, reason):
     if reason in valid_reasons:
