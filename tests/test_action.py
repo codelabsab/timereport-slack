@@ -8,9 +8,12 @@ from . import test_data
 fake_payload = dict(
     text=["unsupported args"],
     response_url=["http://fakeurl.nowhere"],
-    user_id=["fake user"],
+    user_id=["fake_userid"],
 )
-fake_config = dict(bot_access_token="fake token")
+fake_config = dict(
+    bot_access_token="fake token",
+    backend_url='http://fakebackend.nowhere',
+)
 
 
 def test_perform_unsupported_action():
@@ -61,4 +64,18 @@ def test_perform_empty_action():
     when(action).send_response(message=action.perform_action.__doc__).thenReturn("")
     assert action.perform_action() == ""
     assert action.action == "help"
+    unstub()
+
+
+def test_perform_list_action(caplog):
+    import logging
+    caplog.set_level(logging.DEBUG)
+    fake_payload["text"] = ["list"]
+    fake_payload["user_name"] = "fake_username"
+    action = Action(fake_payload, fake_config)
+    when(action).send_response(message='```fake list output```').thenReturn("")
+    when(requests).get(
+        url=f"{fake_config['backend_url']}/user/fake_userid",
+    ).thenReturn(mock({"status_code": 200, "text": "fake list output"}))
+    assert action.perform_action() == ""
     unstub()
