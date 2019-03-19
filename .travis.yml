@@ -14,8 +14,6 @@ notifications:
 before_install:
 - openssl aes-256-cbc -K $encrypted_fe6e87b8f20e_key -iv $encrypted_fe6e87b8f20e_iv
   -in chalice_secrets.tar.enc -out chalice_secrets.tar -d
-- openssl aes-256-cbc -K $encrypted_ee7d07fff8d2_key -iv $encrypted_ee7d07fff8d2_iv
-  -in chalice_secrets.tar.enc -out chalice_secrets.tar -d
 - tar xvf chalice_secrets.tar
 stages:
 - name: Run tests
