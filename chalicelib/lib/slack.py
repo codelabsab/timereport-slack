@@ -159,10 +159,8 @@ def verify_token(headers, body, signing_secret):
     request_timestamp = headers['X-Slack-Request-Timestamp']
     request_basestring = bytes(f'v0:{request_timestamp}:{body}', 'utf-8')
     slack_signature = headers['X-Slack-Signature']
-    signing_secret = bytes(signing_secret, 'utf-8')
-    my_sig = f'v0={hmac.new(signing_secret, request_basestring, hashlib.sha256).hexdigest()}'
+    my_sig = f'v0={hmac.new(bytes(signing_secret, "utf-8"), request_basestring, hashlib.sha256).hexdigest()}'
 
-    # compare to slack-signature
     if hmac.compare_digest(my_sig, slack_signature):
         return True
     else:
