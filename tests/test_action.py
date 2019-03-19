@@ -10,7 +10,7 @@ fake_payload = dict(
     response_url=["http://fakeurl.nowhere"],
     user_id=["fake user"],
 )
-fake_config = dict(slack_token="fake token")
+fake_config = dict(bot_access_token="fake token")
 
 
 def test_perform_unsupported_action():

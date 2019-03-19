@@ -22,7 +22,8 @@ logger = logging.getLogger()
 dir_path = os.path.dirname(os.path.realpath(__file__))
 config = parse_config(f'{dir_path}/chalicelib/config.yaml')
 config['backend_url'] = os.getenv('backend_url')
-config['slack_token'] = os.getenv('slack_token')
+config['bot_access_token'] = os.getenv('bot_access_token')
+config['signing_secret'] = os.getenv('signing_secret')
 logger.setLevel(config['log_level'])
 
 @app.route('/interactive', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
@@ -66,8 +67,8 @@ def index():
     req = app.current_request.raw_body.decode()
     req_headers = app.current_request.headers
     req_raw_body = app.current_request.raw_body
-    if not verify_token(req_headers, req_raw_body, config['slack_token']):
-        return 'Slack token not valid'
+    if not verify_token(req_headers, req_raw_body, config['signing_secret']):
+        return 'Slack signing secret not valid'
 
     payload = slack_payload_extractor(req)
 

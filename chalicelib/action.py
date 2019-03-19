@@ -22,7 +22,7 @@ class Action:
             self.params = ["help"]
 
         self.config = config
-        self.slack_token = config["slack_token"]
+        self.bot_access_token = config["bot_access_token"]
         self.response_url = self.payload["response_url"][0]
 
     def perform_action(self):
@@ -127,7 +127,7 @@ class Action:
             return ""
 
         slack_client_response = slack_client_responder(
-            token=self.slack_token, user_id=self.user_id, attachment=self.attachment
+            token=self.bot_access_token, user_id=self.user_id, attachment=self.attachment
         )
         if slack_client_response.status_code != 200:
             log.error(
