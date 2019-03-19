@@ -1,6 +1,6 @@
 language: python
 install:
-- echo "Skipping install step"
+  - echo "Skipping install step"
 python:
 - '3.6'
 env:
@@ -12,8 +12,6 @@ notifications:
   slack:
     secure: HJHvn6wKNCIr3skGWx2HK8gz9KIdg8Yd73gBoUTyUgz39v16WkISHOVsSDDTg4RunX/nggO5XBwjc9HwZeiX2V4OjzAukOaufk/OOvz2Hl4vhkUIJWgho3KFJAcm+dOi3wwJHGFBtLW3yvprEnjIf6MQoQqsnXK21nzihgvO1kBS8UYagJvtFf0Tqhz3Biz1lcEJi5cTpkfaG9fCBit4qzQig5jZeBiVb2/aKiQYDhAvc6O9VijJj8TCCPWhPpQGAOUR+yjKZQGnSTmSEU1iJbvEngpmliARP3vAUS28Ahrw84C0LchdgBA3E1LcKxjZokRfaxKAHMEWg69ovufrwLoo6Eb6vLQR3qhvDrwrPV3zG7kgiiRStxtz2mjeAljcLqoKQ0BrUNxEEF4bHyVVAc5zpIalIWD/YzUw+WOrMcAA+Oti4XAbuD7tSoZrkqCutBmxonHLjITatGMzndKBMhHIJu5v7y77ibX1ZyRixBqZ/B9v+0HOEn61nZErlpy0L+TMRX/bWPyOFMqAQO6gz1mnEwwSeU/HBs020/yGrcAWCjU8bCukOJ8ax4fIpOSPgU3tKc5759I3YOE3s+QM4TWZ97CHk54c9t2nvW6sE0mZdjSIjVMW/5Rq4a9CIJaYnvgKjGgzq+rqlSugOxZL95gqBwQLqt3iHmpjNB54pto=
 before_install:
-- openssl aes-256-cbc -K $encrypted_fe6e87b8f20e_key -iv $encrypted_fe6e87b8f20e_iv
-  -in chalice_secrets.tar.enc -out chalice_secrets.tar -d
 - openssl aes-256-cbc -K $encrypted_ee7d07fff8d2_key -iv $encrypted_ee7d07fff8d2_iv
   -in chalice_secrets.tar.enc -out chalice_secrets.tar -d
 - tar xvf chalice_secrets.tar
@@ -36,7 +34,6 @@ jobs:
     on:
       branch: master
     script:
-    - if [ -z "$TRAVIS_TAG" ];then echo "Skipping deploying to prod because of missing
-      tag." && exit 0; fi
+    - if [ -z "$TRAVIS_TAG" ];then echo "Skipping deploying to prod because of missing tag." && exit 0; fi
     - pip install -r deploy-requirements.txt
     - chalice deploy --stage prod
