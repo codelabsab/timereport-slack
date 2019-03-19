@@ -23,7 +23,7 @@ def test_slack_payload_extractor_payload():
     assert fake_data.get('fake') == 'fake data'
 
 
-def test_bot_access_token():
+def test_signing_secret():
     fake_request_headers = {'X-Slack-Request-Timestamp': '1531420618',
                             'X-Slack-Signature': 'v0=a2114d57b48eac39b9ad189dd8316235a7b4a8d21a10bd27519666489c69b503'
                             }
