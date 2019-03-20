@@ -3,6 +3,7 @@ import pytest
 from chalicelib.lib.helpers import parse_config, verify_reasons
 from chalicelib.lib.factory import factory, json_factory, date_to_string
 from chalicelib.lib.add import post_event
+from chalicelib.lib.list import get_user_by_id
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 from datetime import datetime
@@ -100,3 +101,11 @@ def test_date_to_string():
     test_data = date_to_string(datetime.now())
     assert isinstance(test_data, str)
 
+
+def test_get_user_by_id():
+    when(requests).get(
+        url='http://fake.nowhere/user/fake_userid',
+    ).thenReturn(mock({"status_code": 200, "text": "fake get_user_by_id response"}))
+    test = get_user_by_id(url='http://fake.nowhere', user_id='fake_userid')
+    unstub()
+    assert isinstance(test, str)

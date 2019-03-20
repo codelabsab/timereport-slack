@@ -79,21 +79,33 @@ class Action:
         return ""
 
     def _list_action(self):
-        get_by_user = get_user_by_id(f"{self.config['backend_url']}/user", self.user_id)
-        if isinstance(get_by_user, tuple):
-            log.debug(f"Failed to return anything: {get_by_user[1]}")
+
+        default_arg = "all"
+        try:
+            arguments = self.params[1]
+        except IndexError:
+            log.debug(f"No arguments for list. Setting default value: {default_arg}")
+            arguments = default_arg
+
+        list_data = get_user_by_id(f"{self.config['backend_url']}", self.user_id)
+        
+        if not list_data:
+            log.error(f"Unable to get list data for user {self.user_id}")
+            return ""
+        
+        if arguments == "today":
+            self.send_response(message="Today argument not implemented yet")
+            return ""
+        
+        if arguments == "all":
+            self.send_response(message=f"```{str(list_data)}```")
+            return ""
         else:
-            for r in get_by_user:
-                self.send_response(message=f"```{str(r)}```")
-
-        event_date = "".join(self.params[-1:])
-        if ":" in event_date:
-            # temporary solution
-
+            event_date = "".join(self.params[-1:])
             start_date, end_date = event_date.split(":")
 
             get_by_date = get_between_date(
-                f"{self.config['backend_url']}/user/{self.user_id}",
+                f"{self.config['backend_url']}/{self.user_id}",
                 start_date,
                 end_date,
             )
