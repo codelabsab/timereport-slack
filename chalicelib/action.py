@@ -73,7 +73,9 @@ class Action:
         date_start = events[0].get("event_date")
         date_end = events[-1].get("event_date")
         hours = events[0].get("hours")
-        self.attachment = submit_message_menu(user_name, reason, date_start, date_end, hours)
+        self.attachment = submit_message_menu(
+            user_name, reason, date_start, date_end, hours
+        )
         log.info(f"Attachment is: {self.attachment}")
         self.send_response()
         return ""
@@ -88,36 +90,42 @@ class Action:
             arguments = default_arg
 
         list_data = get_user_by_id(f"{self.config['backend_url']}", self.user_id)
-        
+
         if not list_data:
             log.error(f"Unable to get list data for user {self.user_id}")
             return ""
-        
+
         if arguments == "today":
             self.send_response(message="Today argument not implemented yet")
             return ""
-        
+
         if arguments == "all":
             self.send_response(message=f"```{str(list_data)}```")
             return ""
         else:
             event_date = "".join(self.params[-1:])
-            
+
             try:
                 start_date, end_date = event_date.split(":")
             except ValueError as error:
                 log.debug(f"Failed to split: {event_date}")
                 log.debug(f"Error was: {error}", exc_info=True)
                 self.send_response(message=f"Unable to handle the input: {event_date}")
+                return ""
 
             get_by_date = get_between_date(
                 f"{self.config['backend_url']}/user/{self.user_id}",
                 start_date,
                 end_date,
             )
-
-            for r in get_by_date:
-                self.send_response(message=f"```{str(r)}```")
+            if not get_by_date:
+                log.debug(f"Get by date returned nothing. Event date was: {event_date}")
+                self.send_response(
+                    message=f"Sorry, nothing to list for start date {start_date} and end date {end_date}"
+                )
+            else:
+                for r in get_by_date:
+                    self.send_response(message=f"```{str(r)}```")
 
         return ""
 
@@ -145,7 +153,9 @@ class Action:
             return ""
 
         slack_client_response = slack_client_responder(
-            token=self.bot_access_token, user_id=self.user_id, attachment=self.attachment
+            token=self.bot_access_token,
+            user_id=self.user_id,
+            attachment=self.attachment,
         )
         if slack_client_response.status_code != 200:
             log.error(
