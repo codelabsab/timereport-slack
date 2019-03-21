@@ -5,19 +5,18 @@ log = logging.getLogger(__name__)
 
 def get_user_by_id(url, user_id):
     """
-    Uses new python chalice backend
-    only returns back at this point, no DB connection
+    List all posts for user
 
-    :method: GET
-    :url: /timereport/user/{user_id}
-    :return: {'user_id': user_id}
+    :url: The URL to the API
+    :user_id: The user_id
+    :return: response object
     """
-    url = url + '/' + user_id
-    res = requests.get(url=url)
-    if res.status_code == 200:
-        log.debug(f'{res.text}')
-        yield res.text
+    api_url = f"{url}/user/{user_id}"
+    response = requests.get(url=api_url)
+    if response.status_code == 200:
+        return response.text
     else:
+        log.debug(f"Got response code {response.status_code} for user ID {user_id}")
         return False
 
 

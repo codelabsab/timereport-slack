@@ -67,9 +67,7 @@ def test_perform_empty_action():
     unstub()
 
 
-def test_perform_list_action(caplog):
-    import logging
-    caplog.set_level(logging.DEBUG)
+def test_perform_list_action():
     fake_payload["text"] = ["list"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
