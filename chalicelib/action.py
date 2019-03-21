@@ -102,7 +102,13 @@ class Action:
             return ""
         else:
             event_date = "".join(self.params[-1:])
-            start_date, end_date = event_date.split(":")
+            
+            try:
+                start_date, end_date = event_date.split(":")
+            except ValueError as error:
+                log.debug(f"Failed to split: {event_date}")
+                log.debug(f"Error was: {error}", exc_info=True)
+                self.send_response(message=f"Unable to handle the input: {event_date}")
 
             get_by_date = get_between_date(
                 f"{self.config['backend_url']}/user/{self.user_id}",
