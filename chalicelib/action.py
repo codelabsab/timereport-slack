@@ -105,7 +105,7 @@ class Action:
             start_date, end_date = event_date.split(":")
 
             get_by_date = get_between_date(
-                f"{self.config['backend_url']}/{self.user_id}",
+                f"{self.config['backend_url']}/user/{self.user_id}",
                 start_date,
                 end_date,
             )
