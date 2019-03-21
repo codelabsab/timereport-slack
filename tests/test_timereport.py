@@ -3,7 +3,7 @@ import pytest
 from chalicelib.lib.helpers import parse_config, verify_reasons
 from chalicelib.lib.factory import factory, json_factory, date_to_string
 from chalicelib.lib.add import post_event
-from chalicelib.lib.list import get_user_by_id
+from chalicelib.lib.list import get_list_data
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 from datetime import datetime
@@ -12,8 +12,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def test_parsing_config():
-    test_config = parse_config(f'{dir_path}/config.yaml')
-    mandatory_options = ('log_level', 'backend_url')
+    test_config = parse_config(f"{dir_path}/config.yaml")
+    mandatory_options = ("log_level", "backend_url")
     for option in mandatory_options:
         assert isinstance(option, str)
         assert test_config.get(option) is not None
@@ -21,69 +21,64 @@ def test_parsing_config():
 
 @pytest.mark.parametrize(
     "date_string",
-    ["2018-01-01", "today", "today 8", "today 24", "2019-01-01:2019-02-01"]
+    ["2018-01-01", "today", "today 8", "today 24", "2019-01-01:2019-02-01"],
 )
 def test_factory(date_string):
     fake_order = dict(
-        user_id='fake',
-        user_name='fake mcFake',
-        text=[f'fake_cmd=do_fake fake_reason {date_string}']
+        user_id="fake",
+        user_name="fake mcFake",
+        text=[f"fake_cmd=do_fake fake_reason {date_string}"],
     )
 
     fake_result = factory(fake_order)
     assert isinstance(fake_result, list)
     test_data = fake_result.pop()
-    assert isinstance(test_data.get('event_date'), str)
-    for item in ('user_id', 'user_name', 'reason'):
+    assert isinstance(test_data.get("event_date"), str)
+    for item in ("user_id", "user_name", "reason"):
         assert isinstance(test_data[item], str)
 
-    assert int(test_data['hours']) <= 8
+    assert int(test_data["hours"]) <= 8
 
 
 def test_wrong_hours_data_type():
     fake_order = dict(
-        user_id='fake',
-        user_name='fake mcFake',
-        text=[f'fake_cmd=do_fake fake_reason today wrong_hours']
+        user_id="fake",
+        user_name="fake mcFake",
+        text=[f"fake_cmd=do_fake fake_reason today wrong_hours"],
     )
     assert factory(fake_order) is False
 
 
 @pytest.mark.parametrize(
-    "args_list",
-    [["one", "two", "three", "four", "five"], ["one_argument"]],
+    "args_list", [["one", "two", "three", "four", "five"], ["one_argument"]]
 )
 def test_wrong_number_of_args_for_add(args_list):
-    fake_order = dict(
-        user_id='fake',
-        user_name='fake mcFake',
-        text=args_list
-    )
+    fake_order = dict(user_id="fake", user_name="fake mcFake", text=args_list)
     assert factory(fake_order) is False
 
 
 def test_verify_reason():
-    assert verify_reasons(['not real reasons'], 'fake') is False
-    assert verify_reasons(['my fake reason'], 'my fake reason') is True
+    assert verify_reasons(["not real reasons"], "fake") is False
+    assert verify_reasons(["my fake reason"], "my fake reason") is True
 
 
 def test_create_event():
-    fake_url = 'http://fake.com'
-    fake_data = 'fake data'
+    fake_url = "http://fake.com"
+    fake_data = "fake data"
     when(requests).post(
-        url=fake_url, json=fake_data, headers={'Content-Type': 'application/json'}
-    ).thenReturn(mock({'status_code': 200}))
+        url=fake_url, json=fake_data, headers={"Content-Type": "application/json"}
+    ).thenReturn(mock({"status_code": 200}))
 
     assert post_event(fake_url, fake_data) is True
     unstub()
 
 
 def test_create_event_failure():
-    fake_url = 'http://fake.com'
-    fake_data = 'fake data'
+    fake_url = "http://fake.com"
+    fake_data = "fake data"
     when(requests).post(
-        url=fake_url, json=fake_data, headers={'Content-Type': 'application/json'}
-    ).thenReturn(mock({'status_code': 500}))
+        url=fake_url, json=fake_data, headers={"Content-Type": "application/json"}
+    ).thenReturn(mock({"status_code": 500}))
     assert post_event(fake_url, fake_data) is False
     unstub()
 
@@ -93,7 +88,7 @@ def test_json_factory():
 
     fake_result = json_factory(interactive_message)
     assert isinstance(fake_result, list)
-    for item in ('user_id', 'user_name', 'reason', 'event_date', 'hours'):
+    for item in ("user_id", "user_name", "reason", "event_date", "hours"):
         assert item in fake_result[0]
 
 
@@ -102,10 +97,50 @@ def test_date_to_string():
     assert isinstance(test_data, str)
 
 
-def test_get_user_by_id():
+def test_get_list_data():
+    fake_response = "fake list data response"
     when(requests).get(
-        url='http://fake.nowhere/user/fake_userid',
-    ).thenReturn(mock({"status_code": 200, "text": "fake get_user_by_id response"}))
-    test = get_user_by_id(url='http://fake.nowhere', user_id='fake_userid')
+        url="http://fake.nowhere/user/fake_userid", params=None
+    ).thenReturn(mock({"status_code": 200, "text": fake_response}))
+    test = get_list_data(
+        url="http://fake.nowhere", user_id="fake_userid", date_str=None
+    )
     unstub()
-    assert isinstance(test, str)
+    assert test == fake_response
+
+
+def test_get_list_data_single_date():
+    fake_response = "fake list data response"
+    when(requests).get(
+        url="http://fake.nowhere/user/fake_userid",
+        params={"startDate": "2019-01-01", "endDate": "2019-01-01"},
+    ).thenReturn(mock({"status_code": 200, "text": fake_response}))
+    test = get_list_data(
+        url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01"
+    )
+    unstub()
+    assert test == fake_response
+
+
+def test_get_list_data_date_range():
+    fake_response = "fake list data response"
+    when(requests).get(
+        url="http://fake.nowhere/user/fake_userid",
+        params={"startDate": "2019-01-01", "endDate": "2019-01-02"},
+    ).thenReturn(mock({"status_code": 200, "text": fake_response}))
+    test = get_list_data(
+        url="http://fake.nowhere",
+        user_id="fake_userid",
+        date_str="2019-01-01:2019-01-02",
+    )
+    unstub()
+    assert test == fake_response
+
+
+def test_get_list_data_faulty_response():
+    when(requests).get(
+        url="http://fake.nowhere/user/fake_userid", params=None
+    ).thenReturn(mock({"status_code": 500}))
+    test = get_list_data(url="http://fake.nowhere", user_id="fake_userid")
+    unstub()
+    assert test is False

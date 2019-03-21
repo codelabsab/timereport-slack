@@ -1,5 +1,5 @@
 import logging
-from chalicelib.lib.list import get_between_date, get_user_by_id
+from chalicelib.lib.list import get_list_data
 from chalicelib.lib.slack import (
     slack_responder,
     submit_message_menu,
@@ -81,52 +81,40 @@ class Action:
         return ""
 
     def _list_action(self):
+        """
+        List timereport for user.
+        If no arguments supplied it will default to all.
 
-        default_arg = "all"
-        try:
-            arguments = self.params[1]
-        except IndexError:
-            log.debug(f"No arguments for list. Setting default value: {default_arg}")
-            arguments = default_arg
+        Supported arguments:
+        "today" - Not implemented yet
+        "date" - The date as a string. Use ":" as delimiter for two dates: "2019-01-01:2019-01-02"
+        """
 
-        list_data = get_user_by_id(f"{self.config['backend_url']}", self.user_id)
+        default_date_str = "all"
+        arguments = self.params[1:]
 
-        if not list_data:
-            log.error(f"Unable to get list data for user {self.user_id}")
-            return ""
+        if not arguments:
+            log.debug(
+                f"No arguments for list. Setting default value: {default_date_str}"
+            )
+            arguments = [default_date_str]
 
-        if arguments == "today":
+        if arguments[0] == "today":
             self.send_response(message="Today argument not implemented yet")
             return ""
 
-        if arguments == "all":
-            self.send_response(message=f"```{str(list_data)}```")
+        list_data = get_list_data(
+            f"{self.config['backend_url']}",
+            self.user_id,
+            # We don't validate the input, just take the last argument recieved.
+            date_str=arguments[0],
+        )
+        if not list_data:
+            log.debug(f"List returned nothing. Event date was: {date_str}")
+            self.send_response(message=f"Sorry, nothing to list for date {date_str}")
             return ""
-        else:
-            event_date = "".join(self.params[-1:])
 
-            try:
-                start_date, end_date = event_date.split(":")
-            except ValueError as error:
-                log.debug(f"Failed to split: {event_date}")
-                log.debug(f"Error was: {error}", exc_info=True)
-                self.send_response(message=f"Unable to handle the input: {event_date}")
-                return ""
-
-            get_by_date = get_between_date(
-                f"{self.config['backend_url']}/user/{self.user_id}",
-                start_date,
-                end_date,
-            )
-            if not get_by_date:
-                log.debug(f"Get by date returned nothing. Event date was: {event_date}")
-                self.send_response(
-                    message=f"Sorry, nothing to list for start date {start_date} and end date {end_date}"
-                )
-            else:
-                for r in get_by_date:
-                    self.send_response(message=f"```{str(r)}```")
-
+        self.send_response(message=f"```{list_data}```")
         return ""
 
     def _delete_action(self):

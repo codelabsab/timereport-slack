@@ -11,14 +11,13 @@ fake_payload = dict(
     user_id=["fake_userid"],
 )
 fake_config = dict(
-    bot_access_token="fake token",
-    backend_url='http://fakebackend.nowhere',
+    bot_access_token="fake token", backend_url="http://fakebackend.nowhere"
 )
 
 
 def test_perform_unsupported_action():
     action = Action(fake_payload, fake_config)
-    when(action).send_response(message='Unsupported action: unsupported').thenReturn("")
+    when(action).send_response(message="Unsupported action: unsupported").thenReturn("")
     assert action.perform_action() == ""
     unstub()
 
@@ -26,7 +25,7 @@ def test_perform_unsupported_action():
 def test_perform_edit_action():
     fake_payload["text"] = ["edit fake argument"]
     action = Action(fake_payload, fake_config)
-    when(action).send_response(message='Edit not implemented yet').thenReturn("")
+    when(action).send_response(message="Edit not implemented yet").thenReturn("")
     assert action.perform_action() == ""
     unstub()
 
@@ -57,8 +56,9 @@ def test_perform_help_action():
     assert action.perform_action() == ""
     unstub()
 
+
 def test_perform_empty_action():
-    fake_payload.pop('text', None)
+    fake_payload.pop("text", None)
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
     when(action).send_response(message=action.perform_action.__doc__).thenReturn("")
@@ -71,9 +71,9 @@ def test_perform_list_action():
     fake_payload["text"] = ["list"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
-    when(action).send_response(message='```fake list output```').thenReturn("")
+    when(action).send_response(message="```fake list output```").thenReturn("")
     when(requests).get(
-        url=f"{fake_config['backend_url']}/user/fake_userid",
+        url=f"{fake_config['backend_url']}/user/fake_userid", params="all"
     ).thenReturn(mock({"status_code": 200, "text": "fake list output"}))
     assert action.perform_action() == ""
     unstub()
