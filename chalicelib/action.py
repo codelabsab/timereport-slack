@@ -106,12 +106,11 @@ class Action:
         list_data = get_list_data(
             f"{self.config['backend_url']}",
             self.user_id,
-            # We don't validate the input, just take the last argument recieved.
             date_str=arguments[0],
         )
         if not list_data:
-            log.debug(f"List returned nothing. Event date was: {date_str}")
-            self.send_response(message=f"Sorry, nothing to list for date {date_str}")
+            log.debug(f"List returned nothing. Arguments was: {arguments}")
+            self.send_response(message=f"Sorry, nothing to list with supplied argument {arguments[0]}")
             return ""
 
         self.send_response(message=f"```{list_data}```")
