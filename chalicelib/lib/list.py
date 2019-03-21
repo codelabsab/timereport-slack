@@ -13,8 +13,8 @@ def get_list_data(url, user_id, date_str=None):
     :date_str: A string contaning date. Valid formats: "2019-01-01", "2019-01-02:2019-01-03"
     """
     api_url = f"{url}/user/{user_id}"
-    date = None if date_str == "all" else True
-    if date:
+    date_str = None if date_str == "all" else date_str
+    if date_str:
         try:
             start_date, end_date = date_str.split(":")
         except ValueError as error:

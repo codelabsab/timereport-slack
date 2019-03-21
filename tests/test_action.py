@@ -73,7 +73,7 @@ def test_perform_list_action():
     action = Action(fake_payload, fake_config)
     when(action).send_response(message="```fake list output```").thenReturn("")
     when(requests).get(
-        url=f"{fake_config['backend_url']}/user/fake_userid", params="all"
+        url=f"{fake_config['backend_url']}/user/fake_userid", params=None
     ).thenReturn(mock({"status_code": 200, "text": "fake list output"}))
     assert action.perform_action() == ""
     unstub()
