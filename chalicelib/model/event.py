@@ -14,13 +14,13 @@ def create_event(user_id, user_name, reason, event_date, hours):
 class Event:
     # Work in progress, not used.
 
-    def __init__(self, user_id, user_name, reason, event_date, hours, fmt):
+    def __init__(self, user_id, user_name, reason, event_date, hours):
         self.user_id = user_id
         self.user_name = user_name
         self.reason = reason
         self.event_date = event_date
         self.hours = hours
-        self.fmt = fmt
 
+    @property
     def to_json(self):
         return json.dumps(vars(self))
