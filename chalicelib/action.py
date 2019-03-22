@@ -7,6 +7,7 @@ from chalicelib.lib.slack import (
     delete_message_menu,
 )
 from chalicelib.lib.factory import factory
+from datetime import datetime
 
 log = logging.getLogger(__name__)
 
@@ -90,27 +91,26 @@ class Action:
         "date" - The date as a string. Use ":" as delimiter for two dates: "2019-01-01:2019-01-02"
         """
 
-        default_date_str = "all"
+        date_str = "all"
         arguments = self.params[1:]
 
+        log.debug(f"Got arguments: {arguments}")
         if not arguments:
-            log.debug(
-                f"No arguments for list. Setting default value: {default_date_str}"
-            )
-            arguments = [default_date_str]
-
-        if arguments[0] == "today":
-            self.send_response(message="Today argument not implemented yet")
-            return ""
+            pass
+        elif arguments[0] == "today":
+            date_str = datetime.now().strftime("%Y-%m-%d")
+        else:
+            date_str = arguments
 
         list_data = get_list_data(
             f"{self.config['backend_url']}",
             self.user_id,
-            date_str=arguments[0],
+            date_str=date_str,
         )
-        if not list_data:
-            log.debug(f"List returned nothing. Arguments was: {arguments}")
-            self.send_response(message=f"Sorry, nothing to list with supplied argument {arguments[0]}")
+
+        if not list_data or list_data == '[]':
+            log.debug(f"List returned nothing. Date string was: {date_str}")
+            self.send_response(message=f"Sorry, nothing to list with supplied argument {arguments}")
             return ""
 
         self.send_response(message=f"```{list_data}```")
