@@ -95,13 +95,14 @@ class Action:
         arguments = self.params[1:]
 
         log.debug(f"Got arguments: {arguments}")
-        if not arguments:
-            pass
-        elif arguments[0] == "today":
-            date_str = datetime.now().strftime("%Y-%m-%d")
-        else:
-            date_str = arguments
-
+        try:
+            if arguments[0] == "today":
+                date_str = datetime.now().strftime("%Y-%m-%d")
+            else:
+                date_str = arguments
+        except IndexError as error:
+            log.debug(f"got expected exception: {error}", exc_info=True)
+            
         list_data = get_list_data(
             f"{self.config['backend_url']}",
             self.user_id,
