@@ -40,14 +40,15 @@ def interactive():
         if payload.get('callback_id') == 'delete':
             message = payload['original_message']['attachments'][0]['fields']
             date = message[1]['value']
-            delete_by_date = delete_event(f"{config['backend_url']}/event", user_id, date)
-            if isinstance(delete_by_date, tuple):
-                app.log.debug(f'Failed to return anything: {delete_by_date[1]}')
+            delete_by_date = delete_event(f"{config['backend_url']}/event/users/{user_id}", date)
+            logger.info(f"Delete event posted to URL: {config['backend_url']}/event/users/{user_id}")
+            if delete_by_date.status_code != 200:
+                logger.debug(
+                    f"Error from backend: status code: {delete_by_date.status_code}. Response text: {delete_by_date.text}"
+                )
+                slack_responder(url=response_url, msg=f'Got unexpected response from backend')
             else:
-                for r in delete_by_date:
-                    slack_responder(response_url, f'```{str(r)}```')
-            logger.info('delete event posted')
-            slack_responder(url=response_url, msg=f'successfully deleted entry: {date}')
+                slack_responder(url=response_url, msg=f'successfully deleted entry: {date}')
             return ''
 
         if payload.get('callback_id') == 'add':
