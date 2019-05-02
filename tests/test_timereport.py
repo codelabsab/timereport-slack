@@ -9,7 +9,7 @@ import botocore.vendored.requests.api as requests
 from datetime import datetime
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
+fake_user_url = "http://fake.nowhere/event/users/fake_userid"
 
 def test_parsing_config():
     test_config = parse_config(f"{dir_path}/config.yaml")
@@ -100,7 +100,7 @@ def test_date_to_string():
 def test_get_list_data():
     fake_response = "fake list data response"
     when(requests).get(
-        url="http://fake.nowhere/event/user/fake_userid", params=None
+        url=fake_user_url, params=None
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
         url="http://fake.nowhere", user_id="fake_userid", date_str=None
@@ -112,7 +112,7 @@ def test_get_list_data():
 def test_get_list_data_single_date():
     fake_response = "fake list data response"
     when(requests).get(
-        url="http://fake.nowhere/event/user/fake_userid",
+        url=fake_user_url,
         params={"startDate": "2019-01-01", "endDate": "2019-01-01"},
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
@@ -125,7 +125,7 @@ def test_get_list_data_single_date():
 def test_get_list_data_date_range():
     fake_response = "fake list data response"
     when(requests).get(
-        url="http://fake.nowhere/event/user/fake_userid",
+        url=fake_user_url,
         params={"startDate": "2019-01-01", "endDate": "2019-01-02"},
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
@@ -139,7 +139,7 @@ def test_get_list_data_date_range():
 
 def test_get_list_data_faulty_response():
     when(requests).get(
-        url="http://fake.nowhere/event/user/fake_userid", params=None
+        url=fake_user_url, params=None
     ).thenReturn(mock({"status_code": 500}))
     test = get_list_data(url="http://fake.nowhere", user_id="fake_userid")
     unstub()
