@@ -67,7 +67,6 @@ def json_factory(json_order):
 
     payload = json_order['original_message']['attachments'][0]['fields']
 
-    user_id = json_order['user']['id']
     user_name = payload[0]['value']
     reason = payload[1]['value']
     start_date = payload[2]['value']
@@ -79,7 +78,6 @@ def json_factory(json_order):
     for date in date_range(date_obj_start, date_obj_stop):
         log.info(f'date is {date}')
         document = {
-            'user_id': user_id,
             'user_name': user_name,
             'reason': reason,
             'event_date': date.strftime(format_str),

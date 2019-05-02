@@ -88,7 +88,7 @@ def test_json_factory():
 
     fake_result = json_factory(interactive_message)
     assert isinstance(fake_result, list)
-    for item in ("user_id", "user_name", "reason", "event_date", "hours"):
+    for item in ("user_name", "reason", "event_date", "hours"):
         assert item in fake_result[0]
 
 
