@@ -100,7 +100,7 @@ def test_date_to_string():
 def test_get_list_data():
     fake_response = "fake list data response"
     when(requests).get(
-        url="http://fake.nowhere/user/fake_userid", params=None
+        url="http://fake.nowhere/event/user/fake_userid", params=None
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
         url="http://fake.nowhere", user_id="fake_userid", date_str=None
@@ -112,7 +112,7 @@ def test_get_list_data():
 def test_get_list_data_single_date():
     fake_response = "fake list data response"
     when(requests).get(
-        url="http://fake.nowhere/user/fake_userid",
+        url="http://fake.nowhere/event/user/fake_userid",
         params={"startDate": "2019-01-01", "endDate": "2019-01-01"},
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
@@ -125,7 +125,7 @@ def test_get_list_data_single_date():
 def test_get_list_data_date_range():
     fake_response = "fake list data response"
     when(requests).get(
-        url="http://fake.nowhere/user/fake_userid",
+        url="http://fake.nowhere/event/user/fake_userid",
         params={"startDate": "2019-01-01", "endDate": "2019-01-02"},
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
@@ -139,7 +139,7 @@ def test_get_list_data_date_range():
 
 def test_get_list_data_faulty_response():
     when(requests).get(
-        url="http://fake.nowhere/user/fake_userid", params=None
+        url="http://fake.nowhere/event/user/fake_userid", params=None
     ).thenReturn(mock({"status_code": 500}))
     test = get_list_data(url="http://fake.nowhere", user_id="fake_userid")
     unstub()
