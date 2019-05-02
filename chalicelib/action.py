@@ -99,7 +99,7 @@ class Action:
             if arguments[0] == "today":
                 date_str = datetime.now().strftime("%Y-%m-%d")
             else:
-                date_str = arguments
+                date_str = arguments[0]
         except IndexError as error:
             log.debug(f"got expected exception: {error}", exc_info=True)
             
