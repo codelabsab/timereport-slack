@@ -71,11 +71,15 @@ class Action:
         log.info(f"Events is: {events}")
         user_name = events[0].get("user_name")[0]
         reason = events[0].get("reason")
-        date_start = events[0].get("event_date")
-        date_end = events[-1].get("event_date")
+        self.date_start = events[0].get("event_date")
+        self.date_end = events[-1].get("event_date")
         hours = events[0].get("hours")
+
+        if self.check_lock_state():
+            return self.send_response(message="One or more of the events are locked")
+
         self.attachment = submit_message_menu(
-            user_name, reason, date_start, date_end, hours
+            user_name, reason, self.date_start, self.date_end, hours
         )
         log.info(f"Attachment is: {self.attachment}")
         self.send_response()
@@ -157,3 +161,21 @@ class Action:
 
     def _help_action(self):
         return self.send_response(message=f"{self.perform_action.__doc__}")
+
+    def check_lock_state(self):
+        """
+        Go through events and check if locked
+
+        Return true or false
+        """
+
+        get_events = get_list_data(
+            url=f"{self.config['backend_url']}", 
+            user_id=self.user_id,
+            date_str=f"{self.date_start}:{self.date_end}",
+        )
+        for event in get_events:
+            if event.get("lock"):
+                return False
+        
+        return True
