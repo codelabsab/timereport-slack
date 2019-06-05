@@ -1,4 +1,5 @@
 import logging
+import json
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.slack import (
     slack_responder,
@@ -169,11 +170,12 @@ class Action:
         Return true if any locked events found
         """
 
-        get_events = get_list_data(
+        get_events = json.loads(get_list_data(
             url=f"{self.config['backend_url']}", 
             user_id=self.user_id,
             date_str=f"{self.date_start}:{self.date_end}",
-        )
+        ))
+
         for event in get_events:
             if event.get("lock"):
                 return True

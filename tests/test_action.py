@@ -45,7 +45,7 @@ def test_perform_add_action():
             "startDate": action.date_start,
             "endDate": action.date_end,
         }
-    ).thenReturn(mock({"status_code": 200, "text": json.loads('[{}]')}))
+    ).thenReturn(mock({"status_code": 200, "text": '[{"lock": false}]'}))
     assert action.perform_action() == ""
     unstub()
 
@@ -101,6 +101,6 @@ def test_perform_lock_check():
             "startDate": action.date_start,
             "endDate": action.date_end,
         }
-    ).thenReturn(mock({"status_code": 200, "text": json.loads('[{}]')}))
+    ).thenReturn(mock({"status_code": 200, "text":'[{"lock":false}]'}))
     test = action.check_lock_state()
     assert test is False
