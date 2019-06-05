@@ -104,3 +104,12 @@ def test_perform_lock_check():
     ).thenReturn(mock({"status_code": 200, "text":'[{"lock":false}]'}))
     test = action.check_lock_state()
     assert test is False
+    unstub()
+
+def test_perform_lock():
+    fake_payload["text"] = ["lock"]
+    action = Action(fake_payload, fake_config)
+    action.user_id = "fake_user"
+    when(action).send_response(message="Lock not implemented yet").thenReturn("")
+    assert action.perform_action() == ""
+    unstub()
