@@ -3,6 +3,7 @@ from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 from chalicelib.action import Action
 from . import test_data
+import json
 
 
 fake_payload = dict(
@@ -34,7 +35,17 @@ def test_perform_add_action():
     fake_payload["text"] = ["add vab 2019-01-01"]
     fake_payload["user_name"] = "fake username"
     action = Action(fake_payload, fake_config)
+    action.user_id = "fake_userid"
+    action.date_start = "2019-01-01"
+    action.date_end = "2019-01-01"
     when(action).send_response().thenReturn()
+    when(requests).get(
+        url=f"{fake_config['backend_url']}/event/users/{action.user_id}", 
+        params={
+            "startDate": action.date_start,
+            "endDate": action.date_end,
+        }
+    ).thenReturn(mock({"status_code": 200, "text": json.loads('[{}]')}))
     assert action.perform_action() == ""
     unstub()
 
@@ -77,3 +88,19 @@ def test_perform_list_action():
     ).thenReturn(mock({"status_code": 200, "text": "fake list output"}))
     assert action.perform_action() == ""
     unstub()
+
+def test_perform_lock_check():
+    fake_payload["text"] = ["fake"]
+    action = Action(fake_payload, fake_config)
+    action.user_id = "fake_user"
+    action.date_start = "2019-01-01"
+    action.date_end = "2019-01-02"
+    when(requests).get(
+        url=f"{fake_config['backend_url']}/event/users/{action.user_id}", 
+        params={
+            "startDate": action.date_start,
+            "endDate": action.date_end,
+        }
+    ).thenReturn(mock({"status_code": 200, "text": json.loads('[{}]')}))
+    test = action.check_lock_state()
+    assert test is False

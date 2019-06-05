@@ -166,7 +166,7 @@ class Action:
         """
         Go through events and check if locked
 
-        Return true or false
+        Return true if any locked events found
         """
 
         get_events = get_list_data(
@@ -176,6 +176,6 @@ class Action:
         )
         for event in get_events:
             if event.get("lock"):
-                return False
+                return True
         
-        return True
+        return False
