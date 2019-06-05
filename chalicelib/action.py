@@ -36,6 +36,7 @@ class Action:
         edit - Not implemented yet
         delete - Delete post in timereport
         list - List posts in timereport
+        lock - Not implemented yet
         help - Provide this helpful output
         """
 
@@ -95,7 +96,7 @@ class Action:
         If no arguments supplied it will default to all.
 
         Supported arguments:
-        "today" - Not implemented yet
+        "today" - List the event for the todays date
         "date" - The date as a string. Use ":" as delimiter for two dates: "2019-01-01:2019-01-02"
         """
 
@@ -111,11 +112,7 @@ class Action:
         except IndexError as error:
             log.debug(f"got expected exception: {error}", exc_info=True)
             
-        list_data = get_list_data(
-            f"{self.config['backend_url']}",
-            self.user_id,
-            date_str=date_str,
-        )
+        list_data = self._get_events(date_str=date_str)
 
         if not list_data or list_data == '[]':
             log.debug(f"List returned nothing. Date string was: {date_str}")
@@ -173,17 +170,18 @@ class Action:
         Return true if any locked events found
         """
 
-        get_events = json.loads(get_list_data(
-            url=f"{self.config['backend_url']}", 
-            user_id=self.user_id,
-            date_str=f"{self.date_start}:{self.date_end}",
-        ))
-
-        for event in get_events:
+        for event in json.loads(self._get_events(date_str=f"{self.date_start}:{self.date_end}")):
             if event.get("lock"):
                 return True
         
         return False
 
+    def _get_events(self, date_str):
+        return get_list_data(
+            f"{self.config['backend_url']}",
+            self.user_id,
+            date_str=date_str,
+        )
+    
     def _lock_action(self):
         return self.send_response(message="Lock not implemented yet")
