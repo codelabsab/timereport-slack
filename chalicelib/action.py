@@ -55,6 +55,9 @@ class Action:
         if self.action == "list":
             return self._list_action()
 
+        if self.action == "lock":
+            return self._lock_action()
+
         if self.action == "help":
             return self._help_action()
 
@@ -181,3 +184,6 @@ class Action:
                 return True
         
         return False
+
+    def _lock_action(self):
+        return self.send_response(message="Lock not implemented yet")
