@@ -149,7 +149,7 @@ def test_get_list_data_faulty_response():
 
 def test_create_lock():
     test = create_lock(user_id="fake", event_date="2019-01")
-    assert isinstance(test.get('event_date'), datetime)
+    assert isinstance(test.get('event_date'), str)
 
 
 def test_create_lock_faulty_date():

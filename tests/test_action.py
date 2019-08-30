@@ -109,9 +109,11 @@ def test_perform_lock_check():
 def test_perform_lock():
     fake_payload["text"] = ["lock 2019-01"]
     action = Action(fake_payload, fake_config)
-    action.user_id = "fake_user"
-    when(action).send_response(
-        message="Lock event: {'user_id': 'fake_userid', 'event_date': datetime.datetime(2019, 1, 1, 0, 0)}"
-    ).thenReturn("")
+    action.user_id = "fake_userid"
+    when(action).send_response(message='Lock successful! :lock: :+1:').thenReturn()
+    when(requests).post(
+        url=f"{fake_config['backend_url']}/lock",
+        data={'user_id': 'fake_userid', 'event_date': '2019-01'},
+    ).thenReturn(mock({"status_code": 200}))
     assert action.perform_action() == ""
     unstub()
