@@ -113,7 +113,7 @@ def test_perform_lock():
     when(action).send_response(message='Lock successful! :lock: :+1:').thenReturn()
     when(requests).post(
         url=f"{fake_config['backend_url']}/lock",
-        data={'user_id': 'fake_userid', 'event_date': '2019-01'},
+        data=json.dumps({'user_id': 'fake_userid', 'event_date': '2019-01'}),
         headers={'Content-Type': 'application/json'},
     ).thenReturn(mock({"status_code": 200}))
     assert action.perform_action() == ""
