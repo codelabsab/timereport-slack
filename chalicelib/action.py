@@ -8,6 +8,7 @@ from chalicelib.lib.slack import (
     delete_message_menu,
 )
 from chalicelib.lib.factory import factory
+from chalicelib.model.event import create_lock
 from datetime import datetime
 
 log = logging.getLogger(__name__)
@@ -184,4 +185,9 @@ class Action:
         )
     
     def _lock_action(self):
-        return self.send_response(message="Lock not implemented yet")
+        """
+        /timereport-dev lock 2019-08
+        """
+        lock = create_lock(user_id=self.user_id, event_date=self.params[1])
+
+        return self.send_response(message=f"Lock event: {lock}")

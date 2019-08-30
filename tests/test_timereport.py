@@ -4,6 +4,7 @@ from chalicelib.lib.helpers import parse_config, verify_reasons
 from chalicelib.lib.factory import factory, json_factory, date_to_string
 from chalicelib.lib.add import post_event
 from chalicelib.lib.list import get_list_data
+from chalicelib.model.event import create_lock
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 from datetime import datetime
@@ -144,3 +145,13 @@ def test_get_list_data_faulty_response():
     test = get_list_data(url="http://fake.nowhere", user_id="fake_userid")
     unstub()
     assert test is False
+
+
+def test_create_lock():
+    test = create_lock(user_id="fake", event_date="2019-01")
+    assert isinstance(test.get('event_date'), datetime)
+
+
+def test_create_lock_faulty_date():
+    test = create_lock(user_id="fake", event_date="invalid date string")
+    assert test is not True
