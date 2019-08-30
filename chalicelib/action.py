@@ -191,7 +191,7 @@ class Action:
         """
         event = create_lock(user_id=self.user_id, event_date=self.params[1])
         log.debug(f"lock event: {event}")
-        response = lock_event(url=self.config['backend_url'], event=event)
+        response = lock_event(url=self.config['backend_url'], event=json.dumps(event))
         log.debug(f"response was: {response.text}")
         if response.status_code == 200:
             self.send_response(message=f"Lock successful! :lock: :+1:")
