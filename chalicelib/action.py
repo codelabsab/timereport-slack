@@ -10,6 +10,7 @@ from chalicelib.lib.slack import (
 from chalicelib.lib.factory import factory
 from chalicelib.model.event import create_lock
 from datetime import datetime
+from chalicelib.lib.lock import lock_event
 
 log = logging.getLogger(__name__)
 
@@ -188,6 +189,12 @@ class Action:
         """
         /timereport-dev lock 2019-08
         """
-        lock = create_lock(user_id=self.user_id, event_date=self.params[1])
+        event = create_lock(user_id=self.user_id, event_date=self.params[1])
+        response = lock_event(url=self.config['backend_url'], event=event)
+        if response.status_code == 200:
+            self.send_response(message=f"Lock successful! :lock: :+1:")
+            return ""
+        else:
+            self.send_response(message=f"Lock failed! :cry:")
+            return ""
 
-        return self.send_response(message=f"Lock event: {lock}")
