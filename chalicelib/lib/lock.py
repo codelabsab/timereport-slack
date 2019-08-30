@@ -11,6 +11,7 @@ def lock_event(url, event):
     event: The lock event document
     :return:
     """
+    headers={'Content-Type': 'application/json'}
     api_url = f'{url}/lock'
-    response = requests.post(url=api_url, data=event)
+    response = requests.post(url=api_url, data=event, headers=headers)
     return response
