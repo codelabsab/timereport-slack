@@ -17,7 +17,7 @@ def create_event(user_id, user_name, reason, event_date, hours):
 def create_lock(user_id, event_date):
     format_str = "%Y-%m"
     try:
-        event_date = datetime.strptime(event_date, format_str)
+        datetime.strptime(event_date, format_str)
     except ValueError:
         log.error(f"The event_date {event_date} isn't a valid format")
         return False # Returnera tillbaka så action klassen kan rapportera felet till slack?
