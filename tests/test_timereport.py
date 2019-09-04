@@ -69,8 +69,8 @@ def test_create_event():
     when(requests).post(
         url=fake_url, json=fake_data, headers={"Content-Type": "application/json"}
     ).thenReturn(mock({"status_code": 200}))
-
-    assert post_event(fake_url, fake_data) is True
+    response = post_event(fake_url, fake_data)
+    assert response.status_code == 200
     unstub()
 
 
@@ -80,7 +80,8 @@ def test_create_event_failure():
     when(requests).post(
         url=fake_url, json=fake_data, headers={"Content-Type": "application/json"}
     ).thenReturn(mock({"status_code": 500}))
-    assert post_event(fake_url, fake_data) is False
+    response = post_event(fake_url, fake_data)
+    assert response.status_code != 200
     unstub()
 
 
