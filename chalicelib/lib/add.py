@@ -5,16 +5,13 @@ log = logging.getLogger(__name__)
 
 def post_event(url, data):
     """
-    Uses new python chalice backend
-    only returns back at this point, no DB connection
+    Add event
 
-    :method: POST
-    :url: '/event'
-    :return: current_request.raw_body.decode() (same data you send in)
+    url: URL to backend API
+    data: A dict with the event to add
+    
+    :return: requests response object
     """
-    headers={'Content-Type': 'application/json'}
+    headers = {'Content-Type': 'application/json'}
     res = requests.post(url=url, json=data, headers=headers)
-    if res.status_code == 200:
-        return True
-    else:
-        return False
+    return res
