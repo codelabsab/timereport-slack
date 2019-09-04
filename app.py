@@ -52,17 +52,24 @@ def interactive():
             return ''
 
         if payload.get('callback_id') == 'add':
+            msg = 'Added successfully'
             events = json_factory(payload)
             for event in events:
                 response = post_event(f"{config['backend_url']}/event/users/{user_id}", json.dumps(event))
-
+                failed_events = list()
                 if response.status_code != 200:
                     logger.debug(
                         f"Event {event} got unexpected response from backend: {response.text}"
                     )
-                    slack_responder(url=response_url, msg=f'Failed to create event {event}')
+                    failed_events.append(event.get('event_date'))
 
-            slack_responder(url=response_url, msg='Added successfully')
+            if failed_events:
+                logger.debug(f"Got {len(failed_events)} events")
+                msg = f"""
+                    Successfully added {len(events) - len(failed_events)} events.
+                    These however failed: ```{failed_events} ```
+                """
+            slack_responder(url=response_url, msg=msg)
             return ''
     else:
         slack_responder(url=response_url, msg="Action canceled")
