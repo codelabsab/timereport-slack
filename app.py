@@ -54,9 +54,9 @@ def interactive():
         if payload.get('callback_id') == 'add':
             msg = 'Added successfully'
             events = json_factory(payload)
+            failed_events = list()
             for event in events:
                 response = post_event(f"{config['backend_url']}/event/users/{user_id}", json.dumps(event))
-                failed_events = list()
                 if response.status_code != 200:
                     logger.debug(
                         f"Event {event} got unexpected response from backend: {response.text}"
