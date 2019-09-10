@@ -65,10 +65,10 @@ def interactive():
 
             if failed_events:
                 logger.debug(f"Got {len(failed_events)} events")
-                msg = f"""
-                    Successfully added {len(events) - len(failed_events)} events.
-                    These however failed: ```{failed_events} ```
-                """
+                msg = (
+                    f"Successfully added {len(events) - len(failed_events)} events.\n"
+                    "These however failed: ```{failed_events} ```"
+                )
             slack_responder(url=response_url, msg=msg)
             return ''
     else:
