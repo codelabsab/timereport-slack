@@ -83,7 +83,6 @@ def test_perform_list_action():
     fake_payload["text"] = ["list"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
-    month = datetime.now().strftime("%Y-%m")
     
     when(action).send_response(message="```fake list output```").thenReturn("")
     when(requests).get(
