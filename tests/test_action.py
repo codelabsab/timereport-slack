@@ -2,6 +2,7 @@ import pytest
 from mockito import when, mock, unstub
 import botocore.vendored.requests.api as requests
 from chalicelib.action import Action
+from datetime import datetime
 from . import test_data
 import json
 
@@ -82,9 +83,14 @@ def test_perform_list_action():
     fake_payload["text"] = ["list"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
+    
     when(action).send_response(message="```fake list output```").thenReturn("")
     when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/fake_userid", params=None
+        url=f"{fake_config['backend_url']}/event/users/fake_userid", 
+        params={
+            "startDate": datetime.now().strftime("%Y-%m-01"),
+            "endDate": datetime.now().strftime("%Y-%m-31"),
+        }
     ).thenReturn(mock({"status_code": 200, "text": "fake list output"}))
     assert action.perform_action() == ""
     unstub()
