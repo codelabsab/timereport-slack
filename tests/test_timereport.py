@@ -99,17 +99,18 @@ def test_date_to_string():
     assert isinstance(test_data, str)
 
 
-def test_get_list_data():
+def test_get_list_data_default():
+    month = datetime.now().strftime("%Y-%m") 
     fake_response = "fake list data response"
     when(requests).get(
         url=fake_user_url,
         params={
-            'startDate': "2019-01-01",
-            'endDate': "2019-01-01"
+            'startDate': f"{month}-01",
+            'endDate': f"{month}-31"
         }
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
-        url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01"
+        url="http://fake.nowhere", user_id="fake_userid", date_str=datetime.now().strftime("%Y-%m")
     )
     unstub()
     assert test == fake_response
