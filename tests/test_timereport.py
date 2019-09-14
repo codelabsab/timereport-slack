@@ -102,10 +102,14 @@ def test_date_to_string():
 def test_get_list_data():
     fake_response = "fake list data response"
     when(requests).get(
-        url=fake_user_url, params=None
+        url=fake_user_url,
+        params={
+            'startDate': "2019-01-01",
+            'endDate': "2019-01-01"
+        }
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
-        url="http://fake.nowhere", user_id="fake_userid", date_str=None
+        url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01"
     )
     unstub()
     assert test == fake_response
@@ -139,11 +143,30 @@ def test_get_list_data_date_range():
     assert test == fake_response
 
 
+def test_get_list_data_month():
+    fake_response = "fake list data response"
+    when(requests).get(
+        url=fake_user_url,
+        params={"startDate": "2019-01-01", "endDate": "2019-01-31"},
+    ).thenReturn(mock({"status_code": 200, "text": fake_response}))
+    test = get_list_data(
+        url="http://fake.nowhere",
+        user_id="fake_userid",
+        date_str="2019-01",
+    )
+    unstub()
+    assert test == fake_response
+
+
 def test_get_list_data_faulty_response():
     when(requests).get(
-        url=fake_user_url, params=None
+        url=fake_user_url,
+        params={
+            'startDate': "2019-01-01",
+            'endDate': "2019-01-01",
+        }
     ).thenReturn(mock({"status_code": 500}))
-    test = get_list_data(url="http://fake.nowhere", user_id="fake_userid")
+    test = get_list_data(url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01")
     unstub()
     assert test is False
 
