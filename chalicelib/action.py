@@ -99,11 +99,8 @@ class Action:
 
         Supported arguments:
         "today" - List the event for the todays date
-        "date" - The date as a string. Use ":" as delimiter for two dates: "2019-01-01:2019-01-02"
+        "date" - The date as a string.
         """
-        month = datetime.now().strftime("%Y-%m")
-        # A hack to set the date_str to the current month
-        date_str = f"{month}-01:{month}-31"
         arguments = self.params[1:]
 
         log.debug(f"Got arguments: {arguments}")
@@ -112,8 +109,15 @@ class Action:
                 date_str = datetime.now().strftime("%Y-%m-%d")
             else:
                 date_str = arguments[0]
-        except IndexError as error:
+        except IndexError:
+            month = datetime.now().strftime("%Y-%m")
+            # A hack to set the date_str to the current month
+            date_str = f"{month}-01:{month}-31"
+            arguments = self.params[1:]
+        except Exception as error:
             log.debug(f"got unexpected exception: {error}", exc_info=True)
+            self.send_response(message=f"Got unexpected error with arguments: {arguments}")
+            return ""
             
         log.debug(f"The date string set to: {date_str}")
         list_data = self._get_events(date_str=date_str)
