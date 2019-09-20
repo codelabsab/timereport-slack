@@ -14,6 +14,7 @@ mockito = "*"
 pytest-cov = "*"
 pylint = "*"
 black = "*"
+ptpython = "*"
 
 [requires]
 python_version = "3.6"
