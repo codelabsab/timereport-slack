@@ -2,7 +2,6 @@ import logging
 import json
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.slack import (
-    slack_responder,
     submit_message_menu,
     slack_client_responder,
     delete_message_menu,
