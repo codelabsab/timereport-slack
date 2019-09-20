@@ -6,6 +6,7 @@ from chalicelib.lib.slack import (
     submit_message_menu,
     slack_client_responder,
     delete_message_menu,
+    Slack,
 )
 from chalicelib.lib.factory import factory
 from chalicelib.model.event import create_lock
@@ -27,6 +28,7 @@ class Action:
 
         self.config = config
         self.bot_access_token = config["bot_access_token"]
+        self.slack = Slack(slack_token=config["bot_access_token"])
         self.response_url = self.payload["response_url"][0]
 
     def perform_action(self):
@@ -150,14 +152,19 @@ class Action:
         to exist.
         """
         if message:
-            slack_responder(url=self.response_url, msg=message)
+            log.debug("Sending message to slack")
+            self.slack.client.chat_postMessage(
+                channel=self.user_id,
+                text=message,
+            )
             return ""
-
         slack_client_response = slack_client_responder(
             token=self.bot_access_token,
             user_id=self.user_id,
             attachment=self.attachment,
         )
+
+
         if slack_client_response.status_code != 200:
             log.error(
                 f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.

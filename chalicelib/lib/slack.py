@@ -6,8 +6,16 @@ import json
 import hmac
 import hashlib
 import base64
+import slack
 
 log = logging.getLogger(__name__)
+
+
+class Slack:
+
+    def __init__(self, slack_token):
+        self.slack_token = slack_token
+        self.client = slack.WebClient(token=slack_token)
 
 
 def slack_client_responder(token, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
