@@ -127,7 +127,7 @@ class Action:
             self.send_response(message=f"Sorry, nothing to list with supplied argument {arguments}")
             return ""
 
-        self.send_response(message=f"```{list_data}```")
+        self.send_response(message=f"{list_data}")
         return ""
 
     def _delete_action(self):
