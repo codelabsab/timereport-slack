@@ -1,4 +1,0 @@
-chalice
-botocore
-ruamel.yaml
-slackclient
