@@ -2,10 +2,10 @@ import logging
 import json
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.slack import (
-    slack_responder,
     submit_message_menu,
     slack_client_responder,
     delete_message_menu,
+    Slack,
 )
 from chalicelib.lib.factory import factory
 from chalicelib.model.event import create_lock
@@ -27,6 +27,7 @@ class Action:
 
         self.config = config
         self.bot_access_token = config["bot_access_token"]
+        self.slack = Slack(slack_token=config["bot_access_token"])
         self.response_url = self.payload["response_url"][0]
 
     def perform_action(self):
@@ -85,11 +86,10 @@ class Action:
         if self.check_lock_state():
             return self.send_response(message="One or more of the events are locked")
 
-        self.attachment = submit_message_menu(
-            user_name, reason, self.date_start, self.date_end, hours
+        self.send_attachment(attachment=submit_message_menu(
+            user_name, reason, 
+            self.date_start, self.date_end, hours)
         )
-        log.info(f"Attachment is: {self.attachment}")
-        self.send_response()
         return ""
 
     def _list_action(self):
@@ -132,32 +132,40 @@ class Action:
 
     def _delete_action(self):
         date = self.params[1]
-        self.attachment = delete_message_menu(self.payload.get("user_name")[0], date)
-        log.debug(
-            f"Attachment is: {self.attachment}. user_name is {self.payload.get('user_name')[0]}"
-        )
-        self.send_response()
+        self.send_attachment(attachment=delete_message_menu(self.payload.get("user_name")[0], date))
         return ""
 
     def _edit_action(self):
         return self.send_response(message="Edit not implemented yet")
 
-    def send_response(self, message=False):
+
+    def send_response(self, message):
         """
         Send a response to slack
 
-        If param message is False the attribute self.attachment is excpected
-        to exist.
+        :message: The Message to send
         """
-        if message:
-            slack_responder(url=self.response_url, msg=message)
-            return ""
+  
+        log.debug("Sending message to slack")
+        self.slack.client.chat_postMessage(
+            channel=self.user_id,
+            text=message,
+        )
+        return ""
+
+    def send_attachment(self, attachment):
+        """
+        Send an message to slack using attachment
+        :attachment: The attachment (slack specific attachment) to send
+        """
 
         slack_client_response = slack_client_responder(
             token=self.bot_access_token,
             user_id=self.user_id,
-            attachment=self.attachment,
+            attachment=attachment,
         )
+
+
         if slack_client_response.status_code != 200:
             log.error(
                 f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.

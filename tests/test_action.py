@@ -39,7 +39,7 @@ def test_perform_add_action():
     action.user_id = "fake_userid"
     action.date_start = "2019-01-01"
     action.date_end = "2019-01-01"
-    when(action).send_response().thenReturn()
+    when(action).send_response(message="").thenReturn()
     when(requests).get(
         url=f"{fake_config['backend_url']}/event/users/{action.user_id}", 
         params={
@@ -55,7 +55,7 @@ def test_perform_delete_action():
     fake_payload["text"] = ["delete 2019-01-01"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
-    when(action).send_response().thenReturn()
+    when(action).send_response(message="").thenReturn()
     assert action.perform_action() == ""
     unstub()
 
