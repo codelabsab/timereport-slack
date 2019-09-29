@@ -28,7 +28,7 @@ jobs:
     - pytest -v
   - stage: Deploy to dev
     script:
-    - pip install -r deploy-requirements.txt
+    - pip install chalice
     - chalice deploy --stage dev
   - stage: Deploy to prod
     on:
@@ -36,5 +36,5 @@ jobs:
     script:
     - if [ -z "$TRAVIS_TAG" ];then echo "Skipping deploying to prod because of missing
       tag." && exit 0; fi
-    - pip install -r deploy-requirements.txt
+    - pip install chalice
     - chalice deploy --stage prod
