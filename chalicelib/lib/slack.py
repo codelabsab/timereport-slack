@@ -176,13 +176,6 @@ def verify_token(headers, body, signing_secret):
         return False
 
 
-def verify_reasons(valid_reasons, reason):
-    if reason in valid_reasons:
-        return True
-    else:
-        return False
-
-
 def submit_message_menu(user_name, reason, date_start, date_end, hours):
     attachment = [
         {

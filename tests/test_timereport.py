@@ -1,6 +1,6 @@
 import os
 import pytest
-from chalicelib.lib.helpers import parse_config, verify_reasons
+from chalicelib.lib.helpers import parse_config
 from chalicelib.lib.factory import factory, json_factory, date_to_string
 from chalicelib.lib.add import post_event
 from chalicelib.lib.list import get_list_data
@@ -56,11 +56,6 @@ def test_wrong_hours_data_type():
 def test_wrong_number_of_args_for_add(args_list):
     fake_order = dict(user_id="fake", user_name="fake mcFake", text=args_list)
     assert factory(fake_order) is False
-
-
-def test_verify_reason():
-    assert verify_reasons(["not real reasons"], "fake") is False
-    assert verify_reasons(["my fake reason"], "my fake reason") is True
 
 
 def test_create_event():
