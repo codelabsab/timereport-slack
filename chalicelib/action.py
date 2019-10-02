@@ -79,12 +79,20 @@ class Action:
         log.info(f"Events is: {events}")
         user_name = events[0].get("user_name")[0]
         reason = events[0].get("reason")
+
+        if not reason in self.config.get('valid_reasons'):
+            message = f"Reason {reason} is not valid"
+            log.debug(message)
+            self.send_response(message=message)
+            return ""
+
         self.date_start = events[0].get("event_date")
         self.date_end = events[-1].get("event_date")
         hours = events[0].get("hours")
 
         if self.check_lock_state():
-            return self.send_response(message="One or more of the events are locked")
+            self.send_response(message="One or more of the events are locked")
+            return ""
 
         self.send_attachment(attachment=submit_message_menu(
             user_name, reason, 

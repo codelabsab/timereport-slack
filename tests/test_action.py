@@ -13,7 +13,8 @@ fake_payload = dict(
     user_id=["fake_userid"],
 )
 fake_config = dict(
-    bot_access_token="fake token", backend_url="http://fakebackend.nowhere"
+    bot_access_token="fake token", backend_url="http://fakebackend.nowhere",
+    valid_reasons=["vab"],
 )
 
 
