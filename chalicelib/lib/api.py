@@ -20,7 +20,7 @@ def create(data):
 
     url: URL to backend API
     data: A dict with the event to add
-    
+
     :return: requests response object
     """
     headers = {'Content-Type': 'application/json'}
