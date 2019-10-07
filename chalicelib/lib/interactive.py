@@ -69,8 +69,6 @@ def interactive_delete(payload):
     Takes a payload and extracts user_id and date
     Calls backend api to delete all events for
     given user and date
-    :param: payload
-    :return: http status
     """
     user_id = payload['user'].get('id'),
     date = payload['original_message']['attachments'][0]['fields'][0].get('value')
@@ -119,7 +117,6 @@ def interactive_add(payload):
                         'short': False
                     }
                 ]
-    :return: http status?
     """
     start = datetime.strptime(payload[2].get('value'), "%Y-%m-%d")
     stop = datetime.strptime(payload[3].get('value'), "%Y-%m-%d")
