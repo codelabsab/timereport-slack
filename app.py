@@ -24,7 +24,7 @@ logger.setLevel(config['log_level'])
 
 @app.route('/interactive', method='POST', content_types=['application/x-www-form-urlencoded'])
 def interactive():
-    return interactive_handler(app.current_request.raw_body.decode())
+    return interactive_handler(app)
 
 
 @app.route('/command', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
