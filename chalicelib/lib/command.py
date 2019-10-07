@@ -2,7 +2,7 @@ import os
 
 from chalice import Chalice
 
-from chalicelib.lib.slack import slack_payload_extractor
+from chalicelib.lib.slack import slack_payload_extractor, slack_responder
 from chalicelib.lib.security import verify_token
 
 
@@ -12,6 +12,7 @@ def command_handler(app: Chalice):
     validates token and sends extracted data
     to the correct function handler
     """
+    # store headers and request
     headers = app.current_request.headers
     request = app.current_request.raw_body.decode()
 
@@ -30,7 +31,7 @@ def command_handler(app: Chalice):
     except KeyError:
         # TODO:
         #  return help_menu()
-        return "Not implemented"
+        return help_menu(payload['user_id'])
     if action == "add":
         return "Not implemented"
         # TODO:  add(commands)
@@ -52,8 +53,7 @@ def command_handler(app: Chalice):
         # TODO: lock(commands)
 
     if action == "help":
-        return "Not implemented"
-        # TODO: help_menu()
+        help_menu(payload['user_id'])
 
 
 def add():
@@ -76,8 +76,20 @@ def lock():
     return NotImplemented
 
 
-def help_menu():
-    return NotImplemented
+def help_menu(url, msg):
+    msg = """
+        Perform action.
+
+        Supported actions are:
+        add - Add new post in timereport
+        edit - Not implemented yet
+        delete - Delete post in timereport
+        list - List posts in timereport
+        lock - Not implemented yet
+        help - Provide this helpful output
+        """
+    slack_responder(url=url, msg=msg)
+    return ""
 
 
 
