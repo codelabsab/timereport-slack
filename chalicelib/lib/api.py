@@ -1,33 +1,35 @@
 import botocore.vendored.requests.api as requests
+import botocore.vendored.requests.models
 import logging
+
 
 log = logging.getLogger(__name__)
 
-####################################################
-#                                                  #
-#        implementation of timereport-api v2       #
-#                                                  #
-####################################################
+#####################################################
+#                                                   #
+#        implementation of timereport-api v2        #
+#                                                   #
+#####################################################
 
 
-def create(url: str, event: dict):
+def create(url: str, event: dict) -> botocore.vendored.requests.models.Response:
     """Create event
 
     :param url: str: URL to backend API v2
     :param event: dict: event
-    :return: requests.models.Response
+    :return: botocore.vendored.requests.models.Response
     """
     headers = {'Content-Type': 'application/json'}
     response = requests.post(url=url, json=event, headers=headers)
     return response
 
 
-def delete(url: str, user_id: str, date: str):
+def delete(url: str, user_id: str, date: str) -> botocore.vendored.requests.models.Response:
     """Delete event for user
 
     :param url: URL to backend API v2
     :param date: Date to delete as a string (2019-01-01)
-    :return: requests.models.Response
+    :return: botocore.vendored.requests.models.Response
     """
     # TODO:
     #  Implement security: api should demand token in header
@@ -36,7 +38,7 @@ def delete(url: str, user_id: str, date: str):
     return response
 
 
-def read(url: str, user_id: str, date: str):
+def read(url: str, user_id: str, date: str) -> botocore.vendored.requests.models.Response:
     """Get existing timereport for a user
 
     :param url: str: URL to backend API v2
@@ -50,7 +52,7 @@ def read(url: str, user_id: str, date: str):
     return response
 
 
-def lock(url: str, user_id: str, date: str):
+def lock(url: str, user_id: str, date: str) -> botocore.vendored.requests.models.Response:
     """Lock month for user
 
     :param url: str: URL to backend API v2
