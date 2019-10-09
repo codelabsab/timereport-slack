@@ -1,7 +1,7 @@
 .pytest_cache/
 .idea
 .coverage
-__pycache__
+**/__pycache__
 .chalice/config.json
 chalicelib/config.json
 .chalice/deployed/
@@ -9,3 +9,4 @@ chalice_secrets.tar
 .chalice/deployments/
 .chalice/venv/
 .vscode/
+
