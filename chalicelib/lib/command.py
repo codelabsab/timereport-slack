@@ -73,17 +73,22 @@ def ls():
     return NotImplemented
 
 
-def lock(payload):
-    date = payload['text'][0].split()[-1]
+def lock(payload: dict):
+    # store date
+    date: str = payload['text'][0].split()[-1]
+    # check if date is valid
     if parse(date, fuzzy=False):
         # TODO: Use config dict to get backend_url?
-        api.lock(
+        r = api.lock(
             url=os.getenv('backend_url'),
             user_id=payload['user_id'][0],
             date=date
         )
-
-
+        if r.status_code != 200:
+            return f"Could not lock {date}"
+    else:
+        return f"Could not parse {date}"
+    return f"{date} has been locked"
 
 
 def help_menu(url):
