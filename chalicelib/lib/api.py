@@ -18,8 +18,8 @@ def create(url: str, event: dict):
     :return: requests.models.Response
     """
     headers = {'Content-Type': 'application/json'}
-    res = requests.post(url=url, json=event, headers=headers)
-    return res
+    response = requests.post(url=url, json=event, headers=headers)
+    return response
 
 
 def delete(url: str, user_id: str, date: str):
