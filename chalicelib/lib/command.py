@@ -4,6 +4,8 @@ from chalice import Chalice
 
 from chalicelib.lib.slack import slack_payload_extractor, slack_responder
 from chalicelib.lib.security import verify_token
+from chalicelib.lib import api
+from dateutil.parser import parse
 
 
 def command_handler(app: Chalice):
@@ -26,14 +28,13 @@ def command_handler(app: Chalice):
     response_url = payload["response_url"][0]
 
     try:
-        commands = payload["text"][0].split()
-        action = commands[0]
+        action = payload["text"][0].split()[0]
     except KeyError:
         # TODO:
         #  return help_menu()
         return help_menu(payload['user_id'])
     if action == "add":
-        return "Not implemented"
+        return api.create(payload)
         # TODO:  add(commands)
 
     if action == "edit":
@@ -41,7 +42,7 @@ def command_handler(app: Chalice):
         # TODO: return add(commands)
 
     if action == "delete":
-        return "Not implemented"
+        return delete(payload)
         # TODO: delete(commands)
 
     if action == "list":
@@ -49,7 +50,7 @@ def command_handler(app: Chalice):
         # TODO: ls()
 
     if action == "lock":
-        return "Not implemented"
+        lock(payload)
         # TODO: lock(commands)
 
     if action == "help":
@@ -64,7 +65,7 @@ def add():
     return NotImplemented
 
 
-def delete():
+def delete(payload):
     return NotImplemented
 
 
@@ -72,11 +73,20 @@ def ls():
     return NotImplemented
 
 
-def lock():
-    return NotImplemented
+def lock(payload):
+    date = payload['text'][0].split()[-1]
+    if parse(date, fuzzy=False):
+        # TODO: Use config dict to get backend_url?
+        api.lock(
+            url=os.getenv('backend_url'),
+            user_id=payload['user_id'][0],
+            date=date
+        )
 
 
-def help_menu(url, msg):
+
+
+def help_menu(url):
     msg = """
         Perform action.
 
@@ -90,6 +100,3 @@ def help_menu(url, msg):
         """
     slack_responder(url=url, msg=msg)
     return ""
-
-
-
