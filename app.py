@@ -6,9 +6,8 @@ import logging
 from chalicelib.lib.factory import factory, json_factory
 from chalicelib.lib.add import post_event
 from chalicelib.lib.delete import delete_event
-from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
-                                  slack_client_responder, submit_message_menu,
-                                  delete_message_menu, verify_token)
+from chalicelib.lib.slack import (slack_payload_extractor, submit_message_menu,
+                                  delete_message_menu, verify_token, Slack)
 
 from chalicelib.lib.helpers import parse_config
 from chalicelib.action import Action
@@ -25,15 +24,16 @@ config['backend_url'] = os.getenv('backend_url')
 config['bot_access_token'] = os.getenv('bot_access_token')
 config['signing_secret'] = os.getenv('signing_secret')
 logger.setLevel(config['log_level'])
+slack = Slack(slack_token=config["bot_access_token"])
 
 @app.route('/interactive', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
 def interactive():
     req = app.current_request.raw_body.decode()
     payload = slack_payload_extractor(req)
-    # interactive session
     selection = payload.get('actions')[0].get('value')
     logger.info(f"Selection is: {selection}")
-    response_url = payload['response_url']
+    slack_response_message = "Action canceled :x:"
+    user_id = None
 
     if selection == "submit_yes":
         user_id = payload['user']['id']
@@ -46,13 +46,18 @@ def interactive():
                 logger.debug(
                     f"Error from backend: status code: {delete_by_date.status_code}. Response text: {delete_by_date.text}"
                 )
-                slack_responder(url=response_url, msg=f'Got unexpected response from backend')
+                slack_response_message = 'Got unexpected response from backend'
             else:
-                slack_responder(url=response_url, msg=f'successfully deleted entry: {date}')
+                slack_response_message = f'successfully deleted entry: {date}'
+
+            slack.client.chat_postMessage(
+                channel=user_id,
+                text=slack_response_message,
+            )
             return ''
 
         if payload.get('callback_id') == 'add':
-            msg = 'Added successfully'
+            slack_response_message = 'Added successfully :white_check_mark:'
             events = json_factory(payload)
             failed_events = list()
             for event in events:
@@ -65,15 +70,16 @@ def interactive():
 
             if failed_events:
                 logger.debug(f"Got {len(failed_events)} events")
-                msg = (
+                slack_response_message = (
                     f"Successfully added {len(events) - len(failed_events)} events.\n"
                     f"These however failed: ```{failed_events} ```"
                 )
-            slack_responder(url=response_url, msg=msg)
-            return ''
-    else:
-        slack_responder(url=response_url, msg="Action canceled")
-        return ''
+    
+    slack.client.chat_postMessage(
+        channel=user_id,
+        text=slack_response_message,
+    )
+    return ''
 
 
 @app.route('/command', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
