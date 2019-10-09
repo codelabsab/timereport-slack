@@ -19,31 +19,28 @@ def command_handler(app: Chalice):
     request = app.current_request.raw_body.decode()
 
     # verify validity of request
-    secret = os.getenv('signing_secret')
+    secret: str = os.getenv('signing_secret')
     if not verify_token(headers, request, secret):
         return 'Slack signing secret not valid'
 
     # extract slack payload from request and store some vars
-    payload = slack_payload_extractor(request)
-    response_url = payload["response_url"][0]
+    payload: dict = slack_payload_extractor(request)
+    # TODO: response_url = payload["response_url"][0] ???
 
     try:
-        action = payload["text"][0].split()[0]
+        action: str = payload["text"][0].split()[0]
     except KeyError:
-        # TODO:
-        #  return help_menu()
         return help_menu(payload['user_id'])
+
     if action == "add":
-        return api.create(payload)
-        # TODO:  add(commands)
+        return add(payload)
 
     if action == "edit":
         return "Not implemented"
-        # TODO: return add(commands)
+        # TODO: Should this even exist?
 
     if action == "delete":
         return delete(payload)
-        # TODO: delete(commands)
 
     if action == "list":
         return "Not implemented"
@@ -51,25 +48,34 @@ def command_handler(app: Chalice):
 
     if action == "lock":
         lock(payload)
-        # TODO: lock(commands)
 
     if action == "help":
         help_menu(payload['user_id'])
 
 
-def add():
+def add(payload: dict):
     """
-    Evaluate
     :return:
     """
     return NotImplemented
 
 
-def delete(payload):
-    return NotImplemented
+def delete(payload: dict):
+    date: str = payload['text'][0].split()[-1]
+    if parse(date, fuzzy=False):
+        r = api.delete(
+            url=os.getenv('backend_url'),
+            date=date,
+            user_id=payload['user_id'][0],
+        )
+        if r.status_code != 200:
+            return f"Could not lock {date}"
+    else:
+        return f"Could not parse {date}"
+    return f"{date} has been deleted"
 
 
-def ls():
+def ls(payload: dict):
     return NotImplemented
 
 
@@ -91,7 +97,7 @@ def lock(payload: dict):
     return f"{date} has been locked"
 
 
-def help_menu(url):
+def help_menu(url: str):
     msg = """
         Perform action.
 
