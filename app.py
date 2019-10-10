@@ -31,15 +31,12 @@ def interactive():
     req = app.current_request.raw_body.decode()
     payload = slack_payload_extractor(req)
     selection = payload.get('actions')[0].get('value')
-    slack_timestamp = payload['original_message']['ts']
-    user_id = payload['user']['id']
-
     logger.info(f"Selection is: {selection}")
-    logger.debug(f"User id is: {user_id}")
-    logger.debug(f"Slack message timestamp is: {slack_timestamp}")
     slack_response_message = "Action canceled :x:"
+    user_id = None
 
     if selection == "submit_yes":
+        user_id = payload['user']['id']
         if payload.get('callback_id') == 'delete':
             message = payload['original_message']['attachments'][0]['fields']
             date = message[1]['value']
@@ -53,10 +50,9 @@ def interactive():
             else:
                 slack_response_message = f'successfully deleted entry: {date}'
 
-            slack.client.chat_update(
+            slack.client.chat_postMessage(
                 channel=user_id,
                 text=slack_response_message,
-                ts=slack_timestamp,
             )
             return ''
 
@@ -79,10 +75,9 @@ def interactive():
                     f"These however failed: ```{failed_events} ```"
                 )
     
-    slack.client.chat_update(
+    slack.client.chat_postMessage(
         channel=user_id,
         text=slack_response_message,
-        ts=slack_timestamp,
     )
     return ''
 
