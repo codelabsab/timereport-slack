@@ -13,8 +13,8 @@ pytest = "*"
 mockito = "*"
 pytest-cov = "*"
 pylint = "*"
-black = "*"
 ptpython = "*"
+slackclient = "*"
 
 [requires]
 python_version = "3.6"
