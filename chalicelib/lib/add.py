@@ -3,6 +3,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 def post_event(url, data):
     """
     Add event
