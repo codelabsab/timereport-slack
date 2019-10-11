@@ -2,6 +2,7 @@ import os
 
 from chalice import Chalice
 
+from app import TOKEN, SECRET, REASONS, API_URL
 from chalicelib.lib.slack import slack_payload_extractor, slack_responder
 from chalicelib.lib.security import verify_token
 from chalicelib.lib import api
@@ -19,50 +20,49 @@ def command_handler(app: Chalice):
     request = app.current_request.raw_body.decode()
 
     # verify validity of request
-    secret: str = os.getenv('signing_secret')
-    if not verify_token(headers, request, secret):
+    if not verify_token(headers, request, SECRET):
         return 'Slack signing secret not valid'
 
-    # extract slack payload from request and store some vars
+    # extract payload from request
     payload: dict = slack_payload_extractor(request)
-    # TODO: response_url = payload["response_url"][0] ???
 
     try:
-        action: str = payload["text"][0].split()[0]
+        cmd: list = payload["text"][0].split()
+        user_id = payload["user_id"][0]
+        action: str = cmd[0]
     except KeyError:
-        return help_menu(payload['user_id'])
+        return help_menu(url=payload["response_url"][0])
 
     if action == "add":
-        return add(payload)
+        return add(cmd, user_id)
 
-    if action == "edit":
-        return "Not implemented"
-        # TODO: Should this even exist?
+    # TODO: should this exist?
+    # if action == "edit":
+    #     return "Not implemented"
 
     if action == "delete":
-        return delete(payload)
+        return delete(cmd, user_id)
 
     if action == "list":
-        return "Not implemented"
-        # TODO: ls()
+        return ls(cmd, user_id)
 
     if action == "lock":
-        lock(payload)
+        lock(cmd, user_id)
 
     if action == "help":
-        help_menu(payload['user_id'])
+        help_menu(url=payload["response_url"][0])
 
 
-def add(payload: dict):
+def add(cmd: list, user_id: str):
     """Checks if reason and date are valid strings
     If date is range ("2019-12-28:2020-01-03") it will
     test if range is valid
-    :param payload: dict
-        :type command:
-            :param action: str "add"
-            :param reason: str ["vab", "sick", "intern"]
-            :param date: str ["2019-12-28", "today", "today 8", "today 24", "2019-12-28:2020-01-03"]
-            :param hours: str: optional - hours is optional and defaults to 8 if not given
+    :param cmd: list containing:
+        cmd[0] = action: str "add"
+        cmd[1] = reason: str ["vab", "sick", "intern"]
+        cmd[2] = date: str ["2019-12-28", "today", "today 8", "today 24", "2019-12-28:2020-01-03"]
+        cmd[3] = hours: OPTIONAL str: - hours is optional and defaults to 8 if not given
+    :param user_id: str: user_id
 
     Example data of command:
         command = "add vacation 2019-12-28:2020-01-03"
@@ -70,17 +70,13 @@ def add(payload: dict):
         command = "add vab 2019-12-28 4"
     """
 
-    # extract text from slash command
-    commands = payload['text'][0].split()
-
-    # extract date or date range
-
-    if not validate_reason(commands[1]):
+    # validate reason
+    if not validate_reason(cmd[1]):
         return "Not a valid reason"
 
     # validate hours
     try:
-        if not validate_hours(commands[3]):
+        if not validate_hours(cmd[3]):
             return "Not valid hours"
     except IndexError:
         hours = 8
@@ -98,14 +94,14 @@ def add(payload: dict):
         return "fail!"
 
 
-def delete(payload: dict):
+def delete(cmd: list, user_id: str):
     """Extracts user_id and date from payload and calls api.delete()"""
-    date: str = payload['text'][0].split()[-1]
+    date: str = cmd[-1]
     if parse(date, fuzzy=False):
         r = api.delete(
             url=os.getenv('backend_url'),
             date=date,
-            user_id=payload['user_id'][0],
+            user_id=user_id,
         )
         if r.status_code != 200:
             return f"Could not lock {date}"
@@ -114,26 +110,31 @@ def delete(payload: dict):
     return f"{date} has been deleted"
 
 
-def ls(payload: dict):
-    return NotImplemented
+def ls(cmd: list, user_id: str):
+    """Implements api.read() and Retrieves events for a range or defaults to current month"""
 
 
-def lock(payload: dict):
+def lock(cmd: list, user_id: str):
     """Extracts information from payload and calls api.lock()"""
+
     # store date
-    date: str = payload['text'][0].split()[-1]
+    date: str = cmd[-1]
+
     # check if date is valid
     if parse(date, fuzzy=False):
-        # TODO: Use config dict to get backend_url?
+
         r = api.lock(
-            url=os.getenv('backend_url'),
-            user_id=payload['user_id'][0],
+            url=API_URL,
+            user_id=user_id,
             date=date
         )
+
         if r.status_code != 200:
             return f"Could not lock {date}"
+
     else:
         return f"Could not parse {date}"
+
     return f"{date} has been locked"
 
 
@@ -159,13 +160,7 @@ def validate_reason(reason: str) -> bool:
     :param reason: str
     :return: bool
     """
-    list_of_reasons: (
-        "vab",
-        "sick",
-        "intern",
-        "vacation",
-    )
-    if reason in list_of_reasons:
+    if reason in REASONS:
         return True
     else:
         return False
