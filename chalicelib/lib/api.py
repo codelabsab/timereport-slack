@@ -28,6 +28,7 @@ def delete(url: str, user_id: str, date: str) -> botocore.vendored.requests.mode
     """Delete event for user
 
     :param url: URL to backend API v2
+    :param user_id: str: user_id
     :param date: Date to delete as a string (2019-01-01)
     :return: botocore.vendored.requests.models.Response
     """
