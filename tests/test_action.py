@@ -20,6 +20,7 @@ fake_config = dict(
 
 def test_perform_unsupported_action():
     action = Action(fake_payload, fake_config)
+    when(action)._open_conversation().thenReturn()
     when(action).send_response(message="Unsupported action: unsupported").thenReturn("")
     assert action.perform_action() == ""
     unstub()
@@ -28,6 +29,7 @@ def test_perform_unsupported_action():
 def test_perform_edit_action():
     fake_payload["text"] = ["edit fake argument"]
     action = Action(fake_payload, fake_config)
+    when(action)._open_conversation().thenReturn()
     when(action).send_response(message="Edit not implemented yet").thenReturn("")
     assert action.perform_action() == ""
     unstub()
@@ -40,9 +42,10 @@ def test_perform_add_action():
     action.user_id = "fake_userid"
     action.date_start = "2019-01-01"
     action.date_end = "2019-01-01"
+    when(action)._open_conversation().thenReturn()
     when(action).send_response(message="").thenReturn()
     when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/{action.user_id}", 
+        url=f"{fake_config['backend_url']}/event/users/{action.user_id}",
         params={
             "startDate": action.date_start,
             "endDate": action.date_end,
@@ -56,6 +59,7 @@ def test_perform_delete_action():
     fake_payload["text"] = ["delete 2019-01-01"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
+    when(action)._open_conversation().thenReturn()
     when(action).send_response(message="").thenReturn()
     assert action.perform_action() == ""
     unstub()
@@ -65,6 +69,7 @@ def test_perform_help_action():
     fake_payload["text"] = ["help"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
+    when(action)._open_conversation().thenReturn()
     when(action).send_response(message=action.perform_action.__doc__).thenReturn("")
     assert action.perform_action() == ""
     unstub()
@@ -74,6 +79,7 @@ def test_perform_empty_action():
     fake_payload.pop("text", None)
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
+    when(action)._open_conversation().thenReturn()
     when(action).send_response(message=action.perform_action.__doc__).thenReturn("")
     assert action.perform_action() == ""
     assert action.action == "help"
@@ -84,10 +90,10 @@ def test_perform_list_action():
     fake_payload["text"] = ["list"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
-    
+    when(action)._open_conversation().thenReturn()
     when(action).send_response(message="fake list output").thenReturn("")
     when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/fake_userid", 
+        url=f"{fake_config['backend_url']}/event/users/fake_userid",
         params={
             "startDate": datetime.now().strftime("%Y-%m-01"),
             "endDate": datetime.now().strftime("%Y-%m-31"),
@@ -102,8 +108,9 @@ def test_perform_lock_check():
     action.user_id = "fake_user"
     action.date_start = "2019-01-01"
     action.date_end = "2019-01-02"
+    when(action)._open_conversation().thenReturn()
     when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/{action.user_id}", 
+        url=f"{fake_config['backend_url']}/event/users/{action.user_id}",
         params={
             "startDate": action.date_start,
             "endDate": action.date_end,
@@ -117,6 +124,7 @@ def test_perform_lock():
     fake_payload["text"] = ["lock 2019-01"]
     action = Action(fake_payload, fake_config)
     action.user_id = "fake_userid"
+    when(action)._open_conversation().thenReturn()
     when(action).send_response(message='Lock successful! :lock: :+1:').thenReturn()
     when(requests).post(
         url=f"{fake_config['backend_url']}/lock",
