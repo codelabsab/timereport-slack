@@ -41,6 +41,10 @@ def interactive():
         logger.debug("Need to find slack direct message channel ID")
         slack.open_conversation(slack_user_id=user_id)
     
+    if not slack.slack_timestamp:
+        logger.debug("Need to get slack timestamp from payload")
+        slack.slack_timestamp = payload['original_message']['ts']
+
     logger.info(f"Selection is: {selection}")
     logger.debug(f"User id is: {user_id}")
     slack_response_message = "Action canceled :x:"
