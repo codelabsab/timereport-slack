@@ -24,7 +24,7 @@ class Slack:
     def open_conversation(self, slack_user_id):
         """
         Open a direct message channel with user
-        :slack_user_channel: The slack user ID to open channel for
+        :slack_user_id: The slack user ID to open channel for
         """
 
         response = self.client.conversations_open(users=[slack_user_id])
