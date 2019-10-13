@@ -172,7 +172,7 @@ class Action:
 
         slack_client_response = slack_client_responder(
             token=self.bot_access_token,
-            user_id=self.user_id,
+            user_id=self.slack.slack_dm_channel,
             attachment=attachment,
         )
 
