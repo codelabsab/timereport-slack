@@ -36,6 +36,10 @@ def interactive():
     if not slack.is_conversation_open:
         logger.debug("Need to open slack conversation")
         slack.open_conversation(slack_user_id=user_id)
+
+    if not slack.slack_dm_channel:
+        logger.debug("Need to find slack direct message channel ID")
+        slack.open_conversation(slack_user_id=user_id)
     
     logger.info(f"Selection is: {selection}")
     logger.debug(f"User id is: {user_id}")

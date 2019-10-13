@@ -159,6 +159,10 @@ class Action:
             log.debug("Need to open slack conversation")
             self.slack.open_conversation(slack_user_id=self.user_id)
 
+        if not self.slack.slack_dm_channel:
+            log.debug("Need to find slack direct message channel ID")
+            self.slack.open_conversation(slack_user_id=self.user_id)
+
         self.slack.send_message(message=message)
 
         return ""
