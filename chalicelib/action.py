@@ -153,13 +153,16 @@ class Action:
 
         :message: The Message to send
         """
-  
         log.debug("Sending message to slack")
-        self.slack.client.chat_postMessage(
-            channel=self.user_id,
-            text=message,
-        )
+
+        if not self.slack.is_conversation_open:
+            log.debug("Need to open slack conversation")
+            self.slack.open_conversation(slack_user_id=self.user_id)
+
+        self.slack.send_message(message=message)
+
         return ""
+
 
     def send_attachment(self, attachment):
         """
