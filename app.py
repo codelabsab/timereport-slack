@@ -55,7 +55,7 @@ def interactive():
                 )
                 slack_response_message = 'Got unexpected response from backend'
             else:
-                slack_response_message = f'successfully deleted entry: {date}'
+                slack_response_message = f'Successfully deleted entry: {date}'
 
         if payload.get('callback_id') == 'add':
             slack_response_message = 'Added successfully :white_check_mark:'
