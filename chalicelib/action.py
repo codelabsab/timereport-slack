@@ -47,8 +47,6 @@ class Action:
         log.debug(f"Action is: {self.action}")
         self.user_id = self.payload["user_id"][0]
 
-        self._open_conversation()
-
         if self.action == "add":
             return self._add_action()
 
@@ -155,9 +153,13 @@ class Action:
 
         :message: The Message to send
         """
+  
         log.debug("Sending message to slack")
-        return self.slack.send_message(message=message)
-
+        self.slack.client.chat_postMessage(
+            channel=self.user_id,
+            text=message,
+        )
+        return ""
 
     def send_attachment(self, attachment):
         """
@@ -167,9 +169,10 @@ class Action:
 
         slack_client_response = slack_client_responder(
             token=self.bot_access_token,
-            user_id=self.slack.slack_dm_channel,
+            user_id=self.user_id,
             attachment=attachment,
         )
+
 
         if slack_client_response.status_code != 200:
             log.error(
@@ -219,15 +222,3 @@ class Action:
             self.send_response(message=f"Lock failed! :cry:")
             return ""
 
-
-    def _open_conversation(self):
-        """
-        Open a slack direct message channel
-        """
-        if not self.slack.is_conversation_open:
-            log.debug("Need to open slack conversation")
-            return self.slack.open_conversation(slack_user_id=self.user_id)
-
-        if not self.slack.slack_dm_channel:
-            log.debug("Need to find slack direct message channel ID")
-            return self.slack.open_conversation(slack_user_id=self.user_id)

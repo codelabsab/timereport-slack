@@ -16,49 +16,7 @@ class Slack:
     def __init__(self, slack_token):
         self.slack_token = slack_token
         self.client = slack.WebClient(token=slack_token)
-        self.slack_dm_channel = None
-        self.slack_timestamp = None
-        self.is_conversation_open = False
 
-
-    def open_conversation(self, slack_user_id):
-        """
-        Open a direct message channel with user
-        :slack_user_id: The slack user ID to open channel for
-        """
-
-        response = self.client.conversations_open(users=[slack_user_id])
-        self.slack_dm_channel = response['channel']['id']
-        self.is_conversation_open = response.get('already_open')
-        return response
-
-    
-    def send_message(self, message):
-        """
-        Send a slack message
-        :message: The message to send
-        """
-
-        response = self.client.chat_postMessage(
-            channel=self.slack_dm_channel,
-            text=message,
-        )
-        self.slack_timestamp = response['ts']
-        return response
-    
-
-    def update_message(self, message):
-        """
-        Update a slack message
-        :message: The message to send
-        """
-        response = self.client.chat_update(
-            channel=self.slack_dm_channel,
-            text=message,
-            ts=self.slack_timestamp,
-        )
-        return response
-        
 
 def slack_client_responder(token, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
     """
