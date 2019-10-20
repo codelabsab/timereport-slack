@@ -171,7 +171,7 @@ class Action:
 
         """
         # will generate a block object
-        block = create_block_message(message)
+        block = create_block_message(json.loads(message))
 
         slack_client_response = slack_client_block_responder(
             token=self.bot_access_token,
