@@ -85,7 +85,7 @@ def test_perform_list_action():
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
     
-    when(action).send_response(message="fake list output").thenReturn("")
+    when(action).send_block(message="fake list output").thenReturn("")
     when(requests).get(
         url=f"{fake_config['backend_url']}/event/users/fake_userid", 
         params={
