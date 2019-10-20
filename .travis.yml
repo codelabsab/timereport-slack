@@ -18,7 +18,7 @@ before_install:
 stages:
 - name: Run tests
 - name: Deploy to dev
-  if: type = push AND branch = master
+  if: type = push AND branch != master
 - name: Deploy to prod
 jobs:
   include:
