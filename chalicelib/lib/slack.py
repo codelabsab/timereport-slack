@@ -39,6 +39,28 @@ def slack_client_responder(token, user_id, attachment, url='https://slack.com/ap
     )
 
 
+def slack_client_block_responder(token, user_id, block, url='https://slack.com/api/chat.postMessage'):
+    """
+    Sends an direct message to a user.
+    https://slack.com/api/chat.postMessage
+
+    :param token: slack token
+    :param user_id: The user id
+    :param blocks: The slack attachment (A JSON-based array of structured blocks, presented as a URL-encoded string)
+    :param url: The slack URL
+    :return: request response object
+    """
+
+    log.debug(f"Will try to post direct message to user {user_id}")
+    log.debug(f"block generated looks like this {block}")
+    headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
+    return requests.post(
+        url=url,
+        json={'channel': user_id, 'text': 'From timereport', 'blocks': block},
+        headers=headers
+    )
+
+
 def slack_responder(url, msg):
     """
     Sends post to slack_response_url
@@ -270,3 +292,46 @@ def delete_message_menu(user_name, date):
         }
     ]
     return attachment
+
+
+def create_block_message(message):
+    """
+
+    :param message: a list of dicts
+    :return: block object list of dicts
+    """
+    # [{"user_id": "U2FGC795G", "hours": "8", "user_name": "kamger", "event_date": "2019-08-30", "reason": "intern_arbete"}]
+
+    start_date = message[0].get('event_date')
+    end_date = message[-1].get('event_date')
+
+    block_header_section = {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": f"Reported time for period *{start_date}:{end_date}*"
+        }
+    }
+
+    block_divider = {
+        "type": "divider"
+    }
+
+    block = [block_header_section, block_divider]
+
+    for entry in message:
+        start_date = entry.get('event_date')
+        reason = entry.get('reason')
+        hours = entry.get('hours')
+
+        block_entry = {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"Date: *{start_date}*\nReason: *{reason}*\nHours: *{hours}*"
+                }
+            }
+        block.append(block_entry)
+        block.append(block_divider)
+
+    return block
