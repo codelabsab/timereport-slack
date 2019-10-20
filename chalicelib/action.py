@@ -5,7 +5,9 @@ from chalicelib.lib.slack import (
     submit_message_menu,
     slack_client_responder,
     delete_message_menu,
+    slack_client_block_responder,
     Slack,
+    create_block_message
 )
 from chalicelib.lib.factory import factory
 from chalicelib.model.event import create_lock
@@ -134,8 +136,7 @@ class Action:
             log.debug(f"List returned nothing. Date string was: {date_str}")
             self.send_response(message=f"Sorry, nothing to list with supplied argument {arguments}")
             return ""
-
-        self.send_response(message=f"{list_data}")
+        self.send_block(message=list_data)
         return ""
 
     def _delete_action(self):
@@ -160,6 +161,34 @@ class Action:
             text=message,
         )
         return ""
+
+    def send_block(self, message):
+        """
+        Send a response to slack using blocks and WEB API
+        :message: The message is a list of dicts
+
+        [{"user_id": "U2FGC795G", "hours": "8", "user_name": "kamger", "event_date": "2019-08-30", "reason": "intern_arbete"}]
+
+        """
+        # will generate a block object
+        block = create_block_message(message)
+
+        slack_client_response = slack_client_block_responder(
+            token=self.bot_access_token,
+            user_id=self.user_id,
+            block=block,
+        )
+
+        if slack_client_response.status_code != 200:
+            log.error(
+                f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
+                The response from slack was: {slack_client_response.text}"""
+            )
+            return "Slack response to user failed"
+        else:
+            log.debug(f"Slack client response was: {slack_client_response.text}")
+        return slack_client_response
+
 
     def send_attachment(self, attachment):
         """
