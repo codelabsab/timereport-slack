@@ -17,7 +17,7 @@ def create_event(url: str, event: dict) -> requests.models.Response:
     :return: requests.models.Response
     """
     url = f"{url}/events"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     response = requests.post(url=url, json=event, headers=headers)
     return response
 
@@ -31,7 +31,7 @@ def read_event(url: str, user_id: str, date: str) -> requests.models.Response:
     :return: requests.models.Response
     """
     url = f"{url}/users/{user_id}/events/{date}"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     response = requests.get(url=url, headers=headers)
     return response
 
@@ -60,8 +60,8 @@ def create_lock(url: str, user_id: str, date: str) -> requests.models.Response:
     :type sent: dict: {"user_id":"foo01","event_date":"2019-02"}
     :return: requests.models.Response
     """
-    url = f'{url}/locks'
-    headers = {'Content-Type': 'application/json'}
+    url = f"{url}/locks"
+    headers = {"Content-Type": "application/json"}
     data = {"user_id": user_id, "event_date": date}
     response = requests.post(url=url, data=data, headers=headers)
     return response
@@ -76,6 +76,6 @@ def read_lock(url: str, user_id: str) -> requests.models.Response:
     :return: requests.models.Response
     """
     url = f"{url}/users/{user_id}/locks"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     response = requests.get(url=url, headers=headers)
     return response
