@@ -1,6 +1,6 @@
 import pytest
 from mockito import when, mock, unstub
-import botocore.vendored.requests.api as requests
+import requests
 from chalicelib.action import Action
 from datetime import datetime
 from . import test_data

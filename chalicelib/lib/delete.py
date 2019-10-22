@@ -1,4 +1,4 @@
-import botocore.vendored.requests.api as requests
+import requests
 import logging
 
 log = logging.getLogger(__name__)

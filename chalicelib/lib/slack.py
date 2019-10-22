@@ -1,5 +1,5 @@
 import os
-import botocore.vendored.requests.api as requests
+import requests
 from urllib.parse import parse_qs
 import logging
 import json
