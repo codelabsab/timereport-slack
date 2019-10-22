@@ -1,7 +1,7 @@
 import os
 from mockito import when, mock, unstub
 from .test_data import fake_request_body
-import botocore.vendored.requests.api as requests
+import requests
 from chalicelib.lib.slack import (
     slack_payload_extractor, verify_token,
     submit_message_menu, delete_message_menu,

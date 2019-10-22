@@ -6,7 +6,7 @@ from chalicelib.lib.add import post_event
 from chalicelib.lib.list import get_list_data
 from chalicelib.model.event import create_lock
 from mockito import when, mock, unstub
-import botocore.vendored.requests.api as requests
+import requests
 from datetime import datetime
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
