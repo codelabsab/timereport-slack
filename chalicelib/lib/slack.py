@@ -27,10 +27,10 @@ class Slack:
         :return: requests.models.Response
         """
         return requests.post(
-           url=f"{self.slack_api}/chat.postMessage",
-        json={'channel': channel, 'text': f'{message}'},
-        headers=self.headers,
-    )
+            url=f"{self.slack_api}/chat.postMessage",
+            json={'channel': channel, 'text': f'{message}'},
+            headers=self.headers,
+        )
 
 
 def slack_client_responder(token, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
