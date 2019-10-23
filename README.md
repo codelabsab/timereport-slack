@@ -8,6 +8,19 @@
 ### Install dependencies
 __Install dev packages__
 
+
+##### Install pre-commit
+
+MacOS:
+
+```
+$ brew install pre-commit
+```
+
+Install git-commit hook
+
+##### Pipenv
+
 with `pipenv`:
 ```
 pipenv shell
@@ -23,7 +36,7 @@ pytest
 ### test coverage
 If you want to include test coverage:
 ```
-pytest --cov=chalicelib 
+pytest --cov=chalicelib
 ```
 ### Packaging secrets for chalice to travis-ci
 ```
@@ -51,7 +64,7 @@ $ git add chalice_secrets.tar.enc .travis.yml
 
 ### to deploy from local environment
 
-Setup awscli with your access_key_id and secret_access_key  
+Setup awscli with your access_key_id and secret_access_key
 Download chalice_secrets.tar from s3
 
 Copy secrets:
@@ -59,8 +72,8 @@ Copy secrets:
 $ aws s3 cp s3://timereport.codelabs.se/chalice_secrets.tar .
 ```
 
-extract contents and replace the files in your timereport directory with these secret files  
-they should never be pushed to github. 
+extract contents and replace the files in your timereport directory with these secret files
+they should never be pushed to github.
 
 Deploy to dev:
 ```
