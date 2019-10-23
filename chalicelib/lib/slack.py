@@ -6,7 +6,6 @@ import json
 import hmac
 import hashlib
 import base64
-import slack
 
 log = logging.getLogger(__name__)
 
