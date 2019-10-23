@@ -46,7 +46,7 @@ def delete_event(url: str, user_id: str, date: str) -> requests.models.Response:
     :param date: Date to delete as a string (2019-01-01)
     :return: requests.models.Response
     """
-    url=f"{url}/users/{user_id}/events/{date}"
+    url = f"{url}/users/{user_id}/events/{date}"
     log.debug(f"url: {url} - user_id: {user_id} - date: {date}")
     response = requests.delete(url=url)
     return response
