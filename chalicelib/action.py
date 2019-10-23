@@ -156,9 +156,9 @@ class Action:
         """
   
         log.debug("Sending message to slack")
-        self.slack.client.chat_postMessage(
+        self.slack.post_message(
             channel=self.user_id,
-            text=message,
+            message=message,
         )
         return ""
 
