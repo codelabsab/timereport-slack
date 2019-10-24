@@ -1,5 +1,4 @@
 ruamel-yaml
 mockito
 botocore
-slackclient
 requests
