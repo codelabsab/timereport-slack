@@ -12,11 +12,10 @@ log = logging.getLogger(__name__)
 
 class Slack:
 
-    slack_api = "https://slack.com/api"
+    slack_api_url = "https://slack.com/api"
 
     def __init__(self, slack_token):
-        self.slack_token = slack_token
-        self.headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {self.slack_token}'}
+        self.headers = {"Content-Type": "application/json; charset=utf-8", "Authorization": f"Bearer {slack_token}"}
 
     
     def post_message(self, message: str, channel: str) -> requests.models.Response:
@@ -27,8 +26,8 @@ class Slack:
         :return: requests.models.Response
         """
         return requests.post(
-            url=f"{self.slack_api}/chat.postMessage",
-            json={'channel': channel, 'text': f'{message}'},
+            url=f"{self.slack_api_url}/chat.postMessage",
+            json={"channel": channel, "text": f"{message}"},
             headers=self.headers,
         )
 
