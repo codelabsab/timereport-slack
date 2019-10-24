@@ -8,6 +8,7 @@ from chalicelib.lib.slack import (
     slack_client_responder, slack_responder, Slack
 )
 
+fake_slack = Slack(slack_token="fake")
 
 
 def test_slack_payload_extractor_command():
@@ -106,3 +107,7 @@ def test_delete_menu():
 
     assert isinstance(test_result_dict, dict)
     assert test_result_dict.get('fields')
+
+
+def test_slack_handle_response_wrong_data_type():
+    assert fake_slack._handle_response("wrong data type") is None

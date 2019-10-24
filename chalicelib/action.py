@@ -156,11 +156,10 @@ class Action:
         """
   
         log.debug("Sending message to slack")
-        response = self.slack.post_message(
+        self.slack.post_message(
             channel=self.user_id,
             message=message,
         )
-        log.debug(f"Response was: {response.text}")
         return ""
 
     def send_block(self, message):
