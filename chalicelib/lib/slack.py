@@ -6,16 +6,30 @@ import json
 import hmac
 import hashlib
 import base64
-import slack
 
 log = logging.getLogger(__name__)
 
 
 class Slack:
 
+    slack_api_url = "https://slack.com/api"
+
     def __init__(self, slack_token):
-        self.slack_token = slack_token
-        self.client = slack.WebClient(token=slack_token)
+        self.headers = {"Content-Type": "application/json; charset=utf-8", "Authorization": f"Bearer {slack_token}"}
+
+    
+    def post_message(self, message: str, channel: str) -> requests.models.Response:
+        """
+        Send slack message to channel. Channel can be a slack user ID to send direct message
+        :param message: The text to send
+        :param channel: The channel to send the message
+        :return: requests.models.Response
+        """
+        return requests.post(
+            url=f"{self.slack_api_url}/chat.postMessage",
+            json={"channel": channel, "text": f"{message}"},
+            headers=self.headers,
+        )
 
 
 def slack_client_responder(token, user_id, attachment, url='https://slack.com/api/chat.postMessage'):

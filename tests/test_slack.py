@@ -76,6 +76,7 @@ def test_slack_responder():
         url='fake', json={'text': 'fake message'}, headers={'Content-Type': 'application/json'}
     ).thenReturn(mock({'status_code': 200}))
     assert slack_responder(url='fake', msg='fake message') == 200
+    unstub()
 
 
 def test_submit_menu():
@@ -105,9 +106,3 @@ def test_delete_menu():
 
     assert isinstance(test_result_dict, dict)
     assert test_result_dict.get('fields')
-
-
-def test_slack_class():
-    test = Slack(slack_token="fake_token")
-    assert test.slack_token
-    assert test.client
