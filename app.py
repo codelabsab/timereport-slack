@@ -8,7 +8,7 @@ from chalicelib.lib.add import post_event
 from chalicelib.lib.delete import delete_event
 from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
                                   slack_client_responder, submit_message_menu,
-                                  delete_message_menu, verify_token)
+                                  delete_message_menu, verify_token, Slack)
 
 from chalicelib.lib.helpers import parse_config
 from chalicelib.action import Action
@@ -34,8 +34,10 @@ def interactive():
     selection = payload.get('actions')[0].get('value')
     logger.info(f"Selection is: {selection}")
     response_url = payload['response_url']
+    slack = Slack(slack_token=config['bot_access_token'])
 
     if selection == "submit_yes":
+        slack.ack_response(response_url=response_url)
         user_id = payload['user']['id']
         if payload.get('callback_id') == 'delete':
             message = payload['original_message']['attachments'][0]['fields']
@@ -72,7 +74,7 @@ def interactive():
             slack_responder(url=response_url, msg=msg)
             return ''
     else:
-        slack_responder(url=response_url, msg="Action canceled")
+        slack_responder(url=response_url, msg="Action canceled :cry:")
         return ''
 
 
