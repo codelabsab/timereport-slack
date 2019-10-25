@@ -110,4 +110,4 @@ def test_delete_menu():
 
 
 def test_slack_handle_response_wrong_data_type():
-    assert fake_slack._handle_response("wrong data type") is None
+    assert fake_slack._handle_response("wrong data type") is not None

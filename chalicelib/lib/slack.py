@@ -34,7 +34,7 @@ class Slack:
         )
 
 
-    def _handle_response(self, response: requests.models.Response) -> None:
+    def _handle_response(self, response: requests.models.Response) -> requests.models.Response:
         """
         Check the response from slack.
         A normal slack response should always be JSON with a key "ok" with value True for the response to be valid
@@ -44,10 +44,10 @@ class Slack:
             validated_response = response.json()
             if not validated_response.get('ok'):
                 log.critical(f"Slack responded with not ok. Message was: {validated_response}")
-        except AttributeError as error:
+        except (AttributeError, ValueError) as error:
             log.critical(f"Unable get valid json from response. Error was: {error}", exc_info=True)
         
-        return None
+        return response
             
 
 def slack_client_responder(token, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
