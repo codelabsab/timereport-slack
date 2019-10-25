@@ -48,7 +48,23 @@ class Slack:
             log.critical(f"Unable get valid json from response. Error was: {error}", exc_info=True)
         
         return response
-            
+
+
+    def ack_response(self, response_url):
+        """
+        Send acknowledge response.
+        This is required by slack for interactive messages.
+        See https://api.slack.com/messaging/interactivity#responding_to_interactions
+        """
+        log.debug(f"Sending ack message to slack response URL: {response_url}")
+        return self._handle_response(
+            requests.post(
+                url=response_url,
+                headers={"Content-Type": "application/json"},
+                json={"text": "OK, hang on when I do this!"}
+            )
+        )
+
 
 def slack_client_responder(token, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
     """
