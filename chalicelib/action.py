@@ -158,14 +158,21 @@ class Action:
         except IndexError:
             log.debug(f"Didn't get any params. Setting date to {date}")
 
-        event_to_edit = self._get_events(date_str=date)
-        log.debug(f"Event to edit is: {event_to_edit}")
+        event_to_edit = None
+        try:
+            json.loads(self._get_events(date_str=date))
+        except json.decoder.JSONDecodeError as error:
+            log.error(f"Unable to decode JSON. Error was: {error}")
+            self.send_response(message=f"Something went wrong fetching event to edit. :cry:")
+            return ""
         
-        if event_to_edit == '[]':
+        log.debug(f"Event to edit is: {event_to_edit}")
+        if not event_to_edit:
             self.send_response(message=f"No event for date {date} to edit. :shrug:")
-        else:
-            self.send_response(message=f"Found event to edit, but I can't do that yet, sorry. :cry:")
+            return ""
 
+
+        self.send_response(message=f"Found event to edit, but I can't do that yet, sorry. :cry:")
 
         return ""
 
