@@ -160,7 +160,7 @@ class Action:
 
         event_to_edit = None
         try:
-            json.loads(self._get_events(date_str=date))
+            event_to_edit = json.loads(self._get_events(date_str=date))
         except json.decoder.JSONDecodeError as error:
             log.error(f"Unable to decode JSON. Error was: {error}")
             self.send_response(message=f"Something went wrong fetching event to edit. :cry:")
