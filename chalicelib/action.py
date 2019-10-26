@@ -153,7 +153,6 @@ class Action:
         date = datetime.now().strftime("%Y-%m-%d")
 
         try:
-            date = self.params[1]
             if self.params[1] != "today":
                 date = self.params[1]
         except IndexError:
