@@ -26,9 +26,9 @@ def test_perform_unsupported_action():
 
 
 def test_perform_edit_action():
-    fake_payload["text"] = ["edit fake argument"]
+    fake_payload["text"] = ["edit 2019-01-01"]
     action = Action(fake_payload, fake_config)
-    when(action).send_response(message="Edit not implemented yet").thenReturn("")
+    when(action)._get_events(date_str="2019-01-01").thenReturn("")
     assert action.perform_action() == ""
     unstub()
 
