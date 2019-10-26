@@ -37,10 +37,10 @@ class Action:
         Perform action.
 
         Supported actions are:
-        add - Add new post in timereport
-        edit - Not implemented yet
-        delete - Delete post in timereport
-        list - List posts in timereport
+        add - Add one or more events in timereport
+        edit - Edit a single event in timereport
+        delete - Delete event in timereport
+        list - List one or more events in timereport
         lock - Not implemented yet
         help - Provide this helpful output
         """
@@ -145,7 +145,36 @@ class Action:
         return ""
 
     def _edit_action(self):
-        return self.send_response(message="Edit not implemented yet")
+        """
+        Edit event in timereport for user.
+        If no arguments supplied it will try to edit today.
+        """
+        
+        date = datetime.now().strftime("%Y-%m-%d")
+
+        try:
+            if self.params[1] != "today":
+                date = self.params[1]
+        except IndexError:
+            log.debug(f"Didn't get any params. Setting date to {date}")
+
+        event_to_edit = None
+        try:
+            event_to_edit = json.loads(self._get_events(date_str=date))
+        except json.decoder.JSONDecodeError as error:
+            log.error(f"Unable to decode JSON. Error was: {error}")
+            self.send_response(message=f"Something went wrong fetching event to edit. :cry:")
+            return ""
+        
+        log.debug(f"Event to edit is: {event_to_edit}")
+        if not event_to_edit:
+            self.send_response(message=f"No event for date {date} to edit. :shrug:")
+            return ""
+
+
+        self.send_response(message=f"Found event to edit, but I can't do that yet, sorry. :cry:")
+
+        return ""
 
 
     def send_response(self, message):
