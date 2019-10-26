@@ -25,10 +25,11 @@ def test_perform_unsupported_action():
     unstub()
 
 
-def test_perform_edit_action():
+def test_perform_empty_edit_action():
     fake_payload["text"] = ["edit 2019-01-01"]
     action = Action(fake_payload, fake_config)
-    when(action)._get_events(date_str="2019-01-01").thenReturn("")
+    when(action).send_response(message="No event for date 2019-01-01 to edit. :shrug:").thenReturn()
+    when(action)._get_events(date_str="2019-01-01").thenReturn('[]')
     assert action.perform_action() == ""
     unstub()
 
