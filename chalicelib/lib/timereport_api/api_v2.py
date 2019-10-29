@@ -19,12 +19,14 @@ def create(url: str, event: dict) -> botocore.vendored.requests.models.Response:
     :param event: dict: event
     :return: botocore.vendored.requests.models.Response
     """
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     response = requests.post(url=url, json=event, headers=headers)
     return response
 
 
-def delete(url: str, user_id: str, date: str) -> botocore.vendored.requests.models.Response:
+def delete(
+    url: str, user_id: str, date: str
+) -> botocore.vendored.requests.models.Response:
     """Delete event for user
 
     :param url: URL to backend API v2
@@ -39,7 +41,9 @@ def delete(url: str, user_id: str, date: str) -> botocore.vendored.requests.mode
     return response
 
 
-def read(url: str, user_id: str, date: str) -> botocore.vendored.requests.models.Response:
+def read(
+    url: str, user_id: str, date: str
+) -> botocore.vendored.requests.models.Response:
     """Get existing timereport for a user
 
     :param url: str: URL to backend API v2
@@ -48,12 +52,14 @@ def read(url: str, user_id: str, date: str) -> botocore.vendored.requests.models
     :return: requests.models.Response
     """
     url = f"{url}/users/{user_id}/events/{date}"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     response = requests.get(url=url, headers=headers)
     return response
 
 
-def lock(url: str, user_id: str, date: str) -> botocore.vendored.requests.models.Response:
+def lock(
+    url: str, user_id: str, date: str
+) -> botocore.vendored.requests.models.Response:
     """Lock month for user
 
     :param url: str: URL to backend API v2
@@ -62,8 +68,8 @@ def lock(url: str, user_id: str, date: str) -> botocore.vendored.requests.models
     :type sent: dict: {"user_id":"foo01","event_date":"2019-02"}
     :return: requests.models.Response
     """
-    url = f'{url}/locks'
-    headers = {'Content-Type': 'application/json'}
+    url = f"{url}/locks"
+    headers = {"Content-Type": "application/json"}
     data = {"user_id": user_id, "event_date": date}
     response = requests.post(url=url, data=data, headers=headers)
     return response
