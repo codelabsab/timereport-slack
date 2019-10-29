@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from chalicelib.lib.timereport_api import api_v2 as api
 from chalicelib.lib.interactive.helpers import date_range
+=======
+from chalicelib.lib import api
+from chalicelib.lib.helpers import date_range
+>>>>>>> chore: move interactive and api into packages
 from datetime import datetime
 
 
