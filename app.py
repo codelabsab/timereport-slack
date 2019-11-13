@@ -57,7 +57,7 @@ def interactive():
 
             if payload.get('callback_id') == 'add':
                 msg = 'Added successfully'
-                events = json_factory(payload)
+                events = factoy(payload)
                 failed_events = list()
                 for event in events:
                     response = post_event(f"{config['backend_url']}/event/users/{user_id}", json.dumps(event))
