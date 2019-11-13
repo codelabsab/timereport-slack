@@ -16,6 +16,7 @@ fake_payload = dict(
 fake_config = dict(
     bot_access_token="fake token", backend_url="http://fakebackend.nowhere",
     valid_reasons=["vab"],
+    format_str="%Y-%m-%d"
 )
 
 
