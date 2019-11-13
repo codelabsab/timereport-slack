@@ -17,7 +17,7 @@ class Slack:
     def __init__(self, slack_token):
         self.headers = {"Content-Type": "application/json; charset=utf-8", "Authorization": f"Bearer {slack_token}"}
 
-    
+
     def post_message(self, message: str, channel: str) -> requests.models.Response:
         """
         Send slack message to channel. Channel can be a slack user ID to send direct message
@@ -46,7 +46,7 @@ class Slack:
                 log.critical(f"Slack responded with not ok. Message was: {validated_response}")
         except (AttributeError, ValueError) as error:
             log.critical(f"Unable get valid json from response. Error was: {error}", exc_info=True)
-        
+
         return response
 
 
@@ -246,7 +246,7 @@ def verify_token(headers, body, signing_secret):
         return False
 
 
-def submit_message_menu(user_name, reason, date_start, date_end, hours):
+def submit_message_menu(user_name, reason, date, hours):
     attachment = [
         {
             "fields": [
@@ -260,14 +260,9 @@ def submit_message_menu(user_name, reason, date_start, date_end, hours):
                     "value": reason
                 },
                 {
-                    "title": "Date start",
-                    "value": date_start
+                    "title": "Date",
+                    "value": date
                 },
-                {
-                    "title": "Date end",
-                    "value": date_end
-                },
-
                 {
                     "title": "Hours",
                     "value": hours

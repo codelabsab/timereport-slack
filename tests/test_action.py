@@ -11,10 +11,12 @@ fake_payload = dict(
     text=["unsupported args"],
     response_url=["http://fakeurl.nowhere"],
     user_id=["fake_userid"],
+    user_name=["fake_username"]
 )
 fake_config = dict(
     bot_access_token="fake token", backend_url="http://fakebackend.nowhere",
     valid_reasons=["vab"],
+    format_str="%Y-%m-%d"
 )
 
 
@@ -43,7 +45,7 @@ def test_perform_add_action():
     action.date_end = "2019-01-01"
     when(action).send_response(message="").thenReturn()
     when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/{action.user_id}", 
+        url=f"{fake_config['backend_url']}/event/users/{action.user_id}",
         params={
             "startDate": action.date_start,
             "endDate": action.date_end,
@@ -85,10 +87,10 @@ def test_perform_list_action():
     fake_payload["text"] = ["list"]
     fake_payload["user_name"] = "fake_username"
     action = Action(fake_payload, fake_config)
-    
+
     when(action).send_block(message="fake list output").thenReturn("")
     when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/fake_userid", 
+        url=f"{fake_config['backend_url']}/event/users/fake_userid",
         params={
             "startDate": datetime.now().strftime("%Y-%m-01"),
             "endDate": datetime.now().strftime("%Y-%m-31"),
@@ -104,7 +106,7 @@ def test_perform_lock_check():
     action.date_start = "2019-01-01"
     action.date_end = "2019-01-02"
     when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/{action.user_id}", 
+        url=f"{fake_config['backend_url']}/event/users/{action.user_id}",
         params={
             "startDate": action.date_start,
             "endDate": action.date_end,

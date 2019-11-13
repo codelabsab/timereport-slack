@@ -1,9 +1,11 @@
 from ruamel.yaml import YAML
+from datetime import timedelta, datetime
 
-yaml=YAML(typ='safe')
+yaml = YAML(typ="safe")
 
 
-def parse_config(path='config.yaml'):
+
+def parse_config(path="config.yaml"):
     """
     Parse config written in yaml
     :param path: the path to the config file. config.yaml is default
@@ -13,3 +15,27 @@ def parse_config(path='config.yaml'):
         config = yaml.load(fd)
 
     return config
+
+
+def date_range(start_date, stop_date):
+    delta = timedelta(days=1)
+    while start_date <= stop_date:
+        yield start_date
+        start_date += delta
+
+
+def validate_date(date, format_str) -> bool:
+
+    try:
+        if ":" in date:
+            start, stop = date.split(":")
+            datetime.strptime(start, format_str)
+            datetime.strptime(stop, format_str)
+            if start > stop:
+                return False
+        else:
+            datetime.strptime(date, format_str)
+    except TypeError:
+        return False
+
+    return True

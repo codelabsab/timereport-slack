@@ -84,8 +84,7 @@ def test_submit_menu():
     test_result = submit_message_menu(
         user_name='fake user',
         reason='fake reason',
-        date_start='2018-01-01',
-        date_end='2018-02-01',
+        date='2018-02-01:2019-02-01',
         hours='8',
     )
 
