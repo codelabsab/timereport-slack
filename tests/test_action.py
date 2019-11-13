@@ -11,12 +11,13 @@ fake_payload = dict(
     text=["unsupported args"],
     response_url=["http://fakeurl.nowhere"],
     user_id=["fake_userid"],
-    user_name=["fake_username"]
+    user_name=["fake_username"],
 )
 fake_config = dict(
-    bot_access_token="fake token", backend_url="http://fakebackend.nowhere",
+    bot_access_token="fake token",
+    backend_url="http://fakebackend.nowhere",
     valid_reasons=["vab"],
-    format_str="%Y-%m-%d"
+    format_str="%Y-%m-%d",
 )
 
 
@@ -30,8 +31,10 @@ def test_perform_unsupported_action():
 def test_perform_empty_edit_action():
     fake_payload["text"] = ["edit 2019-01-01"]
     action = Action(fake_payload, fake_config)
-    when(action).send_response(message="No event for date 2019-01-01 to edit. :shrug:").thenReturn()
-    when(action)._get_events(date_str="2019-01-01").thenReturn('[]')
+    when(action).send_response(
+        message="No event for date 2019-01-01 to edit. :shrug:"
+    ).thenReturn()
+    when(action)._get_events(date_str="2019-01-01").thenReturn("[]")
     assert action.perform_action() == ""
     unstub()
 
@@ -46,20 +49,8 @@ def test_perform_add_action():
     when(action).send_response(message="").thenReturn()
     when(requests).get(
         url=f"{fake_config['backend_url']}/event/users/{action.user_id}",
-        params={
-            "startDate": action.date_start,
-            "endDate": action.date_end,
-        }
+        params={"startDate": action.date_start, "endDate": action.date_end},
     ).thenReturn(mock({"status_code": 200, "text": '[{"lock": false}]'}))
-    assert action.perform_action() == ""
-    unstub()
-
-
-def test_perform_delete_action():
-    fake_payload["text"] = ["delete 2019-01-01"]
-    fake_payload["user_name"] = "fake_username"
-    action = Action(fake_payload, fake_config)
-    when(action).send_response(message="").thenReturn()
     assert action.perform_action() == ""
     unstub()
 
@@ -94,37 +85,21 @@ def test_perform_list_action():
         params={
             "startDate": datetime.now().strftime("%Y-%m-01"),
             "endDate": datetime.now().strftime("%Y-%m-31"),
-        }
+        },
     ).thenReturn(mock({"status_code": 200, "text": "fake list output"}))
     assert action.perform_action() == ""
     unstub()
 
-def test_perform_lock_check():
-    fake_payload["text"] = ["fake"]
-    action = Action(fake_payload, fake_config)
-    action.user_id = "fake_user"
-    action.date_start = "2019-01-01"
-    action.date_end = "2019-01-02"
-    when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/{action.user_id}",
-        params={
-            "startDate": action.date_start,
-            "endDate": action.date_end,
-        }
-    ).thenReturn(mock({"status_code": 200, "text":'[{"lock":false}]'}))
-    test = action.check_lock_state()
-    assert test is False
-    unstub()
 
 def test_perform_lock():
     fake_payload["text"] = ["lock 2019-01"]
     action = Action(fake_payload, fake_config)
     action.user_id = "fake_userid"
-    when(action).send_response(message='Lock successful! :lock: :+1:').thenReturn()
+    when(action).send_response(message="Lock successful! :lock: :+1:").thenReturn()
     when(requests).post(
         url=f"{fake_config['backend_url']}/lock",
-        data=json.dumps({'user_id': 'fake_userid', 'event_date': '2019-01'}),
-        headers={'Content-Type': 'application/json'},
+        data=json.dumps({"user_id": "fake_userid", "event_date": "2019-01"}),
+        headers={"Content-Type": "application/json"},
     ).thenReturn(mock({"status_code": 200}))
     assert action.perform_action() == ""
     unstub()

@@ -1,6 +1,7 @@
 import logging
 import json
 from chalicelib.lib.list import get_list_data
+from chalicelib.lib.api import read_lock
 from chalicelib.lib.helpers import validate_date
 from chalicelib.lib.slack import (
     submit_message_menu,
@@ -19,7 +20,6 @@ log = logging.getLogger(__name__)
 
 
 class Action:
-
     def __init__(self, payload, config):
         self.payload = payload
 
@@ -33,7 +33,7 @@ class Action:
         self.bot_access_token = config["bot_access_token"]
         self.slack = Slack(slack_token=config["bot_access_token"])
         self.response_url = self.payload["response_url"][0]
-        self.format_str = self.config.get('format_str')
+        self.format_str = self.config.get("format_str")
 
     def perform_action(self):
         """
@@ -106,9 +106,7 @@ class Action:
             self.send_response(message="failed to parse date")
 
         self.send_attachment(
-            attachment=submit_message_menu(
-                self.user_name, reason, date, hours
-            )
+            attachment=submit_message_menu(self.user_name, reason, date, hours)
         )
         return ""
 
@@ -154,10 +152,21 @@ class Action:
         return ""
 
     def _delete_action(self):
+
         date = self.params[1]
-        self.send_attachment(
-            attachment=delete_message_menu(self.payload.get("user_name")[0], date)
+        if not validate_date(date, format_str=self.format_str):
+            self.send_response(message=f"Could not parse date")
+        month = "-".join(date.split("-")[0:2])
+        res = read_lock(
+            url=self.config["backend_url"], user_id=self.user_id, date=month
         )
+
+        if not res.json():
+            self.send_attachment(
+                attachment=delete_message_menu(self.payload.get("user_name")[0], date)
+            )
+        else:
+            self.send_response(message=f"Month {month} is locked :cry:")
         return ""
 
     def _edit_action(self):
@@ -253,21 +262,6 @@ class Action:
 
     def _help_action(self):
         return self.send_response(message=f"{self.perform_action.__doc__}")
-
-    def check_lock_state(self):
-        """
-        Go through events and check if locked
-
-        Return true if any locked events found
-        """
-
-        for event in json.loads(
-            self._get_events(date_str=f"{self.date_start}:{self.date_end}")
-        ):
-            if event.get("lock"):
-                return True
-
-        return False
 
     def _get_events(self, date_str):
         return get_list_data(
