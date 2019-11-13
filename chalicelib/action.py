@@ -100,10 +100,6 @@ class Action:
         if not validate_date(date):
             self.send_response(message="failed to parse date")
 
-        if self.check_lock_state():
-            self.send_response(message="One or more of the events are locked")
-            return ""
-
         self.send_attachment(
             attachment=submit_message_menu(
                 self.user_name, reason, date, hours
