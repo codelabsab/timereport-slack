@@ -75,8 +75,8 @@ def interactive():
                     )
                 slack_responder(url=response_url, msg=msg)
                 return ""
-            else:
-                slack_responder(url=response_url, msg="Action canceled :cry:")
+        else:
+            slack_responder(url=response_url, msg="Action canceled :cry:")
     except Exception:
         logger.critical("Caught unhandled exception.", exc_info=True)
 
