@@ -3,7 +3,7 @@ import os
 import json
 import logging
 
-from chalicelib.lib.factory import factory, json_factory
+from chalicelib.lib.factory import factory
 from chalicelib.lib.add import post_event
 from chalicelib.lib.delete import delete_event
 from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
@@ -24,6 +24,8 @@ config = parse_config(f'{dir_path}/chalicelib/config.yaml')
 config['backend_url'] = os.getenv('backend_url')
 config['bot_access_token'] = os.getenv('bot_access_token')
 config['signing_secret'] = os.getenv('signing_secret')
+config['format_str'] = "%Y-%m-%d"
+
 logger.setLevel(config['log_level'])
 
 @app.route('/interactive', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
@@ -55,7 +57,7 @@ def interactive():
 
             if payload.get('callback_id') == 'add':
                 msg = 'Added successfully'
-                events = json_factory(payload)
+                events = factory(payload, format_str=config.get("format_str"))
                 failed_events = list()
                 for event in events:
                     response = post_event(f"{config['backend_url']}/event/users/{user_id}", json.dumps(event))
@@ -73,11 +75,11 @@ def interactive():
                     )
                 slack_responder(url=response_url, msg=msg)
                 return ""
-            else:
-                slack_responder(url=response_url, msg="Action canceled :cry:")
+        else:
+            slack_responder(url=response_url, msg="Action canceled :cry:")
     except Exception:
         logger.critical("Caught unhandled exception.", exc_info=True)
-    
+
     return ""
 
 @app.route('/command', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
