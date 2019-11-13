@@ -24,6 +24,8 @@ config = parse_config(f'{dir_path}/chalicelib/config.yaml')
 config['backend_url'] = os.getenv('backend_url')
 config['bot_access_token'] = os.getenv('bot_access_token')
 config['signing_secret'] = os.getenv('signing_secret')
+config['format_str'] = "%Y-%m-%d"
+
 logger.setLevel(config['log_level'])
 
 @app.route('/interactive', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
