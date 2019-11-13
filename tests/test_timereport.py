@@ -1,7 +1,7 @@
 import os
 import pytest
 from chalicelib.lib.helpers import parse_config
-from chalicelib.lib.factory import factory, json_factory, date_to_string
+from chalicelib.lib.factory import factory
 from chalicelib.lib.add import post_event
 from chalicelib.lib.list import get_list_data
 from chalicelib.model.event import create_lock
@@ -18,44 +18,6 @@ def test_parsing_config():
     for option in mandatory_options:
         assert isinstance(option, str)
         assert test_config.get(option) is not None
-
-
-@pytest.mark.parametrize(
-    "date_string",
-    ["2018-01-01", "today", "today 8", "today 24", "2019-01-01:2019-02-01"],
-)
-def test_factory(date_string):
-    fake_order = dict(
-        user_id="fake",
-        user_name="fake mcFake",
-        text=[f"fake_cmd=do_fake fake_reason {date_string}"],
-    )
-
-    fake_result = factory(fake_order)
-    assert isinstance(fake_result, list)
-    test_data = fake_result.pop()
-    assert isinstance(test_data.get("event_date"), str)
-    for item in ("user_id", "user_name", "reason"):
-        assert isinstance(test_data[item], str)
-
-    assert int(test_data["hours"]) <= 8
-
-
-def test_wrong_hours_data_type():
-    fake_order = dict(
-        user_id="fake",
-        user_name="fake mcFake",
-        text=[f"fake_cmd=do_fake fake_reason today wrong_hours"],
-    )
-    assert factory(fake_order) is False
-
-
-@pytest.mark.parametrize(
-    "args_list", [["one", "two", "three", "four", "five"], ["one_argument"]]
-)
-def test_wrong_number_of_args_for_add(args_list):
-    fake_order = dict(user_id="fake", user_name="fake mcFake", text=args_list)
-    assert factory(fake_order) is False
 
 
 def test_create_event():
@@ -79,23 +41,8 @@ def test_create_event_failure():
     assert response.status_code != 200
     unstub()
 
-
-def test_json_factory():
-    from .test_data import interactive_message
-
-    fake_result = json_factory(interactive_message)
-    assert isinstance(fake_result, list)
-    for item in ("user_name", "reason", "event_date", "hours"):
-        assert item in fake_result[0]
-
-
-def test_date_to_string():
-    test_data = date_to_string(datetime.now())
-    assert isinstance(test_data, str)
-
-
 def test_get_list_data_default():
-    month = datetime.now().strftime("%Y-%m") 
+    month = datetime.now().strftime("%Y-%m")
     fake_response = "fake list data response"
     when(requests).get(
         url=fake_user_url,
