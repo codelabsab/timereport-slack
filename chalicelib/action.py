@@ -106,7 +106,7 @@ class Action:
 
         self.send_attachment(
             attachment=submit_message_menu(
-                user_name, reason, self.date_start, self.date_end, hours
+                self.user_name, reason, date, hours
             )
         )
         return ""
