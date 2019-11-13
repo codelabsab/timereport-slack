@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 yaml = YAML(typ="safe")
 
 
+
 def parse_config(path="config.yaml"):
     """
     Parse config written in yaml
@@ -23,9 +24,7 @@ def date_range(start_date, stop_date):
         start_date += delta
 
 
-def validate_date(date) -> bool:
-
-    format_str = "%Y-%m-%d"
+def validate_date(date, format_str) -> bool:
 
     try:
         if ":" in date:
