@@ -1,13 +1,14 @@
 import logging
 import json
 from chalicelib.lib.list import get_list_data
+from chalicelib.lib.helpers import validate_date
 from chalicelib.lib.slack import (
     submit_message_menu,
     slack_client_responder,
     delete_message_menu,
     slack_client_block_responder,
     Slack,
-    create_block_message
+    create_block_message,
 )
 from chalicelib.lib.factory import factory
 from chalicelib.model.event import create_lock
@@ -48,6 +49,7 @@ class Action:
         self.action = self.params[0]
         log.debug(f"Action is: {self.action}")
         self.user_id = self.payload["user_id"][0]
+        self.user_name = self.payload["user_name"][0]
 
         if self.action == "add":
             return self._add_action()
@@ -74,31 +76,38 @@ class Action:
         return self.send_response(message=f"Unsupported action: {self.action}")
 
     def _add_action(self):
-        events = factory(self.payload)
-        if not events:
-            return self.send_response(message="Wrong arguments for add command")
 
-        log.info(f"Events is: {events}")
-        user_name = events[0].get("user_name")[0]
-        reason = events[0].get("reason")
+        if len(self.params) < 3 or len(self.params) > 4:
+            log.debug(f"params: {self.params}")
+            return self.send_response(message="Wrong number of args for add command")
 
-        if not reason in self.config.get('valid_reasons'):
+        reason = self.params[1]
+        date = self.params[2]
+        hours = 8
+        if len(self.params) == 4:
+            try:
+                hours = round(float(self.params[3]))
+            except ValueError:
+                return self.send_response(message="Could not parse hours")
+
+        if reason not in self.config.get("valid_reasons"):
             message = f"Reason {reason} is not valid"
             log.debug(message)
             self.send_response(message=message)
             return ""
 
-        self.date_start = events[0].get("event_date")
-        self.date_end = events[-1].get("event_date")
-        hours = events[0].get("hours")
+        # begin validate date range
+        if not validate_date(date):
+            self.send_response(message="failed to parse date")
 
         if self.check_lock_state():
             self.send_response(message="One or more of the events are locked")
             return ""
 
-        self.send_attachment(attachment=submit_message_menu(
-            user_name, reason, 
-            self.date_start, self.date_end, hours)
+        self.send_attachment(
+            attachment=submit_message_menu(
+                user_name, reason, self.date_start, self.date_end, hours
+            )
         )
         return ""
 
@@ -126,22 +135,28 @@ class Action:
             arguments = self.params[1:]
         except Exception as error:
             log.debug(f"got unexpected exception: {error}", exc_info=True)
-            self.send_response(message=f"Got unexpected error with arguments: {arguments}")
+            self.send_response(
+                message=f"Got unexpected error with arguments: {arguments}"
+            )
             return ""
-            
+
         log.debug(f"The date string set to: {date_str}")
         list_data = self._get_events(date_str=date_str)
 
-        if not list_data or list_data == '[]':
+        if not list_data or list_data == "[]":
             log.debug(f"List returned nothing. Date string was: {date_str}")
-            self.send_response(message=f"Sorry, nothing to list with supplied argument {arguments}")
+            self.send_response(
+                message=f"Sorry, nothing to list with supplied argument {arguments}"
+            )
             return ""
         self.send_block(message=list_data)
         return ""
 
     def _delete_action(self):
         date = self.params[1]
-        self.send_attachment(attachment=delete_message_menu(self.payload.get("user_name")[0], date))
+        self.send_attachment(
+            attachment=delete_message_menu(self.payload.get("user_name")[0], date)
+        )
         return ""
 
     def _edit_action(self):
@@ -149,7 +164,7 @@ class Action:
         Edit event in timereport for user.
         If no arguments supplied it will try to edit today.
         """
-        
+
         date = datetime.now().strftime("%Y-%m-%d")
 
         try:
@@ -163,19 +178,21 @@ class Action:
             event_to_edit = json.loads(self._get_events(date_str=date))
         except json.decoder.JSONDecodeError as error:
             log.error(f"Unable to decode JSON. Error was: {error}")
-            self.send_response(message=f"Something went wrong fetching event to edit. :cry:")
+            self.send_response(
+                message=f"Something went wrong fetching event to edit. :cry:"
+            )
             return ""
-        
+
         log.debug(f"Event to edit is: {event_to_edit}")
         if not event_to_edit:
             self.send_response(message=f"No event for date {date} to edit. :shrug:")
             return ""
 
-
-        self.send_response(message=f"Found event to edit, but I can't do that yet, sorry. :cry:")
+        self.send_response(
+            message=f"Found event to edit, but I can't do that yet, sorry. :cry:"
+        )
 
         return ""
-
 
     def send_response(self, message):
         """
@@ -183,12 +200,9 @@ class Action:
 
         :message: The Message to send
         """
-  
+
         log.debug("Sending message to slack")
-        self.slack.post_message(
-            channel=self.user_id,
-            message=message,
-        )
+        self.slack.post_message(channel=self.user_id, message=message)
         return ""
 
     def send_block(self, message):
@@ -203,9 +217,7 @@ class Action:
         block = create_block_message(json.loads(message))
 
         slack_client_response = slack_client_block_responder(
-            token=self.bot_access_token,
-            user_id=self.user_id,
-            block=block,
+            token=self.bot_access_token, user_id=self.user_id, block=block
         )
 
         if slack_client_response.status_code != 200:
@@ -218,7 +230,6 @@ class Action:
             log.debug(f"Slack client response was: {slack_client_response.text}")
         return slack_client_response
 
-
     def send_attachment(self, attachment):
         """
         Send an message to slack using attachment
@@ -226,11 +237,8 @@ class Action:
         """
 
         slack_client_response = slack_client_responder(
-            token=self.bot_access_token,
-            user_id=self.user_id,
-            attachment=attachment,
+            token=self.bot_access_token, user_id=self.user_id, attachment=attachment
         )
-
 
         if slack_client_response.status_code != 200:
             log.error(
@@ -252,26 +260,26 @@ class Action:
         Return true if any locked events found
         """
 
-        for event in json.loads(self._get_events(date_str=f"{self.date_start}:{self.date_end}")):
+        for event in json.loads(
+            self._get_events(date_str=f"{self.date_start}:{self.date_end}")
+        ):
             if event.get("lock"):
                 return True
-        
+
         return False
 
     def _get_events(self, date_str):
         return get_list_data(
-            f"{self.config['backend_url']}",
-            self.user_id,
-            date_str=date_str,
+            f"{self.config['backend_url']}", self.user_id, date_str=date_str
         )
-    
+
     def _lock_action(self):
         """
         /timereport-dev lock 2019-08
         """
         event = create_lock(user_id=self.user_id, event_date=self.params[1])
         log.debug(f"lock event: {event}")
-        response = lock_event(url=self.config['backend_url'], event=json.dumps(event))
+        response = lock_event(url=self.config["backend_url"], event=json.dumps(event))
         log.debug(f"response was: {response.text}")
         if response.status_code == 200:
             self.send_response(message=f"Lock successful! :lock: :+1:")
@@ -279,4 +287,3 @@ class Action:
         else:
             self.send_response(message=f"Lock failed! :cry:")
             return ""
-
