@@ -3,7 +3,7 @@ import os
 import json
 import logging
 
-from chalicelib.lib.factory import factory, json_factory
+from chalicelib.lib.factory import factory
 from chalicelib.lib.add import post_event
 from chalicelib.lib.delete import delete_event
 from chalicelib.lib.slack import (slack_payload_extractor, slack_responder,
@@ -77,7 +77,7 @@ def interactive():
                 slack_responder(url=response_url, msg="Action canceled :cry:")
     except Exception:
         logger.critical("Caught unhandled exception.", exc_info=True)
-    
+
     return ""
 
 @app.route('/command', methods=['POST'], content_types=['application/x-www-form-urlencoded'])
