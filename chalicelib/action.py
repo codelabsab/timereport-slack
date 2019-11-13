@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 
 
 class Action:
+
     def __init__(self, payload, config):
         self.payload = payload
 
@@ -32,6 +33,7 @@ class Action:
         self.bot_access_token = config["bot_access_token"]
         self.slack = Slack(slack_token=config["bot_access_token"])
         self.response_url = self.payload["response_url"][0]
+        self.format_str = self.config.get('format_str')
 
     def perform_action(self):
         """
@@ -97,7 +99,10 @@ class Action:
             return ""
 
         # begin validate date range
-        if not validate_date(date):
+        if date == "today":
+            date = datetime.now().strftime(self.format_str)
+
+        if not validate_date(date, self.format_str):
             self.send_response(message="failed to parse date")
 
         self.send_attachment(
