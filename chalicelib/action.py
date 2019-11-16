@@ -157,9 +157,12 @@ class Action:
         if not date:
             self.send_response(message=f"Could not parse date")
 
-        date_range = get_dates(first_date=date)
+        if len(date.keys()) > 1:
+            self.send_response(message=f"Delete doesn't support date range :cry:")
 
-        if not self._check_locks(dates=date_range):
+        dates = get_dates(first_date=date.values().pop())
+
+        if not self._check_locks(dates=dates):
             self.send_attachment(
                 attachment=delete_message_menu(self.payload.get("user_name")[0], date)
             )
