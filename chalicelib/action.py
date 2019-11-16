@@ -2,7 +2,7 @@ import logging
 import json
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.api import read_lock
-from chalicelib.lib.helpers import parse_date
+from chalicelib.lib.helpers import parse_date, get_dates
 from chalicelib.lib.slack import (
     submit_message_menu,
     slack_client_responder,
@@ -152,19 +152,19 @@ class Action:
     def _delete_action(self):
 
         date = self.params[1]
-        if not validate_date(date, format_str=self.format_str):
-            self.send_response(message=f"Could not parse date")
-        month = "-".join(date.split("-")[0:2])
-        res = read_lock(
-            url=self.config["backend_url"], user_id=self.user_id, date=month
-        )
+        date = parse_date(date, format_str=self.format_str)
 
-        if not res.json():
+        if not date:
+            self.send_response(message=f"Could not parse date")
+
+        date_range = get_dates(first_date=date)
+
+        if not self._check_locks(dates=date_range):
             self.send_attachment(
                 attachment=delete_message_menu(self.payload.get("user_name")[0], date)
             )
         else:
-            self.send_response(message=f"Month {month} is locked :cry:")
+            self.send_response(message=f"Unable to delete since month is locked :cry:")
         return ""
 
     def _edit_action(self):
@@ -280,3 +280,18 @@ class Action:
         else:
             self.send_response(message=f"Lock failed! :cry:")
             return ""
+
+
+    def _check_locks(self, dates: list) -> bool:
+        """
+        Go through the list of dates and check if locked
+        """
+        is_locked = False
+        for date in dates:
+            respone = read_lock(
+                url=self.config["backend_url"], user_id=self.user_id, date=date
+            )
+            if respone.json():
+                is_locked = True
+
+        return is_locked
