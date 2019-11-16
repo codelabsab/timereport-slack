@@ -41,7 +41,7 @@ def validate_date(date, format_str) -> bool:
     return True
 
 
-def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
+def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
     """
     Parse the date from a string.
     Expects these formats:
@@ -50,19 +50,21 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
     "2019-01-01:2019-01-02"
     """
 
-    date_list = list()
+    dates = dict()
     if date == "today":
-        date_list.append(datetime.now())
-        return date_list
+        dates["today"] = datetime.now()
 
     if ":" in date:
         first_date, second_date = date.split(":")
 
         if validate_date(first_date, format_str=format_str) and validate_date(second_date, format_str=format_str):
-            date_list.append(datetime.strptime(first_date, format_str))
-            date_list.append(datetime.strptime(second_date, format_str))
+            if first_date > second_date:
+                log.error(f"First date {first_date} needs to be greater than second date {second_date}")
+                return dates
+            dates[f"{first_date}"] = datetime.strptime(first_date, format_str)
+            dates[f"{second_date}"] = datetime.strptime(second_date, format_str)
     else:
         if validate_date(date, format_str=format_str):
-            date_list.append(datetime.strptime(date, format_str))
+            dates[f"{date}"] = datetime.strptime(date, format_str)
 
-    return date_list
+    return dates
