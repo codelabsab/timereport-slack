@@ -34,7 +34,8 @@ def validate_date(date, format_str) -> bool:
 
     try:
         datetime.strptime(date, format_str)
-    except TypeError:
+    except (TypeError, ValueError) as error:
+        log.error(f"Unable to validate date {date}. Error was: {error}")
         return False
 
     return True
@@ -61,10 +62,7 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
             date_list.append(datetime.strptime(first_date, format_str))
             date_list.append(datetime.strptime(second_date, format_str))
     else:
-        try:
-            if validate_date(date, format_str=format_str):
-                date_list.append(datetime.strptime(date, format_str))
-        except ValueError as error:
-            log.warning(f"Unable to get date from {date}. Error was: {error}")
+        if validate_date(date, format_str=format_str):
+            date_list.append(datetime.strptime(date, format_str))
 
     return date_list
