@@ -68,3 +68,24 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
             dates[f"{date}"] = datetime.strptime(date, format_str)
 
     return dates
+
+
+def get_dates(first_date: datetime, second_date: datetime = None, format_str: str = "%Y-%m") -> list:
+    """
+    Get all dates between two dates that matches the date format string.
+    """
+
+    dates = list()
+
+    if not second_date:
+        dates.append(first_date.strftime('%Y-%m'))
+        return dates
+
+    delta = second_date - first_date
+
+    for delta in range(delta.days + 1):
+        date = first_date + timedelta(days=delta)
+        if date.strftime('%Y-%m') not in dates:
+            dates.append(date.strftime('%Y-%m'))
+
+    return dates
