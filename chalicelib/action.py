@@ -105,9 +105,15 @@ class Action:
             self.send_response(message="failed to parse date {date}")
 
         date_list = list(date.values())
+        first_date = date_list[0]
+        # second date is optional
+        second_date = None
+        if len(date_list) > 1:
+            second_date = date_list[1]
+
         dates_to_check = get_dates(
-            first_date=date_list[0],
-            second_date=date_list[1],
+            first_date=first_date,
+            second_date=second_date,
         )
 
         if not dates_to_check:
