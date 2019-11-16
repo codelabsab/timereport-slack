@@ -1,10 +1,10 @@
-from chalicelib.lib.helpers import parse_date
+from chalicelib.lib.helpers import parse_date, get_dates
 from datetime import datetime
 import pytest
 
+format_str = '%Y-%m-%d'
 
 def test_parse_date_today():
-    format_str = '%Y-%m-%d'
     today = datetime.now().strftime(format_str)
 
     today_test_dict = parse_date(date="today", format_str=format_str)
@@ -51,3 +51,19 @@ def test_parse_invalid_multiple_dates():
     test_dates = parse_date(date=multiple_dates)
     assert isinstance(test_dates, dict)
     assert not test_dates
+
+
+def test_get_dates_in_range():
+    first_date = datetime.strptime("2019-01-01", format_str)
+    second_date = datetime.strptime("2019-02-01", format_str)
+    test_date_range = get_dates(first_date=first_date, second_date=second_date)
+    assert isinstance(test_date_range, list)
+    assert test_date_range[0] == "2019-01"
+    assert test_date_range[1] == "2019-02"
+
+
+def test_get_dates_single():
+    first_date = datetime.strptime("2019-01-01", format_str)
+    test_date_range = get_dates(first_date=first_date)
+    assert isinstance(test_date_range, list)
+    assert test_date_range[0] == "2019-01"
