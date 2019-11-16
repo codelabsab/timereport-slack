@@ -151,18 +151,20 @@ class Action:
 
     def _delete_action(self):
 
-        date = self.params[1]
-        date = parse_date(date, format_str=self.format_str)
+        date_string = self.params[1]
+        date = parse_date(date_string, format_str=self.format_str)
 
         if not date:
-            self.send_response(message=f"Could not parse date")
+            return self.send_response(message=f"Could not parse date {date_string}")
 
         if len(date.keys()) > 1:
-            self.send_response(message=f"Delete doesn't support date range :cry:")
+            return self.send_response(message=f"Delete doesn't support date range :cry:")
 
-        dates = get_dates(first_date=date.values().pop())
+        dates_to_check = get_dates(first_date=date.get(date_string))
+        if not dates_to_check:
+            return self.send_response(message=f"No dates to check for locks :cry:")
 
-        if not self._check_locks(dates=dates):
+        if not self._check_locks(dates=dates_to_check):
             self.send_attachment(
                 attachment=delete_message_menu(self.payload.get("user_name")[0], date)
             )
