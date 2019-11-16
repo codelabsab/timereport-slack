@@ -2,7 +2,7 @@ import logging
 import json
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.api import read_lock
-from chalicelib.lib.helpers import validate_date
+from chalicelib.lib.helpers import parse_date
 from chalicelib.lib.slack import (
     submit_message_menu,
     slack_client_responder,
@@ -98,15 +98,13 @@ class Action:
             self.send_response(message=message)
             return ""
 
-        # begin validate date range
-        if date == "today":
-            date = datetime.now().strftime(self.format_str)
+        date = parse_date(date=date, format_str=self.format_str)
 
-        if not validate_date(date, self.format_str):
+        if not date:
             self.send_response(message="failed to parse date")
 
         self.send_attachment(
-            attachment=submit_message_menu(self.user_name, reason, date, hours)
+            attachment=submit_message_menu(self.user_name, reason, ":".join(date.keys()), hours)
         )
         return ""
 
