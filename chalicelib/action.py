@@ -86,6 +86,7 @@ class Action:
         reason = self.params[1]
         date = self.params[2]
         hours = 8
+
         if len(self.params) == 4:
             try:
                 hours = round(float(self.params[3]))
@@ -101,12 +102,25 @@ class Action:
         date = parse_date(date=date, format_str=self.format_str)
 
         if not date:
-            self.send_response(message="failed to parse date")
+            self.send_response(message="failed to parse date {date}")
 
-        self.send_attachment(
-            attachment=submit_message_menu(self.user_name, reason, ":".join(date.keys()), hours)
+        date_list = list(date.values())
+        dates_to_check = get_dates(
+            first_date=date_list[0],
+            second_date=date_list[1],
         )
+
+        if not dates_to_check:
+            return self.send_response(message=f"No dates to check for locks :cry:")
+
+        if not self._check_locks(dates=dates_to_check):
+            self.send_attachment(
+                attachment=submit_message_menu(self.user_name, reason, ":".join(date.keys()), hours)
+            )
+        else:
+            self.send_response(message=f"Unable to add since one or more month in range are locked :cry:")
         return ""
+
 
     def _list_action(self):
         """
