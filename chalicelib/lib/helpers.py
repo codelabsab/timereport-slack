@@ -59,7 +59,7 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
 
         if validate_date(first_date, format_str=format_str) and validate_date(second_date, format_str=format_str):
             if first_date > second_date:
-                log.error(f"First date {first_date} needs to be greater than second date {second_date}")
+                log.error(f"First date {first_date} needs to be smaller than second date {second_date}")
                 return dates
             dates[f"{first_date}"] = datetime.strptime(first_date, format_str)
             dates[f"{second_date}"] = datetime.strptime(second_date, format_str)
