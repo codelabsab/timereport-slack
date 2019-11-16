@@ -166,7 +166,7 @@ class Action:
 
         if not self._check_locks(dates=dates_to_check):
             self.send_attachment(
-                attachment=delete_message_menu(self.payload.get("user_name")[0], date)
+                attachment=delete_message_menu(self.payload.get("user_name")[0], date_string)
             )
         else:
             self.send_response(message=f"Unable to delete since month is locked :cry:")
