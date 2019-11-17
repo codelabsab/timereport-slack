@@ -50,9 +50,9 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
     "2019-01-01:2019-01-02"
     """
 
-    dates = dict()
+    dates = list()
     if date == "today":
-        dates["today"] = datetime.now()
+        dates.append(datetime.now())
 
     if ":" in date:
         try:
@@ -65,11 +65,12 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
             if first_date > second_date:
                 log.error(f"First date {first_date} needs to be smaller than second date {second_date}")
                 return dates
-            dates[f"{first_date}"] = datetime.strptime(first_date, format_str)
-            dates[f"{second_date}"] = datetime.strptime(second_date, format_str)
+
+            dates.append(datetime.strptime(first_date, format_str))
+            dates.append(datetime.strptime(second_date, format_str))
     else:
         if validate_date(date, format_str=format_str):
-            dates[f"{date}"] = datetime.strptime(date, format_str)
+            dates.append(datetime.strptime(date, format_str))
 
     return dates
 
