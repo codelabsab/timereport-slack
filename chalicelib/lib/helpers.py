@@ -55,7 +55,11 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
         dates["today"] = datetime.now()
 
     if ":" in date:
-        first_date, second_date = date.split(":")
+        try:
+            first_date, second_date = date.split(":")
+        except ValueError as error:
+            log.error(f"Unable to split date {date}. The error was: {error}")
+            return dates
 
         if validate_date(first_date, format_str=format_str) and validate_date(second_date, format_str=format_str):
             if first_date > second_date:

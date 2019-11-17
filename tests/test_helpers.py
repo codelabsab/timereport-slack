@@ -67,3 +67,9 @@ def test_get_dates_single():
     test_date_range = get_dates(first_date=first_date)
     assert isinstance(test_date_range, list)
     assert test_date_range[0] == "2019-01"
+
+
+def test_invalid_date_format():
+    invalid_format = "2019:01:02"
+    test_date = parse_date(date=invalid_format)
+    assert not test_date
