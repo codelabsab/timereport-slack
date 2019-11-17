@@ -7,7 +7,6 @@ log = logging.getLogger(__name__)
 yaml = YAML(typ="safe")
 
 
-
 def parse_config(path="config.yaml"):
     """
     Parse config written in yaml
@@ -61,9 +60,13 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
             log.error(f"Unable to split date {date}. The error was: {error}")
             return dates
 
-        if validate_date(first_date, format_str=format_str) and validate_date(second_date, format_str=format_str):
+        if validate_date(first_date, format_str=format_str) and validate_date(
+            second_date, format_str=format_str
+        ):
             if first_date > second_date:
-                log.error(f"First date {first_date} needs to be smaller than second date {second_date}")
+                log.error(
+                    f"First date {first_date} needs to be smaller than second date {second_date}"
+                )
                 return dates
 
             dates.append(datetime.strptime(first_date, format_str))
@@ -75,15 +78,17 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
     return dates
 
 
-def get_dates(first_date: datetime, second_date: datetime = None, format_str: str = "%Y-%m") -> list:
+def get_dates(
+    first_date: datetime, second_date: datetime = None, format_str: str = "%Y-%m"
+) -> list:
     """
-    Get all dates between two dates that matches the date format string.
+    Get one or more dates filtered by the specified format_str
     """
 
     dates = list()
 
     if not second_date:
-        dates.append(first_date.strftime('%Y-%m'))
+        dates.append(first_date.strftime("%Y-%m"))
         return dates
 
     delta = second_date - first_date
