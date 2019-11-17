@@ -84,7 +84,7 @@ class Action:
             return self.send_response(message="Wrong number of args for add command")
 
         reason = self.params[1]
-        date = self.params[2]
+        date_string = self.params[2]
         hours = 8
 
         if len(self.params) == 4:
@@ -99,17 +99,16 @@ class Action:
             self.send_response(message=message)
             return ""
 
-        date = parse_date(date=date, format_str=self.format_str)
+        date = parse_date(date=date_string, format_str=self.format_str)
 
         if not date:
             self.send_response(message="failed to parse date {date}")
 
-        date_list = list(date.values())
-        first_date = date_list[0]
+        first_date = date[0]
         # second date is optional
         second_date = None
-        if len(date_list) > 1:
-            second_date = date_list[1]
+        if len(date) > 1:
+            second_date = date[1]
 
         dates_to_check = get_dates(
             first_date=first_date,
@@ -121,7 +120,7 @@ class Action:
 
         if not self._check_locks(dates=dates_to_check):
             self.send_attachment(
-                attachment=submit_message_menu(self.user_name, reason, ":".join(date.keys()), hours)
+                attachment=submit_message_menu(self.user_name, reason, date_string, hours)
             )
         else:
             self.send_response(message=f"Unable to add since one or more month in range are locked :cry:")
@@ -177,10 +176,10 @@ class Action:
         if not date:
             return self.send_response(message=f"Could not parse date {date_string}")
 
-        if len(date.keys()) > 1:
+        if len(date) > 1:
             return self.send_response(message=f"Delete doesn't support date range :cry:")
 
-        dates_to_check = get_dates(first_date=date.get(date_string))
+        dates_to_check = get_dates(first_date=date[0])
         if not dates_to_check:
             return self.send_response(message=f"No dates to check for locks :cry:")
 
@@ -191,6 +190,7 @@ class Action:
         else:
             self.send_response(message=f"Unable to delete since month is locked :cry:")
         return ""
+
 
     def _edit_action(self):
         """
