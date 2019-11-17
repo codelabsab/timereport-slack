@@ -85,7 +85,7 @@ def get_dates(first_date: datetime, second_date: datetime = None, format_str: st
 
     for delta in range(delta.days + 1):
         date = first_date + timedelta(days=delta)
-        if date.strftime('%Y-%m') not in dates:
-            dates.append(date.strftime('%Y-%m'))
+        if date.strftime(format_str) not in dates:
+            dates.append(date.strftime(format_str))
 
     return dates
