@@ -1,8 +1,9 @@
-from chalicelib.lib.helpers import parse_date, get_dates
+from chalicelib.lib.helpers import parse_date, get_dates, date_range
 from datetime import datetime
 import pytest
 
-format_str = '%Y-%m-%d'
+format_str = "%Y-%m-%d"
+
 
 def test_parse_date_today():
     today = datetime.now().strftime(format_str)
@@ -72,3 +73,13 @@ def test_invalid_date_format():
     invalid_format = "2019:01:02"
     test_date = parse_date(date=invalid_format)
     assert not test_date
+
+
+def test_date_range():
+    first_date = datetime.strptime("2019-01-01", format_str)
+    second_date = datetime.strptime("2019-01-10", format_str)
+    test_date_generator = date_range(start_date=first_date, stop_date=second_date)
+    test_date_list = list(test_date_generator)
+    assert len(test_date_list) == 10
+    for item in test_date_list:
+        assert isinstance(item, datetime)
