@@ -1,4 +1,4 @@
-from chalicelib.lib.helpers import parse_date, get_dates, date_range
+from chalicelib.lib.helpers import parse_date, date_range
 from datetime import datetime
 import pytest
 
@@ -51,22 +51,6 @@ def test_parse_invalid_multiple_dates():
     test_dates = parse_date(date=multiple_dates)
     assert isinstance(test_dates, list)
     assert not test_dates
-
-
-def test_get_dates_in_range():
-    first_date = datetime.strptime("2019-01-01", format_str)
-    second_date = datetime.strptime("2019-02-01", format_str)
-    test_date_range = get_dates(first_date=first_date, second_date=second_date)
-    assert isinstance(test_date_range, list)
-    assert test_date_range[0] == "2019-01"
-    assert test_date_range[1] == "2019-02"
-
-
-def test_get_dates_single():
-    first_date = datetime.strptime("2019-01-01", format_str)
-    test_date_range = get_dates(first_date=first_date)
-    assert isinstance(test_date_range, list)
-    assert test_date_range[0] == "2019-01"
 
 
 def test_invalid_date_format():

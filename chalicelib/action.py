@@ -2,7 +2,7 @@ import logging
 import json
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.api import read_lock
-from chalicelib.lib.helpers import parse_date, get_dates
+from chalicelib.lib.helpers import parse_date, date_range
 from chalicelib.lib.slack import (
     submit_message_menu,
     slack_client_responder,
@@ -110,22 +110,17 @@ class Action:
         if len(date) > 1:
             second_date = date[1]
 
-        dates_to_check = get_dates(
-            first_date=first_date,
-            second_date=second_date,
-        )
-
-        if not dates_to_check:
-            return self.send_response(message=f"No dates to check for locks :cry:")
-
-        if not self._check_locks(dates=dates_to_check):
+        if not self._check_locks(date=first_date, second_date=second_date):
             self.send_attachment(
-                attachment=submit_message_menu(self.user_name, reason, date_string, hours)
+                attachment=submit_message_menu(
+                    self.user_name, reason, date_string, hours
+                )
             )
         else:
-            self.send_response(message=f"Unable to add since one or more month in range are locked :cry:")
+            self.send_response(
+                message=f"Unable to add since one or more month in range are locked :cry:"
+            )
         return ""
-
 
     def _list_action(self):
         """
@@ -177,20 +172,19 @@ class Action:
             return self.send_response(message=f"Could not parse date {date_string}")
 
         if len(date) > 1:
-            return self.send_response(message=f"Delete doesn't support date range :cry:")
+            return self.send_response(
+                message=f"Delete doesn't support date range :cry:"
+            )
 
-        dates_to_check = get_dates(first_date=date[0])
-        if not dates_to_check:
-            return self.send_response(message=f"No dates to check for locks :cry:")
-
-        if not self._check_locks(dates=dates_to_check):
+        if not self._check_locks(date=date[0], second_date=date[0]):
             self.send_attachment(
-                attachment=delete_message_menu(self.payload.get("user_name")[0], date_string)
+                attachment=delete_message_menu(
+                    self.payload.get("user_name")[0], date_string
+                )
             )
         else:
             self.send_response(message=f"Unable to delete since month is locked :cry:")
         return ""
-
 
     def _edit_action(self):
         """
@@ -306,15 +300,17 @@ class Action:
             self.send_response(message=f"Lock failed! :cry:")
             return ""
 
-
-    def _check_locks(self, dates: list) -> bool:
+    def _check_locks(self, date: datetime, second_date: datetime) -> bool:
         """
-        Go through the list of dates and check if locked
+        Check dates for lock.
         """
         is_locked = False
-        for date in dates:
+
+        for date in date_range(start_date=date, stop_date=second_date):
             respone = read_lock(
-                url=self.config["backend_url"], user_id=self.user_id, date=date
+                url=self.config["backend_url"],
+                user_id=self.user_id,
+                date=date.strftime("%Y-%m"),
             )
             if respone.json():
                 is_locked = True

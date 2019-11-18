@@ -81,22 +81,3 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
 
     return dates
 
-
-def get_dates(
-    first_date: datetime, second_date: datetime = None, format_str: str = "%Y-%m"
-) -> list:
-    """
-    Get one or more dates filtered by the specified format_str
-    """
-
-    dates = list()
-
-    if not second_date:
-        dates.append(first_date.strftime("%Y-%m"))
-        return dates
-
-    for date in date_range(start_date=first_date, stop_date=second_date):
-        if date.strftime(format_str) not in dates:
-            dates.append(date.strftime(format_str))
-
-    return dates
