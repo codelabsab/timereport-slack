@@ -306,14 +306,18 @@ class Action:
         Check dates for lock.
         """
         is_locked = False
-
+        dates_to_check = list()
         for date in date_range(start_date=date, stop_date=second_date):
+            if not date.strftime("%Y-%m") in dates_to_check:
+                dates_to_check.append(date.strftime("%Y-%m"))
+
+        log.debug(f"Got {len(dates_to_check)} date(s) to check")
+        for date in dates_to_check:
             respone = read_lock(
-                url=self.config["backend_url"],
-                user_id=self.user_id,
-                date=date.strftime("%Y-%m"),
+                url=self.config["backend_url"], user_id=self.user_id, date=date,
             )
             if respone.json():
+                log.info(f"Date {date} is locked")
                 is_locked = True
 
         return is_locked
