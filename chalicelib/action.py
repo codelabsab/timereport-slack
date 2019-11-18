@@ -106,9 +106,10 @@ class Action:
 
         first_date = date[0]
         # second date is optional
-        second_date = None
         if len(date) > 1:
             second_date = date[1]
+        else:
+            second_date = date[0]
 
         if not self._check_locks(date=first_date, second_date=second_date):
             self.send_attachment(
