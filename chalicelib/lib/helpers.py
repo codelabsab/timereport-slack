@@ -19,7 +19,11 @@ def parse_config(path="config.yaml"):
     return config
 
 
-def date_range(start_date, stop_date):
+def date_range(start_date: datetime, stop_date: datetime) -> datetime:
+    """
+    A generator that yields the days between start_date and stop_date
+    """
+
     delta = timedelta(days=1)
     while start_date <= stop_date:
         yield start_date
@@ -91,10 +95,7 @@ def get_dates(
         dates.append(first_date.strftime("%Y-%m"))
         return dates
 
-    delta = second_date - first_date
-
-    for delta in range(delta.days + 1):
-        date = first_date + timedelta(days=delta)
+    for date in date_range(start_date=first_date, stop_date=second_date):
         if date.strftime(format_str) not in dates:
             dates.append(date.strftime(format_str))
 
