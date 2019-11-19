@@ -1,63 +1,64 @@
-<<<<<<< HEAD
-from chalicelib.lib.timereport_api import api_v2 as api
-from chalicelib.lib.interactive.helpers import date_range
-=======
 from chalicelib.lib import api
 from chalicelib.lib.helpers import date_range
->>>>>>> chore: move interactive and api into packages
 from datetime import datetime
 
 
-def interactive_add(url: str, payload: dict) -> list:
+def create_event(url: str, payload: dict) -> list:
     """
     Creates events in the form of:
     event = {
-            'user_name': "",
-            'reason': f"{payload[1].get('value')}",
-            'event_date': f"{date.strftime('%Y-%m-%d')}",
-            'hours': f"{payload[4].get('value')}"
+            'user_id': <user_id>
+            'user_name': <user_name>,
+            'reason': <reason>,
+            'event_date': <date>,
+            'hours': <hours>"
         }
 
     Sends events to backend api for persistent storage
-
-    Example fields:
-
-    fields:
-    [
-        {'title': 'User', 'value': 'test_user', 'short': False},
-        {'title': 'Type', 'value': 'sick', 'short': False},
-        {'title': 'Date start','value': '2019-09-28','short': False},
-        {'title': 'Date end','value': '2019-09-28','short': False},
-        {'title': 'Hours','value': '8','short': False}
-    ]
 
     """
 
     # store responses
     res = []
 
-    # extract fields context for easier processing and shorter lines :)
-    fields = payload["original_message"]["attachments"][0]["fields"]
+    # prepare vars
+    user_id: str = payload["user"]["id"]
+
+    user_name: str = payload["original_message"]["attachments"][0]["fields"][0].get(
+        "value"
+    )
+
+    reason: str = payload["original_message"]["attachments"][0]["fields"][1].get(
+        "value"
+    )
+
+    hours: str = payload["original_message"]["attachments"][0]["fields"][4].get("value")
 
     # Create start and stop dates for range
-    start = datetime.strptime(fields[2].get("value"), "%Y-%m-%d")
-    stop = datetime.strptime(fields[3].get("value"), "%Y-%m-%d")
+    start: datetime = datetime.strptime(
+        payload["original_message"]["attachments"][0]["fields"][2], "%Y-%m-%d"
+    )
+    stop: datetime = datetime.strptime(
+        payload["original_message"]["attachments"][0]["fields"][3], "%Y-%m-%d"
+    )
 
     # loop through date range and create events
     for date in date_range(start, stop):
         event = {
-            "user_name": f"{fields[0].get('value')}",
-            "reason": f"{fields[1].get('value')}",
+            "user_id": user_id,
+            "user_name": user_name,
+            "reason": reason,
             "event_date": f"{date.strftime('%Y-%m-%d')}",
-            "hours": f"{fields[4].get('value')}",
+            "hours": hours,
         }
-        r = api.create(url, event)
+        # store each event
+        r = api.create_event(url=url, event=event)
         res.append(r)
 
     return res
 
 
-def interactive_delete(url: str, payload: dict) -> list:
+def delete_event(url: str, payload: dict) -> list:
     """
     Takes a payload and extracts user_id and date
     Calls backend api to delete all events for
@@ -65,15 +66,13 @@ def interactive_delete(url: str, payload: dict) -> list:
     """
 
     # store responses
-    # TODO: add support for ranges
     res = []
 
-    user_id = (payload["user"]["id"],)
+    user_id = payload["user"]["id"].get("value")
     date = payload["original_message"]["attachments"][0]["fields"][0].get("value")
 
-    r = api.delete(url=url, user_id=user_id, date=date)
+    r = api.delete_event(url=url, user_id=user_id, date=date)
 
-    # TODO: add support for ranges
     res.append(r)
 
     return res

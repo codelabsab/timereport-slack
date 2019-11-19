@@ -1,26 +1,27 @@
 from chalice import Chalice
-from chalicelib.lib.interactive.actions import interactive_add, interactive_delete
-from chalicelib.lib.slack import slack_payload_extractor
-from chalicelib.lib.security import verify_token
+from chalicelib.lib.interactive import actions
+from chalicelib.lib.slack import slack_payload_extractor, verify_token, slack_responder
 from app import config
+import logging
+
+
+logger = logging.getLogger()
+logger.setLevel(config["log_level"])
 
 
 def interactive_handler(app: Chalice):
     """
-    Extracts data from request and checks if
-    users wants to submit or not.
+    Route handler for /interactive session
 
-    Routes payload data to correct function that
-    mangles data to be sent before sending to backend api
+    Parse request data and call action library functions in actions.py
     """
 
     # store backend url
-    url = config["backend_url"]
+    url: str = config["backend_url"]
 
     # store headers, request and secret
     headers = app.current_request.headers
     request = app.current_request.raw_body.decode()
-    # TODO: this should we a str: SECRET in app.py instead
     secret: str = config["signing_secret"]
 
     # verify validity of request
@@ -28,33 +29,30 @@ def interactive_handler(app: Chalice):
         return "Slack signing secret not valid"
 
     # extract slack payload from request and store some vars
-    payload = slack_payload_extractor(request)
-    submit = payload.get("actions")[0].get("value")
-    action = payload.get("callback_id")
+    payload: dict = slack_payload_extractor(request)
+    submitted: str = payload.get("actions")[0].get("value")
+    action: str = payload.get("callback_id")
+    response_url: str = payload.get("response_url")
 
-    # did user press yes?
-    if submit == "submit_yes":
-        # is the action add?
-        if action == "add":
-            # send fields to add function for further processing and before call to api lib
-            results = interactive_add(url=url, payload=payload)
+    if "yes" in submitted:
+        if action is "add":
+            results: list = actions.create_event(url=url, payload=payload)
             for result in results:
-                if result.status_code != 200:
-                    # TODO: slack_client_block_responder("failed")
+                if result.status_code is not 200:
+                    slack_responder(url=response_url, msg=f"failed to create event")
+                    logger.debug(f"failed to create event {result}")
                     return ""
-            # TODO: slack_client_block_responder("success")?
+            slack_responder(url=response_url, msg=f":white_check_mark:")
             return ""
-        # or is the action delete?
-        if action == "delete":
-            results = interactive_delete(url=url, payload=payload)
+        if action is "delete":
+            results: list = actions.delete_event(url=url, payload=payload)
             for result in results:
-                if result.status_code != 200:
-                    # TODO: slack_client_block_responder("failed")
+                if result.status_code is not 200:
+                    slack_responder(url=response_url, msg=f"failed to delete event")
+                    logger.debug(f"failed to create event {result}")
                     return ""
-            # TODO: slack_client_block_responder("failed")
+            slack_responder(url=response_url, msg=f":white_check_mark:")
             return ""
-
-    # user pressed no
     else:
-        # TODO: slack_client_block_responder("cancelled")
+        slack_responder(url=response_url, msg=f"cancelled :fire:")
         return ""
