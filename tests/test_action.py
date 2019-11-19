@@ -39,22 +39,6 @@ def test_perform_empty_edit_action():
     unstub()
 
 
-def test_perform_add_action():
-    fake_payload["text"] = ["add vab 2019-01-01"]
-    fake_payload["user_name"] = "fake username"
-    action = Action(fake_payload, fake_config)
-    action.user_id = "fake_userid"
-    action.date_start = "2019-01-01"
-    action.date_end = "2019-01-01"
-    when(action).send_response(message="").thenReturn()
-    when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/{action.user_id}",
-        params={"startDate": action.date_start, "endDate": action.date_end},
-    ).thenReturn(mock({"status_code": 200, "text": '[{"lock": false}]'}))
-    assert action.perform_action() == ""
-    unstub()
-
-
 def test_perform_help_action():
     fake_payload["text"] = ["help"]
     fake_payload["user_name"] = "fake_username"
