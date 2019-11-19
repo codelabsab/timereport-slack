@@ -2,7 +2,7 @@ import logging
 import json
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.api import read_lock
-from chalicelib.lib.helpers import validate_date
+from chalicelib.lib.helpers import parse_date, date_range
 from chalicelib.lib.slack import (
     submit_message_menu,
     slack_client_responder,
@@ -84,8 +84,9 @@ class Action:
             return self.send_response(message="Wrong number of args for add command")
 
         reason = self.params[1]
-        date = self.params[2]
+        date_string = self.params[2]
         hours = 8
+
         if len(self.params) == 4:
             try:
                 hours = round(float(self.params[3]))
@@ -98,16 +99,28 @@ class Action:
             self.send_response(message=message)
             return ""
 
-        # begin validate date range
-        if date == "today":
-            date = datetime.now().strftime(self.format_str)
+        date = parse_date(date=date_string, format_str=self.format_str)
 
-        if not validate_date(date, self.format_str):
-            self.send_response(message="failed to parse date")
+        if not date:
+            self.send_response(message="failed to parse date {date}")
 
-        self.send_attachment(
-            attachment=submit_message_menu(self.user_name, reason, date, hours)
-        )
+        first_date = date[0]
+        # second date is optional
+        if len(date) > 1:
+            second_date = date[1]
+        else:
+            second_date = date[0]
+
+        if not self._check_locks(date=first_date, second_date=second_date):
+            self.send_attachment(
+                attachment=submit_message_menu(
+                    self.user_name, reason, date_string, hours
+                )
+            )
+        else:
+            self.send_response(
+                message=f"Unable to add since one or more month in range are locked :cry:"
+            )
         return ""
 
     def _list_action(self):
@@ -153,20 +166,25 @@ class Action:
 
     def _delete_action(self):
 
-        date = self.params[1]
-        if not validate_date(date, format_str=self.format_str):
-            self.send_response(message=f"Could not parse date")
-        month = "-".join(date.split("-")[0:2])
-        res = read_lock(
-            url=self.config["backend_url"], user_id=self.user_id, date=month
-        )
+        date_string = self.params[1]
+        date = parse_date(date_string, format_str=self.format_str)
 
-        if not res.json():
+        if not date:
+            return self.send_response(message=f"Could not parse date {date_string}")
+
+        if len(date) > 1:
+            return self.send_response(
+                message=f"Delete doesn't support date range :cry:"
+            )
+
+        if not self._check_locks(date=date[0], second_date=date[0]):
             self.send_attachment(
-                attachment=delete_message_menu(self.payload.get("user_name")[0], date)
+                attachment=delete_message_menu(
+                    self.payload.get("user_name")[0], date_string
+                )
             )
         else:
-            self.send_response(message=f"Month {month} is locked :cry:")
+            self.send_response(message=f"Unable to delete since month is locked :cry:")
         return ""
 
     def _edit_action(self):
@@ -282,3 +300,24 @@ class Action:
         else:
             self.send_response(message=f"Lock failed! :cry:")
             return ""
+
+    def _check_locks(self, date: datetime, second_date: datetime) -> bool:
+        """
+        Check dates for lock.
+        """
+        is_locked = False
+        dates_to_check = list()
+        for date in date_range(start_date=date, stop_date=second_date):
+            if not date.strftime("%Y-%m") in dates_to_check:
+                dates_to_check.append(date.strftime("%Y-%m"))
+
+        log.debug(f"Got {len(dates_to_check)} date(s) to check")
+        for date in dates_to_check:
+            respone = read_lock(
+                url=self.config["backend_url"], user_id=self.user_id, date=date,
+            )
+            if respone.json():
+                log.info(f"Date {date} is locked")
+                is_locked = True
+
+        return is_locked

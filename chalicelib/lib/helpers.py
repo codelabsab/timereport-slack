@@ -1,8 +1,10 @@
 from ruamel.yaml import YAML
 from datetime import timedelta, datetime
+import logging
+
+log = logging.getLogger(__name__)
 
 yaml = YAML(typ="safe")
-
 
 
 def parse_config(path="config.yaml"):
@@ -17,7 +19,11 @@ def parse_config(path="config.yaml"):
     return config
 
 
-def date_range(start_date, stop_date):
+def date_range(start_date: datetime, stop_date: datetime) -> datetime:
+    """
+    A generator that yields the days between start_date and stop_date
+    """
+
     delta = timedelta(days=1)
     while start_date <= stop_date:
         yield start_date
@@ -25,17 +31,53 @@ def date_range(start_date, stop_date):
 
 
 def validate_date(date, format_str) -> bool:
+    """
+    Validate a string in date format is valid
+    """
 
     try:
-        if ":" in date:
-            start, stop = date.split(":")
-            datetime.strptime(start, format_str)
-            datetime.strptime(stop, format_str)
-            if start > stop:
-                return False
-        else:
-            datetime.strptime(date, format_str)
-    except TypeError:
+        datetime.strptime(date, format_str)
+    except (TypeError, ValueError) as error:
+        log.error(f"Unable to validate date {date}. Error was: {error}")
         return False
 
     return True
+
+
+def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
+    """
+    Parse the date from a string.
+    Expects these formats:
+    "today"
+    "2019-01-01"
+    "2019-01-01:2019-01-02"
+    """
+
+    dates = list()
+    if date == "today":
+        dates.append(datetime.now())
+
+    if ":" in date:
+        try:
+            first_date, second_date = date.split(":")
+        except ValueError as error:
+            log.error(f"Unable to split date {date}. The error was: {error}")
+            return dates
+
+        if validate_date(first_date, format_str=format_str) and validate_date(
+            second_date, format_str=format_str
+        ):
+            if first_date > second_date:
+                log.error(
+                    f"First date {first_date} needs to be smaller than second date {second_date}"
+                )
+                return dates
+
+            dates.append(datetime.strptime(first_date, format_str))
+            dates.append(datetime.strptime(second_date, format_str))
+    else:
+        if validate_date(date, format_str=format_str):
+            dates.append(datetime.strptime(date, format_str))
+
+    return dates
+
