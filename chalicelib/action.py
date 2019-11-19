@@ -200,14 +200,14 @@ class Action:
 
         date = parse_date(date_string, format_str=self.format_str)
         if not date:
-            self.send_response(message="failed to parse date {date}")
+            self.send_response(message="failed to parse date {date_string}")
 
         if len(date) > 1:
             return self.send_response(message=f"Edit doesn't support date range :cry:")
 
         if self._check_locks(date=date[0], second_date=date[0]):
             return self.send_response(
-                message=f"Can't edit date {date} because locked month :cry:"
+                message=f"Can't edit date {date_string} because locked month :cry:"
             )
 
         event_to_edit = None
