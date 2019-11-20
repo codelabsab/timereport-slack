@@ -193,12 +193,12 @@ class Action:
         If no arguments supplied it will try to edit today.
         """
         try:
-            date_string = self.params[1]
+            date_input = self.params[1]
         except IndexError:
-            date_string = "today"
-            log.debug(f"Didn't get any params. Setting date to {date_string}")
+            date_input = "today"
+            log.debug(f"Didn't get any params. Setting date to {date_input}")
 
-        date = parse_date(date_string, format_str=self.format_str)
+        date = parse_date(date_input, format_str=self.format_str)
         if not date:
             self.send_response(message="failed to parse date {date_string}")
 
@@ -207,12 +207,12 @@ class Action:
 
         if self._check_locks(date=date[0], second_date=date[0]):
             return self.send_response(
-                message=f"Can't edit date {date_string} because locked month :cry:"
+                message=f"Can't edit date {date_input} because locked month :cry:"
             )
 
         event_to_edit = None
         try:
-            event_to_edit = json.loads(self._get_events(date_str=date_string))
+            event_to_edit = json.loads(self._get_events(date_str=date_input))
         except json.decoder.JSONDecodeError as error:
             log.error(f"Unable to decode JSON. Error was: {error}")
             self.send_response(
