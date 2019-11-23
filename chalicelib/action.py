@@ -214,7 +214,7 @@ class Action:
             log.error(f"Failed to parse hours. Error was: {error}")
             return self.send_response(message="Could not parse hours")
         except TypeError as error:
-            hours = 8
+            log.debug(f"Caught error: {error}")
             log.info(f"Using default hours '{hours}'")
 
         date = parse_date(date_input, format_str=self.format_str)
