@@ -76,3 +76,22 @@ def test_perform_lock():
     ).thenReturn(mock({"status_code": 200}))
     assert action.perform_action() == ""
     unstub()
+
+
+def test_valid_number_of_args():
+    fake_action = Action(fake_payload, fake_config)
+    fake_action.arguments = ["fake_arg_1"]
+
+    # Should be valid since we have provided the minimum amount
+    assert fake_action._valid_number_of_args(min_args=1) is True
+
+    fake_action.arguments.append("fake_arg_2")
+
+    # Should be valid since we have provided the miniumum and maxiumum amount
+    assert fake_action._valid_number_of_args(min_args=1, max_args=2) is True
+
+    # Should be false since we don't have the minimum amount
+    assert fake_action._valid_number_of_args(min_args=3) is False
+
+    # Should be false since we don't have the maximum amount
+    assert fake_action._valid_number_of_args(min_args=1, max_args=1) is False
