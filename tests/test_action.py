@@ -83,7 +83,7 @@ def test_valid_number_of_args():
     fake_action.arguments = ["fake_arg_1"]
 
     # Should be valid since we have provided the minimum amount
-    assert fake_action._valid_number_of_args(min_args=1) is True
+    assert fake_action._valid_number_of_args(min_args=1, max_args=1) is True
 
     fake_action.arguments.append("fake_arg_2")
 
@@ -91,7 +91,7 @@ def test_valid_number_of_args():
     assert fake_action._valid_number_of_args(min_args=1, max_args=2) is True
 
     # Should be false since we don't have the minimum amount
-    assert fake_action._valid_number_of_args(min_args=3) is False
+    assert fake_action._valid_number_of_args(min_args=3, max_args=3) is False
 
     # Should be false since we don't have the maximum amount
     assert fake_action._valid_number_of_args(min_args=1, max_args=1) is False

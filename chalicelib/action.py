@@ -350,18 +350,14 @@ class Action:
 
         return is_locked
 
-    def _valid_number_of_args(self, min_args: int, max_args: int = None) -> bool:
+    def _valid_number_of_args(self, min_args: int, max_args: int) -> bool:
         """
         Check that the number of arguments in the list is within the valid range
         """
         log.debug(f"Got {len(self.arguments)} number of args")
-        if len(self.arguments) < min_args:
-            return False
-
-        if max_args and len(self.arguments) > max_args:
-            return False
-
-        return True
+        if min_args <= len(self.arguments) <= max_args:
+            return True
+        return False
 
     def _valid_reason(self, reason: str) -> bool:
         """
