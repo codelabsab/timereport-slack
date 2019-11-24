@@ -229,13 +229,12 @@ class Action:
                 message=f"Can't edit date {date_input} because locked month :cry:"
             )
 
-        event_to_edit = None
-        try:
-            event_to_edit = read_event(
-                url=self.config["backend_url"], user_id=self.user_id, date=date_input
-            )
-        except json.decoder.JSONDecodeError as error:
-            log.error(f"Unable to decode JSON. Error was: {error}")
+        event_to_edit = read_event(
+            url=self.config["backend_url"], user_id=self.user_id, date=date_input
+        )
+
+        if event_to_edit.status_code != 200:
+            log.error(f"Response code from API: {event_to_edit.status_code}")
             return self.send_response(
                 message=f"Something went wrong fetching event to edit. :cry:"
             )
