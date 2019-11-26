@@ -24,6 +24,9 @@ def factory(json_order, format_str):
     hours = payload[3]["value"]
     events = []
 
+    if date == "today":
+        date = datetime.now().strftime(format_str)
+
     start_date = date
     stop_date = date
     if ":" in date:
