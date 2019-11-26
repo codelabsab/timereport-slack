@@ -80,4 +80,3 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
             dates.append(datetime.strptime(date, format_str))
 
     return dates
-
