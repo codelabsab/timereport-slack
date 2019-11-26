@@ -56,6 +56,7 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
     dates = list()
     if date == "today":
         dates.append(datetime.now())
+        return dates
 
     if ":" in date:
         try:
