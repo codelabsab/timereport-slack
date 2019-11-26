@@ -1,7 +1,7 @@
 import logging
 import json
 from chalicelib.lib.list import get_list_data
-from chalicelib.lib.api import read_lock
+from chalicelib.lib.api import read_lock, read_event
 from chalicelib.lib.helpers import parse_date, date_range
 from chalicelib.lib.slack import (
     submit_message_menu,
@@ -49,10 +49,12 @@ class Action:
         """
 
         self.action = self.params[0]
-        log.debug(f"Action is: {self.action}")
+        self.arguments = self.params[1:]
         self.user_id = self.payload["user_id"][0]
         self.user_name = self.payload["user_name"][0]
 
+        log.debug(f"Action is: {self.action}")
+        log.debug(f"Arguments are: {self.arguments}")
         if self.action == "add":
             return self._add_action()
 
@@ -93,11 +95,8 @@ class Action:
             except ValueError:
                 return self.send_response(message="Could not parse hours")
 
-        if reason not in self.config.get("valid_reasons"):
-            message = f"Reason {reason} is not valid"
-            log.debug(message)
-            self.send_response(message=message)
-            return ""
+        if not self._valid_reason(reason=reason):
+            return self.send_response(message=f"Reason {reason} is not valid")
 
         date = parse_date(date=date_string, format_str=self.format_str)
 
@@ -191,33 +190,62 @@ class Action:
         """
         Edit event in timereport for user.
         If no arguments supplied it will try to edit today.
+        Example: /timereport edit vab 2019-01-01 4
         """
 
-        date = datetime.now().strftime("%Y-%m-%d")
+        if not self._valid_number_of_args(min_args=2, max_args=3):
+            self.send_response(message="Got the wrong number of arguments")
+
+        reason = self.arguments[0]
+        hours = 8
+
+        if not self._valid_reason(reason=reason):
+            return self.send_response(message=f"Reason {reason} is not valid")
 
         try:
-            if self.params[1] != "today":
-                date = self.params[1]
+            date_input = self.arguments[1]
         except IndexError:
-            log.debug(f"Didn't get any params. Setting date to {date}")
+            date_input = "today"
+            log.debug(f"Didn't get any params. Setting date to {date_input}")
 
-        event_to_edit = None
         try:
-            event_to_edit = json.loads(self._get_events(date_str=date))
-        except json.decoder.JSONDecodeError as error:
-            log.error(f"Unable to decode JSON. Error was: {error}")
-            self.send_response(
+            hours = round(float(self.arguments[2]))
+        except ValueError as error:
+            log.error(f"Failed to parse hours. Error was: {error}")
+            return self.send_response(message="Could not parse hours")
+        except TypeError as error:
+            log.debug(f"Caught error: {error}")
+            log.info(f"Using default hours '{hours}'")
+
+        date = parse_date(date_input, format_str=self.format_str)
+        if not date:
+            self.send_response(message="failed to parse date {date_string}")
+
+        if len(date) > 1:
+            return self.send_response(message=f"Edit doesn't support date range :cry:")
+
+        if self._check_locks(date=date[0], second_date=date[0]):
+            return self.send_response(
+                message=f"Can't edit date {date_input} because locked month :cry:"
+            )
+
+        event_to_edit = read_event(
+            url=self.config["backend_url"], user_id=self.user_id, date=date_input
+        )
+
+        if event_to_edit.status_code != 200:
+            log.error(f"Response code from API: {event_to_edit.status_code}")
+            return self.send_response(
                 message=f"Something went wrong fetching event to edit. :cry:"
             )
-            return ""
 
-        log.debug(f"Event to edit is: {event_to_edit}")
-        if not event_to_edit:
+        log.debug(f"Event to edit is: {event_to_edit.json()}")
+        if not event_to_edit.json():
             self.send_response(message=f"No event for date {date} to edit. :shrug:")
             return ""
 
-        self.send_response(
-            message=f"Found event to edit, but I can't do that yet, sorry. :cry:"
+        self.send_attachment(
+            attachment=submit_message_menu(self.user_name, reason, date_input, hours)
         )
 
         return ""
@@ -314,10 +342,29 @@ class Action:
         log.debug(f"Got {len(dates_to_check)} date(s) to check")
         for date in dates_to_check:
             respone = read_lock(
-                url=self.config["backend_url"], user_id=self.user_id, date=date,
+                url=self.config["backend_url"], user_id=self.user_id, date=date
             )
             if respone.json():
                 log.info(f"Date {date} is locked")
                 is_locked = True
 
         return is_locked
+
+    def _valid_number_of_args(self, min_args: int, max_args: int) -> bool:
+        """
+        Check that the number of arguments in the list is within the valid range
+        """
+        log.debug(f"Got {len(self.arguments)} number of args")
+        if min_args <= len(self.arguments) <= max_args:
+            return True
+        return False
+
+    def _valid_reason(self, reason: str) -> bool:
+        """
+        Check that reason is valid
+        """
+
+        if reason in self.config.get("valid_reasons"):
+            return True
+
+        return False
