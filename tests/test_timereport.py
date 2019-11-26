@@ -103,22 +103,41 @@ def test_get_list_data_month():
 
 def test_get_list_data_faulty_response():
     when(requests).get(
-        url=fake_user_url,
-        params={
-            'startDate': "2019-01-01",
-            'endDate': "2019-01-01",
-        }
+        url=fake_user_url, params={"startDate": "2019-01-01", "endDate": "2019-01-01",}
     ).thenReturn(mock({"status_code": 500}))
-    test = get_list_data(url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01")
+    test = get_list_data(
+        url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01"
+    )
     unstub()
     assert test is False
 
 
 def test_create_lock():
     test = create_lock(user_id="fake", event_date="2019-01")
-    assert isinstance(test.get('event_date'), str)
+    assert isinstance(test.get("event_date"), str)
 
 
 def test_create_lock_faulty_date():
     test = create_lock(user_id="fake", event_date="invalid date string")
     assert test is not True
+
+
+def test_factory_with_today():
+    fake_data = {
+        "original_message": {
+            "attachments": [
+                {
+                    "fields": [
+                        dict(value="fake user"),
+                        dict(value="fake reason"),
+                        dict(value="today"),
+                        dict(value="fake hours"),
+                    ]
+                }
+            ]
+        }
+    }
+    format_str = "%Y-%m-%d"
+    test = factory(json_order=fake_data, format_str=format_str)
+    assert isinstance(test, list)
+
