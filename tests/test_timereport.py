@@ -135,4 +135,9 @@ def test_factory_with_today():
     format_str = "%Y-%m-%d"
     test = factory(json_order=fake_data, format_str=format_str)
     assert isinstance(test, list)
+    assert isinstance(test[0], dict)
+    assert "user_name" in test[0].keys()
+    assert "reason" in test[0].keys()
+    assert "event_date" in test[0].keys()
+    assert "hours" in test[0].keys()
 
