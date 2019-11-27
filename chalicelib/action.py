@@ -81,45 +81,43 @@ class Action:
 
     def _add_action(self):
 
-        if len(self.params) < 3 or len(self.params) > 4:
+        # validate number of arguments
+        if len(self.params) is not (2 or 3):
             log.debug(f"params: {self.params}")
             return self.send_response(message="Wrong number of args for add command")
 
+        # store input params
         reason = self.params[1]
-        date_string = self.params[2]
-        hours = 8
+        input_date = self.params[2]
+        hours = self.params[3] if len(self.params) == 4 else 8
 
-        if len(self.params) == 4:
-            try:
-                hours = round(float(self.params[3]))
-            except ValueError:
-                return self.send_response(message="Could not parse hours")
+        # validate hours
+        try:
+            hours = round(float(hours))
+        except ValueError:
+            return self.send_response(message="Could not parse hours")
 
+        # validate reason
         if not self._valid_reason(reason=reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
-        date = parse_date(date=date_string, format_str=self.format_str)
-
-        if not date:
+        # validate dates
+        parsed_dates = parse_date(date=input_date, format_str=self.format_str)
+        if not parsed_dates:
             self.send_response(message="failed to parse date {date}")
 
-        first_date = date[0]
-        # second date is optional
-        if len(date) > 1:
-            second_date = date[1]
-        else:
-            second_date = date[0]
-
-        if not self._check_locks(date=first_date, second_date=second_date):
-            self.send_attachment(
-                attachment=submit_message_menu(
-                    self.user_name, reason, date_string, hours
-                )
-            )
-        else:
-            self.send_response(
+        # validate months in date argument are not locked
+        parsed_date_from = parsed_dates[0]
+        parsed_date_to = parsed_dates[1] if len(parsed_dates) > 1 else parsed_dates[0]
+        if self._check_locks(date=parsed_date_from, second_date=parsed_date_to):
+            return self.send_response(
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
+
+        # all validation completed successfully - send interactive menu
+        self.send_attachment(
+            attachment=submit_message_menu(self.user_name, reason, input_date, hours)
+        )
         return ""
 
     def _list_action(self):
