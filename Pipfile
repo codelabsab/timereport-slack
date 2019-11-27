@@ -7,6 +7,7 @@ name = "pypi"
 botocore = "*"
 chalice = "*"
 ruamel-yaml = "*"
+flake8 = "*"
 
 [dev-packages]
 pytest = "*"
