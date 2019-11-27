@@ -23,9 +23,7 @@ def create_lock(user_id, event_date):
         datetime.strptime(event_date, format_str)
     except ValueError:
         log.error(f"The event_date {event_date} isn't a valid format")
-        return (
-            False
-        )  # Returnera tillbaka så action klassen kan rapportera felet till slack?
+        return False
 
     event = {"user_id": user_id, "event_date": event_date}
     return event

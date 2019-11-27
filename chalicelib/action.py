@@ -89,7 +89,7 @@ class Action:
         # assign
         reason = self.params[1]
         input_dates = self.params[2]
-        hours = self.params[3] if len(self.params) is 4 else 8
+        hours = self.params[3] if len(self.params) == 4 else 8
 
         # validate reason
         if not self._valid_reason(reason=self.params[1]):
