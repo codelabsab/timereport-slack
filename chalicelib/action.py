@@ -119,7 +119,7 @@ class Action:
             attachment=submit_message_menu(
                 user_name=self.user_name,
                 reason=reason,
-                date=f"{parsed_date_to}:{parsed_date_from}",
+                date=f"{parsed_date_from}:{parsed_date_to}",
                 hours=hours,
             )
         )
