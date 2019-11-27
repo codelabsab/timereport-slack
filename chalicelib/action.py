@@ -82,7 +82,7 @@ class Action:
     def _add_action(self):
 
         # validate number of arguments
-        if len(self.params) is not (2 or 3):
+        if len(self.params) is not (3 or 4):
             log.debug(f"params: {self.params}")
             return self.send_response(message="Wrong number of args for add command")
 
