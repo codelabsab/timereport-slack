@@ -83,7 +83,6 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
     # single date
     else:
         if validate_date(date, format_str=format_str):
-            # to and from are the same date
             dates.append(datetime.strptime(date, format_str))
 
     return dates
