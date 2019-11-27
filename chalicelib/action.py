@@ -114,9 +114,12 @@ class Action:
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
 
-        # all validation completed successfully - send interactive menu
+        # all validation completed successfully - send interactive menu with correct dates
+        dates_to_interactive = f"{parsed_date_to}:{parsed_date_from}"
         self.send_attachment(
-            attachment=submit_message_menu(self.user_name, reason, input_date, hours)
+            attachment=submit_message_menu(
+                self.user_name, reason, dates_to_interactive, hours
+            )
         )
         return ""
 

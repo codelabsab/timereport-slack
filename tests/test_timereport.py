@@ -115,28 +115,3 @@ def test_create_lock():
 def test_create_lock_faulty_date():
     test = create_lock(user_id="fake", event_date="invalid date string")
     assert test is not True
-
-
-def test_factory_with_today():
-    fake_data = {
-        "original_message": {
-            "attachments": [
-                {
-                    "fields": [
-                        dict(value="fake user"),
-                        dict(value="fake reason"),
-                        dict(value="today"),
-                        dict(value="fake hours"),
-                    ]
-                }
-            ]
-        }
-    }
-    format_str = "%Y-%m-%d"
-    test = factory(json_order=fake_data, format_str=format_str)
-    assert isinstance(test, list)
-    assert isinstance(test[0], dict)
-    assert "user_name" in test[0].keys()
-    assert "reason" in test[0].keys()
-    assert "event_date" in test[0].keys()
-    assert "hours" in test[0].keys()
