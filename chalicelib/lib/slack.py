@@ -15,8 +15,10 @@ class Slack:
     slack_api_url = "https://slack.com/api"
 
     def __init__(self, slack_token):
-        self.headers = {"Content-Type": "application/json; charset=utf-8", "Authorization": f"Bearer {slack_token}"}
-
+        self.headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": f"Bearer {slack_token}",
+        }
 
     def post_message(self, message: str, channel: str) -> requests.models.Response:
         """
@@ -33,8 +35,9 @@ class Slack:
             )
         )
 
-
-    def _handle_response(self, response: requests.models.Response) -> requests.models.Response:
+    def _handle_response(
+        self, response: requests.models.Response
+    ) -> requests.models.Response:
         """
         Check the response from slack.
         A normal slack response should always be JSON with a key "ok" with value True for the response to be valid
@@ -42,13 +45,17 @@ class Slack:
         """
         try:
             validated_response = response.json()
-            if not validated_response.get('ok'):
-                log.critical(f"Slack responded with not ok. Message was: {validated_response}")
+            if not validated_response.get("ok"):
+                log.critical(
+                    f"Slack responded with not ok. Message was: {validated_response}"
+                )
         except (AttributeError, ValueError) as error:
-            log.critical(f"Unable get valid json from response. Error was: {error}", exc_info=True)
+            log.critical(
+                f"Unable get valid json from response. Error was: {error}",
+                exc_info=True,
+            )
 
         return response
-
 
     def ack_response(self, response_url):
         """
@@ -61,12 +68,14 @@ class Slack:
             requests.post(
                 url=response_url,
                 headers={"Content-Type": "application/json"},
-                json={"text": "OK, hang on when I do this!"}
+                json={"text": "OK, hang on when I do this!"},
             )
         )
 
 
-def slack_client_responder(token, user_id, attachment, url='https://slack.com/api/chat.postMessage'):
+def slack_client_responder(
+    token, user_id, attachment, url="https://slack.com/api/chat.postMessage"
+):
     """
     Sends an direct message to a user.
     https://api.slack.com/methods/chat.postEphemeral
@@ -79,15 +88,20 @@ def slack_client_responder(token, user_id, attachment, url='https://slack.com/ap
     """
 
     log.debug(f"Will try to post direct message to user {user_id}")
-    headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": f"Bearer {token}",
+    }
     return requests.post(
         url=url,
-        json={'channel': user_id, 'text': 'From timereport', 'attachments': attachment},
-        headers=headers
+        json={"channel": user_id, "text": "From timereport", "attachments": attachment},
+        headers=headers,
     )
 
 
-def slack_client_block_responder(token, user_id, block, url='https://slack.com/api/chat.postMessage'):
+def slack_client_block_responder(
+    token, user_id, block, url="https://slack.com/api/chat.postMessage"
+):
     """
     Sends an direct message to a user.
     https://slack.com/api/chat.postMessage
@@ -101,11 +115,14 @@ def slack_client_block_responder(token, user_id, block, url='https://slack.com/a
 
     log.debug(f"Will try to post direct message to user {user_id}")
     log.debug(f"block generated looks like this {block}")
-    headers = {'Content-Type': 'application/json; charset=utf-8', 'Authorization': f'Bearer {token}'}
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": f"Bearer {token}",
+    }
     return requests.post(
         url=url,
-        json={'channel': user_id, 'text': 'From timereport', 'blocks': block},
-        headers=headers
+        json={"channel": user_id, "text": "From timereport", "blocks": block},
+        headers=headers,
     )
 
 
@@ -116,7 +133,7 @@ def slack_responder(url, msg):
     :param msg:
     :return: boolean
     """
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     res = requests.post(url=url, json={"text": msg}, headers=headers)
     return res.status_code
 
@@ -215,11 +232,11 @@ def slack_payload_extractor(req):
     log.debug(f"data is: {data}")
 
     if data.get("payload"):
-        extracted_data = json.loads(data.get('payload')[0])
-        log.info(f'Extracted data: {extracted_data}')
+        extracted_data = json.loads(data.get("payload")[0])
+        log.info(f"Extracted data: {extracted_data}")
         return extracted_data
 
-    if data.get('command'):
+    if data.get("command"):
         return data
     else:
         return "failed extracting payload", 200
@@ -234,10 +251,10 @@ def verify_token(headers, body, signing_secret):
     3. Hash the signature together with your signing_secret token from slack settings
     4. Compare digest to slack signature from header
     """
-    request_timestamp = headers['X-Slack-Request-Timestamp']
-    slack_signature = headers['X-Slack-Signature']
+    request_timestamp = headers["X-Slack-Request-Timestamp"]
+    slack_signature = headers["X-Slack-Signature"]
 
-    request_basestring = f'v0:{request_timestamp}:{body}'
+    request_basestring = f"v0:{request_timestamp}:{body}"
     my_sig = f'v0={hmac.new(bytes(signing_secret, "utf-8"), bytes(request_basestring, "utf-8"), hashlib.sha256).hexdigest()}'
 
     if hmac.compare_digest(my_sig, slack_signature):
@@ -250,23 +267,10 @@ def submit_message_menu(user_name, reason, date, hours):
     attachment = [
         {
             "fields": [
-                {
-                    "title": "User",
-                    "value": user_name
-                },
-
-                {
-                    "title": "Type",
-                    "value": reason
-                },
-                {
-                    "title": "Date",
-                    "value": date
-                },
-                {
-                    "title": "Hours",
-                    "value": hours
-                }
+                {"title": "User", "value": user_name},
+                {"title": "Type", "value": reason},
+                {"title": "Date", "value": date},
+                {"title": "Hours", "value": hours},
             ],
             "footer": "Code Labs timereport",
             "footer_icon": "https://codelabs.se/favicon.ico",
@@ -281,16 +285,16 @@ def submit_message_menu(user_name, reason, date, hours):
                     "text": "submit",
                     "type": "button",
                     "style": "primary",
-                    "value": "submit_yes"
+                    "value": "submit_yes",
                 },
                 {
                     "name": "no",
                     "text": "No",
                     "type": "button",
                     "style": "danger",
-                    "value": "submit_no"
-                }
-            ]
+                    "value": "submit_no",
+                },
+            ],
         }
     ]
     return attachment
@@ -300,14 +304,8 @@ def delete_message_menu(user_name, date):
     attachment = [
         {
             "fields": [
-                {
-                    "title": "User",
-                    "value": user_name
-                },
-                {
-                    "title": "Date",
-                    "value": date
-                }
+                {"title": "User", "value": user_name},
+                {"title": "Date", "value": date},
             ],
             "footer": "Code Labs timereport",
             "footer_icon": "https://codelabs.se/favicon.ico",
@@ -322,16 +320,16 @@ def delete_message_menu(user_name, date):
                     "text": "submit",
                     "type": "button",
                     "style": "primary",
-                    "value": "submit_yes"
+                    "value": "submit_yes",
                 },
                 {
                     "name": "no",
                     "text": "No",
                     "type": "button",
                     "style": "danger",
-                    "value": "submit_no"
-                }
-            ]
+                    "value": "submit_no",
+                },
+            ],
         }
     ]
     return attachment
@@ -345,35 +343,33 @@ def create_block_message(message):
     """
     # [{"user_id": "U2FGC795G", "hours": "8", "user_name": "kamger", "event_date": "2019-08-30", "reason": "intern_arbete"}]
 
-    start_date = message[0].get('event_date')
-    end_date = message[-1].get('event_date')
+    start_date = message[0].get("event_date")
+    end_date = message[-1].get("event_date")
 
     block_header_section = {
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": f"Reported time for period *{start_date}:{end_date}*"
-        }
+            "text": f"Reported time for period *{start_date}:{end_date}*",
+        },
     }
 
-    block_divider = {
-        "type": "divider"
-    }
+    block_divider = {"type": "divider"}
 
     block = [block_header_section, block_divider]
 
     for entry in message:
-        start_date = entry.get('event_date')
-        reason = entry.get('reason')
-        hours = entry.get('hours')
+        start_date = entry.get("event_date")
+        reason = entry.get("reason")
+        hours = entry.get("hours")
 
         block_entry = {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"Date: *{start_date}*\nReason: *{reason}*\nHours: *{hours}*"
-                }
-            }
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"Date: *{start_date}*\nReason: *{reason}*\nHours: *{hours}*",
+            },
+        }
         block.append(block_entry)
         block.append(block_divider)
 
