@@ -118,7 +118,10 @@ class Action:
         dates_to_interactive = f"{parsed_date_to}:{parsed_date_from}"
         self.send_attachment(
             attachment=submit_message_menu(
-                self.user_name, reason, dates_to_interactive, hours
+                user_name=self.user_name,
+                reason=reason,
+                date=dates_to_interactive,
+                hours=hours,
             )
         )
         return ""
