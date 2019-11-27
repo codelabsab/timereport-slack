@@ -115,12 +115,11 @@ class Action:
             )
 
         # all validation completed successfully - send interactive menu with correct dates
-        dates_to_interactive = f"{parsed_date_to}:{parsed_date_from}"
         self.send_attachment(
             attachment=submit_message_menu(
                 user_name=self.user_name,
                 reason=reason,
-                date=dates_to_interactive,
+                date=f"{parsed_date_to}:{parsed_date_from}",
                 hours=hours,
             )
         )
