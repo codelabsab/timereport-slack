@@ -59,6 +59,12 @@ def test_invalid_date_format():
     assert not test_date
 
 
+def test_parse_today():
+    test_date = parse_date(date="today")
+    assert isinstance(test_date, list)
+    assert isinstance(test_date[0], datetime)
+
+
 def test_date_range():
     first_date = datetime.strptime("2019-01-01", format_str)
     second_date = datetime.strptime("2019-01-10", format_str)

@@ -19,7 +19,7 @@ def parse_config(path="config.yaml"):
     return config
 
 
-def date_range(start_date: datetime, stop_date: datetime) -> datetime:
+def date_range(start_date: datetime, stop_date: datetime) -> [datetime]:
     """
     A generator that yields the days between start_date and stop_date
     """
@@ -44,19 +44,24 @@ def validate_date(date, format_str) -> bool:
     return True
 
 
-def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
+def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
     """
     Parse the date from a string.
     Expects these formats:
     "today"
     "2019-01-01"
     "2019-01-01:2019-01-02"
+    :returns: list of two dates, from and to. In case of today list consist of two identical items
+    list(from: datetime, to: datetime)
     """
 
-    dates = list()
+    # handle shorthand args
     if date == "today":
-        dates.append(datetime.now())
+        return [datetime.now()]
 
+    dates = list()
+
+    # date range
     if ":" in date:
         try:
             first_date, second_date = date.split(":")
@@ -75,8 +80,10 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
 
             dates.append(datetime.strptime(first_date, format_str))
             dates.append(datetime.strptime(second_date, format_str))
+    # single date
     else:
         if validate_date(date, format_str=format_str):
+            # to and from are the same date
             dates.append(datetime.strptime(date, format_str))
 
     return dates
