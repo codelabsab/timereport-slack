@@ -7,7 +7,6 @@ name = "pypi"
 botocore = "*"
 chalice = "*"
 ruamel-yaml = "*"
-flake8 = "*"
 
 [dev-packages]
 pytest = "*"
@@ -16,6 +15,7 @@ pytest-cov = "*"
 pylint = "*"
 ptpython = "*"
 requests = "*"
+flake8 = "*"
 
 [requires]
 python_version = "3.6"
