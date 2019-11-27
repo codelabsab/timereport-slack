@@ -86,23 +86,23 @@ class Action:
             log.debug(f"params: {self.params}")
             return self.send_response(message="Wrong number of args for add command")
 
-        # validate reason
+        # assign
         reason = self.params[1]
-        if not self._valid_reason(reason=reason):
+        input_dates = self.params[2]
+        hours = self.params[3] if len(self.params) is 4 else 8
+
+        # validate reason
+        if not self._valid_reason(reason=self.params[1]):
             return self.send_response(message=f"Reason {reason} is not valid")
 
         # validate hours
-        if len(self.params) is 4:
-            hours = self.params[3]
-            try:
-                hours = round(float(hours))
-            except ValueError:
-                return self.send_response(message="Could not parse hours")
-        else:
-            hours = 8
+        try:
+            hours = round(float(hours))
+        except ValueError:
+            return self.send_response(message="Could not parse hours")
 
         # validate dates
-        parsed_dates = parse_date(date=self.params[2], format_str=self.format_str)
+        parsed_dates = parse_date(date=input_dates, format_str=self.format_str)
         if not parsed_dates:
             self.send_response(message="failed to parse date {date}")
 
@@ -114,7 +114,7 @@ class Action:
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
 
-        # all validation completed successfully - send interactive menu with correct dates
+        # all validation completed successfully - send interactive menu with range from parsed_dates
         self.send_attachment(
             attachment=submit_message_menu(
                 user_name=self.user_name,
