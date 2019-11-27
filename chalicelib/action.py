@@ -342,7 +342,7 @@ class Action:
         log.debug(f"Got {len(dates_to_check)} date(s) to check")
         for date in dates_to_check:
             respone = read_lock(
-                url=self.config["backend_url"], user_id=self.user_id, date=date,
+                url=self.config["backend_url"], user_id=self.user_id, date=date
             )
             if respone.json():
                 log.info(f"Date {date} is locked")
@@ -368,4 +368,3 @@ class Action:
             return True
 
         return False
-

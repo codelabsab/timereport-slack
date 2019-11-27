@@ -12,6 +12,7 @@ from datetime import datetime
 dir_path = os.path.dirname(os.path.realpath(__file__))
 fake_user_url = "http://fake.nowhere/event/users/fake_userid"
 
+
 def test_parsing_config():
     test_config = parse_config(f"{dir_path}/config.yaml")
     mandatory_options = ("log_level", "backend_url")
@@ -41,18 +42,17 @@ def test_create_event_failure():
     assert response.status_code != 200
     unstub()
 
+
 def test_get_list_data_default():
     month = datetime.now().strftime("%Y-%m")
     fake_response = "fake list data response"
     when(requests).get(
-        url=fake_user_url,
-        params={
-            'startDate': f"{month}-01",
-            'endDate': f"{month}-31"
-        }
+        url=fake_user_url, params={"startDate": f"{month}-01", "endDate": f"{month}-31"}
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
-        url="http://fake.nowhere", user_id="fake_userid", date_str=datetime.now().strftime("%Y-%m")
+        url="http://fake.nowhere",
+        user_id="fake_userid",
+        date_str=datetime.now().strftime("%Y-%m"),
     )
     unstub()
     assert test == fake_response
@@ -61,8 +61,7 @@ def test_get_list_data_default():
 def test_get_list_data_single_date():
     fake_response = "fake list data response"
     when(requests).get(
-        url=fake_user_url,
-        params={"startDate": "2019-01-01", "endDate": "2019-01-01"},
+        url=fake_user_url, params={"startDate": "2019-01-01", "endDate": "2019-01-01"}
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
         url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01"
@@ -74,8 +73,7 @@ def test_get_list_data_single_date():
 def test_get_list_data_date_range():
     fake_response = "fake list data response"
     when(requests).get(
-        url=fake_user_url,
-        params={"startDate": "2019-01-01", "endDate": "2019-01-02"},
+        url=fake_user_url, params={"startDate": "2019-01-01", "endDate": "2019-01-02"}
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
         url="http://fake.nowhere",
@@ -89,13 +87,10 @@ def test_get_list_data_date_range():
 def test_get_list_data_month():
     fake_response = "fake list data response"
     when(requests).get(
-        url=fake_user_url,
-        params={"startDate": "2019-01-01", "endDate": "2019-01-31"},
+        url=fake_user_url, params={"startDate": "2019-01-01", "endDate": "2019-01-31"}
     ).thenReturn(mock({"status_code": 200, "text": fake_response}))
     test = get_list_data(
-        url="http://fake.nowhere",
-        user_id="fake_userid",
-        date_str="2019-01",
+        url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01"
     )
     unstub()
     assert test == fake_response
@@ -103,20 +98,18 @@ def test_get_list_data_month():
 
 def test_get_list_data_faulty_response():
     when(requests).get(
-        url=fake_user_url,
-        params={
-            'startDate': "2019-01-01",
-            'endDate': "2019-01-01",
-        }
+        url=fake_user_url, params={"startDate": "2019-01-01", "endDate": "2019-01-01"}
     ).thenReturn(mock({"status_code": 500}))
-    test = get_list_data(url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01")
+    test = get_list_data(
+        url="http://fake.nowhere", user_id="fake_userid", date_str="2019-01-01"
+    )
     unstub()
     assert test is False
 
 
 def test_create_lock():
     test = create_lock(user_id="fake", event_date="2019-01")
-    assert isinstance(test.get('event_date'), str)
+    assert isinstance(test.get("event_date"), str)
 
 
 def test_create_lock_faulty_date():

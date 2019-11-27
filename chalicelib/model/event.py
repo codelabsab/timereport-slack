@@ -1,18 +1,21 @@
 import json
 from datetime import datetime
 import logging
+
 log = logging.getLogger(__name__)
+
 
 def create_event(user_id, user_name, reason, event_date, hours):
     format_str = "%Y-%m-%d"
     event = {
-        'user_id': user_id,
-        'user_name': user_name,
-        'reason': reason,
-        'event_date': event_date.strftime(format_str),
-        'hours': hours,
+        "user_id": user_id,
+        "user_name": user_name,
+        "reason": reason,
+        "event_date": event_date.strftime(format_str),
+        "hours": hours,
     }
     return event
+
 
 def create_lock(user_id, event_date):
     format_str = "%Y-%m"
@@ -20,13 +23,11 @@ def create_lock(user_id, event_date):
         datetime.strptime(event_date, format_str)
     except ValueError:
         log.error(f"The event_date {event_date} isn't a valid format")
-        return False # Returnera tillbaka så action klassen kan rapportera felet till slack?
+        return False
 
-    event = {
-        'user_id': user_id,
-        'event_date': event_date,
-    }
+    event = {"user_id": user_id, "event_date": event_date}
     return event
+
 
 class Event:
     # Work in progress, not used.

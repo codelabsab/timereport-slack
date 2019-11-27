@@ -18,6 +18,7 @@ def get_list_data(url, user_id, date_str):
         start_date, end_date = date_str.split(":")
     except ValueError as error:
         log.debug(f"Failed to split: {date_str}")
+        log.debug(f"{error}")
 
         if len(date_str.split("-")) == 2:
             start_date = f"{date_str}-01"
