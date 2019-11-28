@@ -82,7 +82,7 @@ class Action:
     def _add_action(self):
 
         # validate number of arguments
-        if len(self.params) is not (3 or 4):
+        if not self._valid_number_of_args(min_args=3, max_args=4):
             log.debug(f"params: {self.params}")
             return self.send_response(message="Wrong number of args for add command")
 
@@ -102,24 +102,30 @@ class Action:
             return self.send_response(message="Could not parse hours")
 
         # validate dates
-        parsed_dates = parse_date(date=input_dates, format_str=self.format_str)
+        parsed_dates: list = parse_date(date=input_dates, format_str=self.format_str)
         if not parsed_dates:
             self.send_response(message="failed to parse date {date}")
 
+        # store from and to
+        parsed_date_from: datetime = parsed_dates[0]
+        parsed_date_to: datetime = parsed_dates[1] if len(
+            parsed_dates
+        ) > 1 else parsed_dates[0]
+
         # validate months in date argument are not locked
-        parsed_date_from = parsed_dates[0]
-        parsed_date_to = parsed_dates[1] if len(parsed_dates) > 1 else parsed_dates[0]
         if self._check_locks(date=parsed_date_from, second_date=parsed_date_to):
             return self.send_response(
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
 
-        # all validation completed successfully - send interactive menu with range from parsed_dates
+        # all validation completed successfully - send interactive menu with dates in correct format
+        date_from: str = parsed_date_from.strftime(self.format_str)
+        date_to: str = parsed_date_to.strftime(self.format_str)
         self.send_attachment(
             attachment=submit_message_menu(
                 user_name=self.user_name,
                 reason=reason,
-                date=f"{parsed_date_from}:{parsed_date_to}",
+                date=f"{date_from}:{date_to}",
                 hours=hours,
             )
         )

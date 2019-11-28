@@ -51,39 +51,35 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
     "today"
     "2019-01-01"
     "2019-01-01:2019-01-02"
-    :returns: list of two dates, from and to. In case of today list consist of two identical items
-    list(from: datetime, to: datetime)
+    :returns:
+             single -> list(date: datetime)
+             range -> list(date_from: datetime, date_to: datetime)
     """
 
-    # handle shorthand args
+    # handle aliases
     if date == "today":
         return [datetime.now()]
 
     dates = list()
 
-    # date range
     if ":" in date:
         try:
-            first_date, second_date = date.split(":")
+            date_from, date_to = date.split(":")
         except ValueError as error:
             log.error(f"Unable to split date {date}. The error was: {error}")
             return dates
 
-        if validate_date(first_date, format_str=format_str) and validate_date(
-            second_date, format_str=format_str
+        if validate_date(date=date_from, format_str=format_str) and validate_date(
+            date=date_to, format_str=format_str
         ):
-            if first_date > second_date:
-                log.error(
-                    f"First date {first_date} needs to be smaller than second date {second_date}"
-                )
+            if date_from > date_to:
+                log.error(f"Wrong order given: from {date_from} to {date_to}")
                 return dates
-
-            dates.append(datetime.strptime(first_date, format_str))
-            dates.append(datetime.strptime(second_date, format_str))
-    # single date
+            else:
+                dates.append(datetime.strptime(date_from, format_str))
+                dates.append(datetime.strptime(date_to, format_str))
     else:
         if validate_date(date, format_str=format_str):
-            # to and from are the same date
             dates.append(datetime.strptime(date, format_str))
 
     return dates
