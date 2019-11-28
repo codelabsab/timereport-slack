@@ -1,6 +1,5 @@
 from chalicelib.lib.helpers import parse_date, date_range
 from datetime import datetime
-import pytest
 
 format_str = "%Y-%m-%d"
 
@@ -17,9 +16,9 @@ def test_parse_date_today():
 
 
 def test_parse_date_invalid_format():
-    empty_test_list = parse_date(date="not_supported_format")
-    assert isinstance(empty_test_list, dict)
-    assert empty_test_list == {"to": None, "from": None}
+    test_date = parse_date(date="not_supported_format")
+    assert isinstance(test_date, dict)
+    assert test_date == {"to": None, "from": None}
 
 
 def test_parse_single_date():
