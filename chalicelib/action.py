@@ -83,7 +83,7 @@ class Action:
 
         # validate number of arguments
         if not self._valid_number_of_args(min_args=2, max_args=3):
-            log.debug(f"params: {self.params}")
+            log.debug(f"args: {self.arguments}")
             return self.send_response(message="Wrong number of args for add command")
 
         # assign
