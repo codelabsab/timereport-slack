@@ -82,24 +82,24 @@ class Action:
     def _add_action(self):
 
         # validate number of arguments
-        if len(self.params) is not (3 or 4):
-            log.debug(f"params: {self.params}")
+        if not self._valid_number_of_args(min_args=2, max_args=3):
+            log.debug(f"args: {self.arguments}")
             return self.send_response(message="Wrong number of args for add command")
 
         # assign
-        reason: str = self.params[1]
-        input_dates: str = self.params[2]
-        hours: str = self.params[3] if len(self.params) == 4 else 8
+        reason: str = self.arguments[0]
+        input_dates: str = self.arguments[1]
+        hours: str = self.arguments[2] if len(self.arguments) == 3 else 8
 
         # validate reason
-        if not self._valid_reason(reason=self.params[1]):
+        if not self._valid_reason(reason=reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
         # validate hours
         try:
             hours: int = round(float(hours))
         except ValueError:
-            return self.send_response(message="Could not parse hours")
+            return self.send_response(message=f"Could not parse hours: {hours}")
 
         # validate dates
         parsed_dates: List[datetime] = parse_date(
@@ -109,7 +109,7 @@ class Action:
             self.send_response(message="failed to parse date {date}")
 
         # validate months in date argument are not locked
-        if len(parsed_dates) > 1:
+        if len(parsed_dates) == 2:
             parsed_date_from: datetime = parsed_dates[0]
             parsed_date_to: datetime = parsed_dates[1]
         else:

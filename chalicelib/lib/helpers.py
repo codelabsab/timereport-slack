@@ -56,28 +56,34 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
              range -> list(date_from: datetime, date_to: datetime)
     """
 
-    # handle aliases
-    if date == "today":
-        return [datetime.now()]
-
     dates = list()
 
-    if ":" in date:
+    # handle aliases
+    if date == "today":
+        dates.append(datetime.now())
+
+    # handle ranges
+    elif ":" in date:
         try:
             date_from, date_to = date.split(":")
         except ValueError as error:
-            log.error(f"Unable to split date {date}. The error was: {error}")
+            log.error(f"unable to split date {date}. The error was: {error}")
             return dates
 
-        if validate_date(date=date_from, format_str=format_str) and validate_date(
-            date=date_to, format_str=format_str
-        ):
-            if date_from > date_to:
-                log.error(f"Wrong order given: from {date_from} to {date_to}")
-                return dates
-            else:
-                dates.append(datetime.strptime(date_from, format_str))
-                dates.append(datetime.strptime(date_to, format_str))
+        if not validate_date(date_from, format_str=format_str):
+            return dates
+
+        if not validate_date(date_to, format_str=format_str):
+            return dates
+
+        if date_from > date_to:
+            log.error(f"{date_from} is after {date_to}")
+            return dates
+
+        dates.append(datetime.strptime(date_from, format_str))
+        dates.append(datetime.strptime(date_to, format_str))
+
+    # handle single date
     else:
         if validate_date(date, format_str=format_str):
             dates.append(datetime.strptime(date, format_str))
