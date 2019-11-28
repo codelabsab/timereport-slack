@@ -1,5 +1,6 @@
 from datetime import datetime
 from chalicelib.lib.helpers import date_range
+from chalicelib.lib.helpers import parse_date
 import logging
 
 log = logging.getLogger(__name__)
@@ -20,19 +21,11 @@ def factory(json_order, format_str):
 
     user_name = payload[0]["value"]
     reason = payload[1]["value"]
-    date = payload[2]["value"]
     hours = payload[3]["value"]
     events = []
+    dates = parse_date(payload[2]["value"])
 
-    if ":" in date:
-        start_date, stop_date = date.split(":")
-    else:
-        start_date = date
-        stop_date = date
-
-    date_obj_start = datetime.strptime(start_date, format_str)
-    date_obj_stop = datetime.strptime(stop_date, format_str)
-    for date in date_range(start_date=date_obj_start, stop_date=date_obj_stop):
+    for date in date_range(start_date=dates["from"], stop_date=dates["to"]):
         log.info(f"date is {date}")
         document = {
             "user_name": user_name,

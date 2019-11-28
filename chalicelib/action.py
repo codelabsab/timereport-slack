@@ -11,7 +11,7 @@ from chalicelib.lib.slack import (
     Slack,
     create_block_message,
 )
-from typing import List
+from typing import Dict
 from chalicelib.model.event import create_lock
 from datetime import datetime
 from chalicelib.lib.lock import lock_event
@@ -88,7 +88,7 @@ class Action:
 
         # assign
         reason: str = self.arguments[0]
-        input_dates: str = self.arguments[1]
+        input_date: str = self.arguments[1]
         hours: str = self.arguments[2] if len(self.arguments) == 3 else 8
 
         # validate reason
@@ -102,21 +102,14 @@ class Action:
             return self.send_response(message=f"Could not parse hours: {hours}")
 
         # validate dates
-        parsed_dates: List[datetime] = parse_date(
-            date=input_dates, format_str=self.format_str
+        parsed_dates: Dict[str, datetime] = parse_date(
+            date=input_date, format_str=self.format_str
         )
-        if not parsed_dates:
+        if not parsed_dates["to"] or not parsed_dates["from"]:
             self.send_response(message="failed to parse date {date}")
 
         # validate months in date argument are not locked
-        if len(parsed_dates) == 2:
-            parsed_date_from: datetime = parsed_dates[0]
-            parsed_date_to: datetime = parsed_dates[1]
-        else:
-            parsed_date_from: datetime = parsed_dates[0]
-            parsed_date_to: datetime = parsed_dates[0]
-
-        if self._check_locks(date=parsed_date_from, second_date=parsed_date_to):
+        if self._check_locks(date=parsed_dates["from"], second_date=parsed_dates["to"]):
             return self.send_response(
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
@@ -126,7 +119,7 @@ class Action:
             attachment=submit_message_menu(
                 user_name=self.user_name,
                 reason=reason,
-                date=f"{parsed_date_from.strftime(self.format_str)}:{parsed_date_to.strftime(self.format_str)}",
+                date=f"{input_date}",
                 hours=hours,
             )
         )

@@ -44,7 +44,7 @@ def validate_date(date, format_str) -> bool:
     return True
 
 
-def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
+def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
     """
     Parse the date from a string.
     Expects these formats:
@@ -56,11 +56,12 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
              range -> list(date_from: datetime, date_to: datetime)
     """
 
-    dates = list()
+    dates = {"to": None, "from": None}
 
     # handle aliases
     if date == "today":
-        dates.append(datetime.now())
+        dates['to'] = datetime.now()
+        dates['from'] = datetime.now()
 
     # handle ranges
     elif ":" in date:
@@ -80,12 +81,13 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> list:
             log.error(f"{date_from} is after {date_to}")
             return dates
 
-        dates.append(datetime.strptime(date_from, format_str))
-        dates.append(datetime.strptime(date_to, format_str))
+        dates['from'] = datetime.strptime(date_from, format_str)
+        dates['to'] = datetime.strptime(date_to, format_str)
 
     # handle single date
     else:
         if validate_date(date, format_str=format_str):
-            dates.append(datetime.strptime(date, format_str))
+            dates['to'] = datetime.strptime(date, format_str)
+            dates['from'] = datetime.strptime(date, format_str)
 
     return dates

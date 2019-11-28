@@ -8,26 +8,27 @@ format_str = "%Y-%m-%d"
 def test_parse_date_today():
     today = datetime.now().strftime(format_str)
 
-    today_test_list = parse_date(date="today", format_str=format_str)
-    assert isinstance(today_test_list, list)
-    assert len(today_test_list) == 1
-    assert isinstance(today_test_list[0], datetime)
-    assert today == today_test_list[0].strftime(format_str)
+    today_test_dict = parse_date(date="today", format_str=format_str)
+    assert isinstance(today_test_dict, dict)
+    assert isinstance(today_test_dict["from"], datetime)
+    assert isinstance(today_test_dict["to"], datetime)
+    assert today == today_test_dict["from"].strftime(format_str)
+    assert today == today_test_dict["to"].strftime(format_str)
 
 
 def test_parse_date_invalid_format():
     empty_test_list = parse_date(date="not_supported_format")
-    assert isinstance(empty_test_list, list)
-    assert empty_test_list == []
+    assert isinstance(empty_test_list, dict)
+    assert empty_test_list == {"to": None, "from": None}
 
 
 def test_parse_single_date():
     single_date = "2019-01-01"
     test_date = parse_date(date=single_date)
 
-    assert isinstance(test_date, list)
-    assert len(test_date) == 1
-    assert isinstance(test_date[0], datetime)
+    assert isinstance(test_date, dict)
+    assert test_date["from"] == datetime.strptime(single_date, "%Y-%m-%d")
+    assert test_date["to"] == datetime.strptime(single_date, "%Y-%m-%d")
 
 
 def test_parse_multiple_dates():
@@ -36,10 +37,9 @@ def test_parse_multiple_dates():
     multiple_dates = f"{first_date}:{second_date}"
 
     test_dates = parse_date(date=multiple_dates)
-    assert isinstance(test_dates, list)
-    assert len(test_dates) == 2
-    assert isinstance(test_dates[0], datetime)
-    assert isinstance(test_dates[1], datetime)
+    assert isinstance(test_dates, dict)
+    assert test_dates["from"] == datetime.strptime(first_date, "%Y-%m-%d")
+    assert test_dates["to"] == datetime.strptime(second_date, "%Y-%m-%d")
 
 
 def test_parse_invalid_multiple_dates():
@@ -49,20 +49,22 @@ def test_parse_invalid_multiple_dates():
     multiple_dates = f"{first_date}:{second_date}"
 
     test_dates = parse_date(date=multiple_dates)
-    assert isinstance(test_dates, list)
-    assert not test_dates
+    assert isinstance(test_dates, dict)
+    assert test_dates["from"] is None
+    assert test_dates["to"] is None
 
 
 def test_invalid_date_format():
     invalid_format = "2019:01:02"
     test_date = parse_date(date=invalid_format)
-    assert not test_date
+    assert test_date["from"] is None
+    assert test_date["to"] is None
 
 
 def test_parse_today():
     test_date = parse_date(date="today")
-    assert isinstance(test_date, list)
-    assert isinstance(test_date[0], datetime)
+    assert isinstance(test_date, dict)
+    assert isinstance(test_date["from"], datetime)
 
 
 def test_date_range():
