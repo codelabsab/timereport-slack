@@ -11,7 +11,7 @@ from chalicelib.lib.slack import (
     Slack,
     create_block_message,
 )
-from chalicelib.lib.factory import factory
+from typing import List
 from chalicelib.model.event import create_lock
 from datetime import datetime
 from chalicelib.lib.lock import lock_event
@@ -82,50 +82,51 @@ class Action:
     def _add_action(self):
 
         # validate number of arguments
-        if not self._valid_number_of_args(min_args=2, max_args=3):
-            log.debug(f"args: {self.arguments}")
+        if len(self.params) is not (3 or 4):
+            log.debug(f"params: {self.params}")
             return self.send_response(message="Wrong number of args for add command")
 
         # assign
-        reason = self.arguments[0]
-        input_dates = self.arguments[1]
-        hours = self.arguments[2] if len(self.arguments) == 3 else 8
+        reason: str = self.params[1]
+        input_dates: str = self.params[2]
+        hours: str = self.params[3] if len(self.params) == 4 else 8
 
         # validate reason
-        if not self._valid_reason(reason=reason):
+        if not self._valid_reason(reason=self.params[1]):
             return self.send_response(message=f"Reason {reason} is not valid")
 
         # validate hours
         try:
-            hours = round(float(hours))
+            hours: int = round(float(hours))
         except ValueError:
             return self.send_response(message="Could not parse hours")
 
         # validate dates
-        parsed_dates: list = parse_date(date=input_dates, format_str=self.format_str)
+        parsed_dates: List[datetime] = parse_date(
+            date=input_dates, format_str=self.format_str
+        )
         if not parsed_dates:
             self.send_response(message="failed to parse date {date}")
 
-        # store from and to
-        parsed_date_from: datetime = parsed_dates[0]
-        parsed_date_to: datetime = parsed_dates[1] if len(
-            parsed_dates
-        ) > 1 else parsed_dates[0]
-
         # validate months in date argument are not locked
+        if len(parsed_dates) > 1:
+            parsed_date_from: datetime = parsed_dates[0]
+            parsed_date_to: datetime = parsed_dates[1]
+        else:
+            parsed_date_from: datetime = parsed_dates[0]
+            parsed_date_to: datetime = parsed_dates[0]
+
         if self._check_locks(date=parsed_date_from, second_date=parsed_date_to):
             return self.send_response(
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
 
-        # all validation completed successfully - send interactive menu with dates in correct format
-        date_from: str = parsed_date_from.strftime(self.format_str)
-        date_to: str = parsed_date_to.strftime(self.format_str)
+        # all validation completed successfully - send interactive menu with range from parsed_dates
         self.send_attachment(
             attachment=submit_message_menu(
                 user_name=self.user_name,
                 reason=reason,
-                date=f"{date_from}:{date_to}",
+                date=f"{parsed_date_from}:{parsed_date_to}",
                 hours=hours,
             )
         )
