@@ -82,17 +82,17 @@ class Action:
     def _add_action(self):
 
         # validate number of arguments
-        if not self._valid_number_of_args(min_args=3, max_args=4):
+        if not self._valid_number_of_args(min_args=2, max_args=3):
             log.debug(f"params: {self.params}")
             return self.send_response(message="Wrong number of args for add command")
 
         # assign
-        reason = self.params[1]
-        input_dates = self.params[2]
-        hours = self.params[3] if len(self.params) == 4 else 8
+        reason = self.arguments[0]
+        input_dates = self.arguments[1]
+        hours = self.arguments[2] if len(self.arguments) == 3 else 8
 
         # validate reason
-        if not self._valid_reason(reason=self.params[1]):
+        if not self._valid_reason(reason=reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
         # validate hours
