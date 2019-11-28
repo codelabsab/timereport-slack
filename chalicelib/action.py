@@ -105,7 +105,7 @@ class Action:
         parsed_dates: Dict[str, datetime] = parse_date(
             date=input_date, format_str=self.format_str
         )
-        if not parsed_dates["to"] or not parsed_dates["from"]:
+        if parsed_dates["to"] is None or parsed_dates["from"] is None:
             self.send_response(message="failed to parse date {date}")
 
         # validate months in date argument are not locked
@@ -169,17 +169,17 @@ class Action:
     def _delete_action(self):
 
         date_string = self.params[1]
-        date = parse_date(date_string, format_str=self.format_str)
+        date: Dict[str, datetime] = parse_date(date_string, format_str=self.format_str)
 
-        if not date:
+        if date["from"] is None or date["to"] is None:
             return self.send_response(message=f"Could not parse date {date_string}")
 
-        if len(date) > 1:
+        if date["from"] is not date["to"]:
             return self.send_response(
                 message=f"Delete doesn't support date range :cry:"
             )
 
-        if not self._check_locks(date=date[0], second_date=date[0]):
+        if not self._check_locks(date=date["from"], second_date=date["to"]):
             self.send_attachment(
                 attachment=delete_message_menu(
                     self.payload.get("user_name")[0], date_string
@@ -220,14 +220,14 @@ class Action:
             log.debug(f"Caught error: {error}")
             log.info(f"Using default hours '{hours}'")
 
-        date = parse_date(date_input, format_str=self.format_str)
-        if not date:
+        date: Dict[str, datetime] = parse_date(date_input, format_str=self.format_str)
+        if date["from"] is None or date["to"] is None:
             self.send_response(message="failed to parse date {date_string}")
 
-        if len(date) > 1:
+        if date["from"] is not date["to"]:
             return self.send_response(message=f"Edit doesn't support date range :cry:")
 
-        if self._check_locks(date=date[0], second_date=date[0]):
+        if self._check_locks(date=date["from"], second_date=date["to"]):
             return self.send_response(
                 message=f"Can't edit date {date_input} because locked month :cry:"
             )
