@@ -1,6 +1,7 @@
 from ruamel.yaml import YAML
 from datetime import timedelta, datetime
 import logging
+from typing import List
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def parse_config(path="config.yaml"):
     return config
 
 
-def date_range(start_date: datetime, stop_date: datetime) -> [datetime]:
+def date_range(start_date: datetime, stop_date: datetime) -> List[datetime]:
     """
     A generator that yields the days between start_date and stop_date
     """
