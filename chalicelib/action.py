@@ -11,7 +11,7 @@ from chalicelib.lib.slack import (
     Slack,
     create_block_message,
 )
-from chalicelib.lib.factory import factory
+from typing import Dict
 from chalicelib.model.event import create_lock
 from datetime import datetime
 from chalicelib.lib.lock import lock_event
@@ -81,45 +81,48 @@ class Action:
 
     def _add_action(self):
 
-        if len(self.params) < 3 or len(self.params) > 4:
-            log.debug(f"params: {self.params}")
+        # validate number of arguments
+        if not self._valid_number_of_args(min_args=2, max_args=3):
+            log.debug(f"args: {self.arguments}")
             return self.send_response(message="Wrong number of args for add command")
 
-        reason = self.params[1]
-        date_string = self.params[2]
-        hours = 8
+        # assign
+        reason: str = self.arguments[0]
+        input_date: str = self.arguments[1]
+        hours: str = self.arguments[2] if len(self.arguments) == 3 else 8
 
-        if len(self.params) == 4:
-            try:
-                hours = round(float(self.params[3]))
-            except ValueError:
-                return self.send_response(message="Could not parse hours")
-
+        # validate reason
         if not self._valid_reason(reason=reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
-        date = parse_date(date=date_string, format_str=self.format_str)
+        # validate hours
+        try:
+            hours: int = round(float(hours))
+        except ValueError:
+            return self.send_response(message=f"Could not parse hours: {hours}")
 
-        if not date:
+        # validate dates
+        parsed_dates: Dict[str, datetime] = parse_date(
+            date=input_date, format_str=self.format_str
+        )
+        if parsed_dates["to"] is None or parsed_dates["from"] is None:
             self.send_response(message="failed to parse date {date}")
 
-        first_date = date[0]
-        # second date is optional
-        if len(date) > 1:
-            second_date = date[1]
-        else:
-            second_date = date[0]
-
-        if not self._check_locks(date=first_date, second_date=second_date):
-            self.send_attachment(
-                attachment=submit_message_menu(
-                    self.user_name, reason, date_string, hours
-                )
-            )
-        else:
-            self.send_response(
+        # validate months in date argument are not locked
+        if self._check_locks(date=parsed_dates["from"], second_date=parsed_dates["to"]):
+            return self.send_response(
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
+
+        # all validation completed successfully - send interactive menu with range from parsed_dates
+        self.send_attachment(
+            attachment=submit_message_menu(
+                user_name=self.user_name,
+                reason=reason,
+                date=f"{input_date}",
+                hours=hours,
+            )
+        )
         return ""
 
     def _list_action(self):
@@ -166,17 +169,17 @@ class Action:
     def _delete_action(self):
 
         date_string = self.params[1]
-        date = parse_date(date_string, format_str=self.format_str)
+        date: Dict[str, datetime] = parse_date(date_string, format_str=self.format_str)
 
-        if not date:
+        if date["from"] is None or date["to"] is None:
             return self.send_response(message=f"Could not parse date {date_string}")
 
-        if len(date) > 1:
+        if date["from"] is not date["to"]:
             return self.send_response(
                 message=f"Delete doesn't support date range :cry:"
             )
 
-        if not self._check_locks(date=date[0], second_date=date[0]):
+        if not self._check_locks(date=date["from"], second_date=date["to"]):
             self.send_attachment(
                 attachment=delete_message_menu(
                     self.payload.get("user_name")[0], date_string
@@ -217,14 +220,14 @@ class Action:
             log.debug(f"Caught error: {error}")
             log.info(f"Using default hours '{hours}'")
 
-        date = parse_date(date_input, format_str=self.format_str)
-        if not date:
+        date: Dict[str, datetime] = parse_date(date_input, format_str=self.format_str)
+        if date["from"] is None or date["to"] is None:
             self.send_response(message="failed to parse date {date_string}")
 
-        if len(date) > 1:
+        if date["from"] is not date["to"]:
             return self.send_response(message=f"Edit doesn't support date range :cry:")
 
-        if self._check_locks(date=date[0], second_date=date[0]):
+        if self._check_locks(date=date["from"], second_date=date["to"]):
             return self.send_response(
                 message=f"Can't edit date {date_input} because locked month :cry:"
             )

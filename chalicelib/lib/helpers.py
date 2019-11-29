@@ -1,6 +1,7 @@
 from ruamel.yaml import YAML
 from datetime import timedelta, datetime
 import logging
+from typing import List
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def parse_config(path="config.yaml"):
     return config
 
 
-def date_range(start_date: datetime, stop_date: datetime) -> datetime:
+def date_range(start_date: datetime, stop_date: datetime) -> List[datetime]:
     """
     A generator that yields the days between start_date and stop_date
     """
@@ -51,32 +52,43 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
     "today"
     "2019-01-01"
     "2019-01-01:2019-01-02"
+    :returns:
+             single -> list(date: datetime)
+             range -> list(date_from: datetime, date_to: datetime)
     """
 
-    dates = list()
-    if date == "today":
-        dates.append(datetime.now())
+    dates = {"to": None, "from": None}
 
-    if ":" in date:
+    # handle aliases
+    if date == "today":
+        dates['to'] = datetime.now()
+        dates['from'] = datetime.now()
+
+    # handle ranges
+    elif ":" in date:
         try:
-            first_date, second_date = date.split(":")
+            date_from, date_to = date.split(":")
         except ValueError as error:
-            log.error(f"Unable to split date {date}. The error was: {error}")
+            log.error(f"unable to split date {date}. The error was: {error}")
             return dates
 
-        if validate_date(first_date, format_str=format_str) and validate_date(
-            second_date, format_str=format_str
-        ):
-            if first_date > second_date:
-                log.error(
-                    f"First date {first_date} needs to be smaller than second date {second_date}"
-                )
-                return dates
+        if not validate_date(date_from, format_str=format_str):
+            return dates
 
-            dates.append(datetime.strptime(first_date, format_str))
-            dates.append(datetime.strptime(second_date, format_str))
+        if not validate_date(date_to, format_str=format_str):
+            return dates
+
+        if date_from > date_to:
+            log.error(f"{date_from} is after {date_to}")
+            return dates
+
+        dates['from'] = datetime.strptime(date_from, format_str)
+        dates['to'] = datetime.strptime(date_to, format_str)
+
+    # handle single date
     else:
         if validate_date(date, format_str=format_str):
-            dates.append(datetime.strptime(date, format_str))
+            dates['to'] = datetime.strptime(date, format_str)
+            dates['from'] = datetime.strptime(date, format_str)
 
     return dates
