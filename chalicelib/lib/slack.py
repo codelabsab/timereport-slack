@@ -20,17 +20,25 @@ class Slack:
             "Authorization": f"Bearer {slack_token}",
         }
 
-    def post_message(self, message: str, channel: str) -> requests.models.Response:
+    def post_message(
+        self, message: str, channel: str, **kwargs
+    ) -> requests.models.Response:
         """
         Send slack message to channel. Channel can be a slack user ID to send direct message
         :param message: The text to send
         :param channel: The channel to send the message
         :return: requests.models.Response
         """
+
+        data = {"channel": channel, "text": message}
+
+        if kwargs.get("blocks"):
+            data["blocks"] = kwargs["blocks"]
+
         return self._handle_response(
             requests.post(
                 url=f"{self.slack_api_url}/chat.postMessage",
-                json={"channel": channel, "text": f"{message}"},
+                json=data,
                 headers=self.headers,
             )
         )
@@ -95,33 +103,6 @@ def slack_client_responder(
     return requests.post(
         url=url,
         json={"channel": user_id, "text": "From timereport", "attachments": attachment},
-        headers=headers,
-    )
-
-
-def slack_client_block_responder(
-    token, user_id, block, url="https://slack.com/api/chat.postMessage"
-):
-    """
-    Sends an direct message to a user.
-    https://slack.com/api/chat.postMessage
-
-    :param token: slack token
-    :param user_id: The user id
-    :param blocks: The slack attachment (A JSON-based array of structured blocks, presented as a URL-encoded string)
-    :param url: The slack URL
-    :return: request response object
-    """
-
-    log.debug(f"Will try to post direct message to user {user_id}")
-    log.debug(f"block generated looks like this {block}")
-    headers = {
-        "Content-Type": "application/json; charset=utf-8",
-        "Authorization": f"Bearer {token}",
-    }
-    return requests.post(
-        url=url,
-        json={"channel": user_id, "text": "From timereport", "blocks": block},
         headers=headers,
     )
 
