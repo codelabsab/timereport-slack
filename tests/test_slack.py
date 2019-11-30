@@ -10,6 +10,7 @@ from chalicelib.lib.slack import (
     slack_client_responder,
     slack_responder,
     Slack,
+    create_block_message,
 )
 
 fake_slack = Slack(slack_token="fake")
@@ -119,3 +120,10 @@ def test_delete_menu():
 
 def test_slack_handle_response_wrong_data_type():
     assert fake_slack._handle_response("wrong data type") is not None
+
+
+def test_create_block_message():
+    test = create_block_message(message=[{"event_date": "fake"}])
+    assert isinstance(test, list)
+    assert "text" in test[0].keys()
+    assert "type" in test[0].keys()
