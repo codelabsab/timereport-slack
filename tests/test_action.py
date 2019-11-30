@@ -47,23 +47,6 @@ def test_perform_empty_action():
     unstub()
 
 
-def test_perform_list_action():
-    fake_payload["text"] = ["list"]
-    fake_payload["user_name"] = "fake_username"
-    action = Action(fake_payload, fake_config)
-
-    when(action).send_block(message="fake list output").thenReturn("")
-    when(requests).get(
-        url=f"{fake_config['backend_url']}/event/users/fake_userid",
-        params={
-            "startDate": datetime.now().strftime("%Y-%m-01"),
-            "endDate": datetime.now().strftime("%Y-%m-31"),
-        },
-    ).thenReturn(mock({"status_code": 200, "text": "fake list output"}))
-    assert action.perform_action() == ""
-    unstub()
-
-
 def test_perform_lock():
     fake_payload["text"] = ["lock 2019-01"]
     action = Action(fake_payload, fake_config)
