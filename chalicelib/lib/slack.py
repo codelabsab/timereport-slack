@@ -79,7 +79,7 @@ class Slack:
             )
         )
 
-    def add_divider_block(self, slack_block_id: str = None) -> None:
+    def add_divider_block(self, slack_block_id: str = "") -> None:
         """
         Add a slack block divider to the blocks attribute
         https://api.slack.com/reference/block-kit/blocks#divider
