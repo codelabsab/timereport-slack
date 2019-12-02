@@ -10,7 +10,6 @@ from chalicelib.lib.slack import (
     slack_client_responder,
     slack_responder,
     Slack,
-    create_block_message,
 )
 
 fake_slack = Slack(slack_token="fake")
@@ -122,8 +121,18 @@ def test_slack_handle_response_wrong_data_type():
     assert fake_slack._handle_response("wrong data type") is not None
 
 
-def test_create_block_message():
-    test = create_block_message(message=[{"event_date": "fake"}])
-    assert isinstance(test, list)
-    assert "text" in test[0].keys()
-    assert "type" in test[0].keys()
+def test_add_divider():
+    fake_slack = Slack(slack_token="fake")
+    fake_slack.add_divider_block()
+    assert isinstance(fake_slack.blocks, list)
+    assert "type" in fake_slack.blocks[0].keys()
+    assert "block_id" in fake_slack.blocks[0].keys()
+
+
+def test_add_section():
+    fake_slack = Slack(slack_token="fake")
+    fake_slack.add_section_block(text="Fake section")
+    assert isinstance(fake_slack.blocks, list)
+    assert "type" in fake_slack.blocks[0].keys()
+    assert "text" in fake_slack.blocks[0].keys()
+    assert isinstance(fake_slack.blocks[0].get("text"), dict)
