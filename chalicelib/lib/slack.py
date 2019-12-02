@@ -79,6 +79,22 @@ class Slack:
             )
         )
 
+    def add_divider_block(self, slack_block_id: str = None) -> None:
+        """
+        Add a slack block divider to the blocks attribute
+        https://api.slack.com/reference/block-kit/blocks#divider
+        """
+        self.blocks.append({"type": "divider", "block_id": slack_block_id})
+
+    def add_section_block(self, text: str) -> None:
+        """
+        Add a slack section block to the blocks attribute
+        https://api.slack.com/reference/block-kit/blocks#section
+        """
+        self.blocks.append(
+            {"type": "section", "text": {"type": "mrkdwn", "text": text}}
+        )
+
 
 def slack_client_responder(
     token, user_id, attachment, url="https://slack.com/api/chat.postMessage"
