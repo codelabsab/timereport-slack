@@ -178,7 +178,7 @@ class Action:
         if date["from"] is None or date["to"] is None:
             return self.send_response(message=f"Could not parse date {date_string}")
 
-        if date["from"] is not date["to"]:
+        if date["from"] != date["to"]:
             return self.send_response(
                 message=f"Delete doesn't support date range :cry:"
             )
