@@ -19,10 +19,9 @@ class Slack:
             "Content-Type": "application/json; charset=utf-8",
             "Authorization": f"Bearer {slack_token}",
         }
+        self.blocks = list()
 
-    def post_message(
-        self, message: str, channel: str, **kwargs
-    ) -> requests.models.Response:
+    def post_message(self, message: str, channel: str) -> requests.models.Response:
         """
         Send slack message to channel. Channel can be a slack user ID to send direct message
         :param message: The text to send
@@ -32,8 +31,8 @@ class Slack:
 
         data = {"channel": channel, "text": message}
 
-        if kwargs.get("blocks"):
-            data["blocks"] = kwargs["blocks"]
+        data["blocks"] = self.blocks if self.blocks else None
+        log.debug(f"Data is: ${data}")
 
         return self._handle_response(
             requests.post(
@@ -234,7 +233,7 @@ def delete_message_menu(user_name, date):
     return attachment
 
 
-def create_block_message(message):
+def create_block_message(message: dict) -> list:
     """
 
     :param message: a list of dicts

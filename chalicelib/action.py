@@ -163,11 +163,8 @@ class Action:
             )
             return ""
 
-        self.slack.post_message(
-            message="From timereport",
-            channel=self.user_id,
-            blocks=create_block_message(json.loads(list_data)),
-        )
+        self.slack.blocks = create_block_message(json.loads(list_data))
+        self.slack.post_message(message="From timereport", channel=self.user_id)
         return ""
 
     def _delete_action(self):
