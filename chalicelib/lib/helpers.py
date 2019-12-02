@@ -61,8 +61,9 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
 
     # handle aliases
     if date == "today":
-        dates['to'] = datetime.now()
-        dates['from'] = datetime.now()
+        today = datetime.now()
+        dates['from'] = today
+        dates['to'] = today
 
     # handle ranges
     elif ":" in date:
