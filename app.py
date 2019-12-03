@@ -2,6 +2,7 @@ from chalice import Chalice
 import os
 import json
 import logging
+from datetime import datetime
 
 from chalicelib.lib.factory import factory
 from chalicelib.lib.add import post_event
@@ -55,6 +56,9 @@ def interactive():
             if payload.get("callback_id") == "delete":
                 message = payload["original_message"]["attachments"][0]["fields"]
                 date = message[1]["value"]
+                if date == "today":
+                    date = datetime.now().strftime(config["format_str"])
+
                 delete_by_date = delete_event(
                     f"{config['backend_url']}/event/users/{user_id}", date
                 )
