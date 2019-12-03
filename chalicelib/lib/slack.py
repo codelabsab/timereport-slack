@@ -19,10 +19,9 @@ class Slack:
             "Content-Type": "application/json; charset=utf-8",
             "Authorization": f"Bearer {slack_token}",
         }
+        self.blocks = list()
 
-    def post_message(
-        self, message: str, channel: str, **kwargs
-    ) -> requests.models.Response:
+    def post_message(self, message: str, channel: str) -> requests.models.Response:
         """
         Send slack message to channel. Channel can be a slack user ID to send direct message
         :param message: The text to send
@@ -32,8 +31,8 @@ class Slack:
 
         data = {"channel": channel, "text": message}
 
-        if kwargs.get("blocks"):
-            data["blocks"] = kwargs["blocks"]
+        data["blocks"] = self.blocks if self.blocks else None
+        log.debug(f"Data is: ${data}")
 
         return self._handle_response(
             requests.post(
@@ -78,6 +77,22 @@ class Slack:
                 headers={"Content-Type": "application/json"},
                 json={"text": "OK, hang on when I do this!"},
             )
+        )
+
+    def add_divider_block(self, slack_block_id: str = "") -> None:
+        """
+        Add a slack block divider to the blocks attribute
+        https://api.slack.com/reference/block-kit/blocks#divider
+        """
+        self.blocks.append({"type": "divider", "block_id": slack_block_id})
+
+    def add_section_block(self, text: str) -> None:
+        """
+        Add a slack section block to the blocks attribute
+        https://api.slack.com/reference/block-kit/blocks#section
+        """
+        self.blocks.append(
+            {"type": "section", "text": {"type": "mrkdwn", "text": text}}
         )
 
 
@@ -233,43 +248,3 @@ def delete_message_menu(user_name, date):
     ]
     return attachment
 
-
-def create_block_message(message):
-    """
-
-    :param message: a list of dicts
-    :return: block object list of dicts
-    """
-    # [{"user_id": "U2FGC795G", "hours": "8", "user_name": "kamger", "event_date": "2019-08-30", "reason": "intern_arbete"}]
-
-    start_date = message[0].get("event_date")
-    end_date = message[-1].get("event_date")
-
-    block_header_section = {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": f"Reported time for period *{start_date}:{end_date}*",
-        },
-    }
-
-    block_divider = {"type": "divider"}
-
-    block = [block_header_section, block_divider]
-
-    for entry in message:
-        start_date = entry.get("event_date")
-        reason = entry.get("reason")
-        hours = entry.get("hours")
-
-        block_entry = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"Date: *{start_date}*\nReason: *{reason}*\nHours: *{hours}*",
-            },
-        }
-        block.append(block_entry)
-        block.append(block_divider)
-
-    return block

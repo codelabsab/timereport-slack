@@ -8,7 +8,6 @@ from chalicelib.lib.slack import (
     slack_client_responder,
     delete_message_menu,
     Slack,
-    create_block_message,
 )
 from typing import Dict
 from chalicelib.model.event import create_lock
@@ -163,11 +162,8 @@ class Action:
             )
             return ""
 
-        self.slack.post_message(
-            message="From timereport",
-            channel=self.user_id,
-            blocks=create_block_message(json.loads(list_data)),
-        )
+        self._create_list_message(data=list_data)
+        self.slack.post_message(message="From timereport", channel=self.user_id)
         return ""
 
     def _delete_action(self):
@@ -266,6 +262,7 @@ class Action:
 
         log.debug("Sending message to slack")
         self.slack.post_message(channel=self.user_id, message=message)
+
         return ""
 
     def send_attachment(self, attachment):
@@ -350,3 +347,26 @@ class Action:
             return True
 
         return False
+
+    def _create_list_message(self, data) -> None:
+        """
+        Create the slack block message layout for list action
+        """
+        data = json.loads(data)
+
+        start_date = data[0].get("event_date")
+        end_date = data[-1].get("event_date")
+
+        self.slack.add_section_block(
+            text=f"Reported time for period *{start_date}:{end_date}*",
+        )
+        self.slack.add_divider_block()
+
+        for event in data:
+            event_date = event.get("event_date")
+            reason = event.get("reason")
+            hours = event.get("hours")
+            self.slack.add_section_block(
+                text=f"Date: *{event_date}*\nReason: *{reason}*\nHours: *{hours}*"
+            )
+            self.slack.add_divider_block()
