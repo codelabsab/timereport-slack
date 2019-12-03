@@ -356,9 +356,11 @@ class Action:
 
         start_date = data[0].get("event_date")
         end_date = data[-1].get("event_date")
+
         self.slack.add_section_block(
             text=f"Reported time for period *{start_date}:{end_date}*",
         )
+        self.slack.add_divider_block()
 
         for event in data:
             start_date = event.get("event_date")
