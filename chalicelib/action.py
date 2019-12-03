@@ -363,10 +363,10 @@ class Action:
         self.slack.add_divider_block()
 
         for event in data:
-            start_date = event.get("event_date")
+            event_date = event.get("event_date")
             reason = event.get("reason")
             hours = event.get("hours")
             self.slack.add_section_block(
-                text=f"Date: *{start_date}*\nReason: *{reason}*\nHours: *{hours}*"
+                text=f"Date: *{event_date}*\nReason: *{reason}*\nHours: *{hours}*"
             )
             self.slack.add_divider_block()
