@@ -2,7 +2,7 @@ language: python
 install:
 - echo "Skipping install step"
 python:
-- '3.6'
+- '3.7'
 env:
   global:
   - AWS_DEFAULT_REGION: eu-north-1
