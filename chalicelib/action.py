@@ -32,6 +32,14 @@ class Action:
         self.slack = Slack(slack_token=config["bot_access_token"])
         self.response_url = self.payload["response_url"][0]
         self.format_str = self.config.get("format_str")
+        self.actions = dict(
+            add=self._add_action,
+            edit=self._edit_action,
+            delete=self._delete_action,
+            list=self._list_action,
+            lock=self._lock_action,
+            help=self._help_action,
+        )
 
     def perform_action(self):
         """
@@ -44,6 +52,7 @@ class Action:
         list - List one or more events in timereport
         lock - Not implemented yet
         help - Provide this helpful output
+        help <action> - Provide helpful output for specific action
         """
 
         self.action = self.params[0]
@@ -53,31 +62,31 @@ class Action:
 
         log.debug(f"Action is: {self.action}")
         log.debug(f"Arguments are: {self.arguments}")
-        if self.action == "add":
-            return self._add_action()
 
-        if self.action == "edit":
-            return self._edit_action()
-
-        if self.action == "delete":
-            return self._delete_action()
-
-        if self.action == "list":
-            return self._list_action()
-
-        if self.action == "lock":
-            return self._lock_action()
-
-        if self.action == "help":
-            return self._help_action()
-
-        return self._unsupported_action()
+        action_fn = self.actions.get(self.action, self._unsupported_action)
+        return action_fn()
 
     def _unsupported_action(self):
         log.info(f"Action: {self.action} is not supported")
         return self.send_response(message=f"Unsupported action: {self.action}")
 
     def _add_action(self):
+        """
+        Add one or more events in timereport
+
+        /timereport add <reason> <day> <hours>
+
+        <reason> can be:
+         * vab
+         * sjuk
+         * intern
+         * semester
+
+
+        <day> can be
+        "today" - Add event for todays date
+        a date of the format "2020-03-10" or a range such as "2020-03-10:2020-03-17"
+        """
 
         # validate number of arguments
         if not self._valid_number_of_args(min_args=2, max_args=3):
@@ -193,6 +202,9 @@ class Action:
         """
         Edit event in timereport for user.
         If no arguments supplied it will try to edit today.
+
+        /timereport edit <reason> <date> <hours>
+
         Example: /timereport edit vab 2019-01-01 4
         """
 
@@ -286,7 +298,13 @@ class Action:
         return slack_client_response
 
     def _help_action(self):
-        return self.send_response(message=f"{self.perform_action.__doc__}")
+        """
+        Nothing to see here.. Try another action :)
+        """
+        action_fn = self.perform_action
+        if len(self.arguments) > 0:
+            action_fn = self.actions.get(self.arguments[0], self.perform_action)
+        return self.send_response(message=f"{action_fn.__doc__}")
 
     def _get_events(self, date_str):
         return get_list_data(
@@ -295,7 +313,9 @@ class Action:
 
     def _lock_action(self):
         """
-        /timereport-dev lock 2019-08
+        Lock the timereport for month
+
+        /timereport lock 2019-08
         """
         event = create_lock(user_id=self.user_id, event_date=self.params[1])
         log.debug(f"lock event: {event}")
