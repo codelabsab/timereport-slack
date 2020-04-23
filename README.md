@@ -62,6 +62,13 @@ $ git add chalice_secrets.tar.enc .travis.yml
 ```
 
 
+### Deploys
+
+Deploys to dev are done automatically on pushes to any branch, this allows easy testing with `/timereport-dev` command in slack.
+
+Deploys to production are done automatically on tagged releases on the master branch.
+
+
 ### to deploy from local environment
 
 Setup awscli with your access_key_id and secret_access_key
