@@ -327,7 +327,7 @@ class Action:
             )
 
         if self.arguments[0] == "list":
-            return self.send_response(f"List not yet implemented :sad:")
+            return self.send_response(f"List not yet implemented :cry:")
         event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
         log.debug(f"lock event: {event}")
 
