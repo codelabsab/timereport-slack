@@ -327,7 +327,18 @@ class Action:
             )
 
         if self.arguments[0] == "list":
-            return self.send_response(f"List not yet implemented :cry:")
+            year = None
+            # Hämta locks för året
+            try:
+                year = str(self.arguments[1])
+            except IndexError:
+                now = datetime.datetime.now()
+                year = now.year
+
+            return self.send_response(
+                f"List not yet implemented :cry:. But you specified year {year}"
+            )
+
         event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
         log.debug(f"lock event: {event}")
 
