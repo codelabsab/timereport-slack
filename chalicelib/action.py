@@ -317,6 +317,11 @@ class Action:
 
         /timereport lock 2019-08
         """
+        if not self.arguments:
+            return self.send_response(
+                f"Missing required argument. Here is an helpful message: {self._lock_action.__doc__}"
+            )
+
         event = create_lock(user_id=self.user_id, event_date=self.params[1])
         log.debug(f"lock event: {event}")
         response = lock_event(url=self.config["backend_url"], event=json.dumps(event))
