@@ -315,15 +315,22 @@ class Action:
         """
         Lock the timereport for month
 
+        create lock:
         /timereport lock 2019-08
+
+        list locks:
+        /timereport list 2020
         """
         if not self.arguments:
             return self.send_response(
                 f"Missing required argument. Here is an helpful message: {self._lock_action.__doc__}"
             )
 
-        event = create_lock(user_id=self.user_id, event_date=self.params[1])
+        if self.arguments[0] == "list":
+            return self.send_response(f"List not yet implemented :sad:")
+        event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
         log.debug(f"lock event: {event}")
+
         response = lock_event(url=self.config["backend_url"], event=json.dumps(event))
         log.debug(f"response was: {response.text}")
         if response.status_code == 200:
