@@ -335,9 +335,12 @@ class Action:
                 now = datetime.datetime.now()
                 year = now.year
 
-            return self.send_response(
-                f"List not yet implemented :cry:. But you specified year {year}"
-            )
+        locks = self._check_locks(
+            date=datetime.datime(year, 1, 1,),
+            second_date=datetime.datetime(year, 12, 1),
+        )
+
+        return self.send_response(f"Locks: {locks}")
 
         event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
         log.debug(f"lock event: {event}")
@@ -351,11 +354,10 @@ class Action:
             self.send_response(message=f"Lock failed! :cry:")
             return ""
 
-    def _check_locks(self, date: datetime, second_date: datetime) -> bool:
+    def _check_locks(self, date: datetime, second_date: datetime) -> list:
         """
         Check dates for lock.
         """
-        is_locked = False
         dates_to_check = list()
         for date in date_range(start_date=date, stop_date=second_date):
             if not date.strftime("%Y-%m") in dates_to_check:
@@ -368,9 +370,9 @@ class Action:
             )
             if respone.json():
                 log.info(f"Date {date} is locked")
-                is_locked = True
+                dates_to_check.append(respone.json())
 
-        return is_locked
+        return dates_to_check
 
     def _valid_number_of_args(self, min_args: int, max_args: int) -> bool:
         """
