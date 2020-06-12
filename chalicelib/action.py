@@ -335,8 +335,9 @@ class Action:
                 now = datetime.now()
                 year = now.year
 
+            self.slack.ack_response(self.response_url)
             locks = self._check_locks(
-                date=datetime(year, 1, 1), second_date=datetime(year, 12, 1),
+                date=datetime(year, 1, 1), second_date=datetime(year, 12, 1)
             )
 
             return self.send_response(f"Locks: {locks}")
