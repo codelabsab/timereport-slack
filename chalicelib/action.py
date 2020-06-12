@@ -328,19 +328,18 @@ class Action:
 
         if self.arguments[0] == "list":
             year = None
-            # Hämta locks för året
+
             try:
                 year = str(self.arguments[1])
             except IndexError:
-                now = datetime.datetime.now()
+                now = datetime.now()
                 year = now.year
 
-        locks = self._check_locks(
-            date=datetime.datime(year, 1, 1,),
-            second_date=datetime.datetime(year, 12, 1),
-        )
+            locks = self._check_locks(
+                date=datetime(year, 1, 1), second_date=datetime(year, 12, 1),
+            )
 
-        return self.send_response(f"Locks: {locks}")
+            return self.send_response(f"Locks: {locks}")
 
         event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
         log.debug(f"lock event: {event}")
@@ -359,20 +358,22 @@ class Action:
         Check dates for lock.
         """
         dates_to_check = list()
+        locked_dates = list()
         for date in date_range(start_date=date, stop_date=second_date):
             if not date.strftime("%Y-%m") in dates_to_check:
                 dates_to_check.append(date.strftime("%Y-%m"))
 
         log.debug(f"Got {len(dates_to_check)} date(s) to check")
         for date in dates_to_check:
-            respone = read_lock(
+            response = read_lock(
                 url=self.config["backend_url"], user_id=self.user_id, date=date
             )
-            if respone.json():
+            if response.json():
                 log.info(f"Date {date} is locked")
-                dates_to_check.append(respone.json())
+                dates_to_check.append(response.json())
+                locked_dates.append(date)
 
-        return dates_to_check
+        return locked_dates
 
     def _valid_number_of_args(self, min_args: int, max_args: int) -> bool:
         """
