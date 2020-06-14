@@ -321,9 +321,10 @@ class Action:
         list locks:
         /timereport list 2020
         """
-        if not self.arguments:
+
+        if not self._valid_number_of_args(min_args=1, max_args=2):
             return self.send_response(
-                f"Missing required argument. Here is an helpful message: {self._lock_action.__doc__}"
+                message=f"Got the wrong number of arguments for {self.action}. See these examples: {self._lock_action.__doc__}"
             )
 
         if self.arguments[0] == "list":
