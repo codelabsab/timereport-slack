@@ -319,7 +319,7 @@ class Action:
         /timereport lock 2019-08
 
         list locks:
-        /timereport list 2020
+        /timereport lock list 2020
         """
 
         if not self._valid_number_of_args(min_args=1, max_args=2):
@@ -328,21 +328,7 @@ class Action:
             )
 
         if self.arguments[0] == "list":
-            year = None
-
-            try:
-                year = int(self.arguments[1])
-            except IndexError:
-                now = datetime.now()
-                year = now.year
-
-            self.slack.ack_response(response_url=self.response_url)
-
-            locks = self._check_locks(
-                date=datetime(year, 1, 1), second_date=datetime(year, 12, 1),
-            )
-
-            return self.send_response(f"Locks: {locks}")
+            return self._lock_list_action()
 
         event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
         log.debug(f"lock event: {event}")
@@ -419,3 +405,28 @@ class Action:
                 text=f"Date: *{event_date}*\nReason: *{reason}*\nHours: *{hours}*"
             )
             self.slack.add_divider_block()
+
+    def _lock_list_action(self) -> None:
+        """
+        Lists all locks for a given year
+        """
+        year = None
+
+        try:
+            year = int(self.arguments[1])
+        except IndexError:
+            now = datetime.now()
+            year = now.year
+
+        locks = self._check_locks(
+            date=datetime(year, 1, 1), second_date=datetime(year, 12, 1),
+        )
+
+        self.slack.add_section_block(text=f"Locks found for months in {year}")
+        self.slack.add_divider_block()
+
+        for lock in locks:
+            self.slack.add_section_block(text=f"Month: {lock} :lock:")
+
+        self.slack.post_message(message="From timereport", channel=self.user_id)
+        return ""
