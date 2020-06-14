@@ -421,6 +421,8 @@ class Action:
         locks = self._check_locks(
             date=datetime(year, 1, 1), second_date=datetime(year, 12, 1),
         )
+        if not locks:
+            return self.send_response(f"No locks found for year *{year}*")
 
         self.slack.add_section_block(text=f"Locks found for months in *{year}*")
         self.slack.add_divider_block()
