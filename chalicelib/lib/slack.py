@@ -58,13 +58,11 @@ class Slack:
                     f"Slack responded with not ok. Message was: {validated_response}"
                 )
         except (AttributeError, ValueError) as error:
-            log.critical(
-                f"Unable get valid json from response. Error was: {error}",
-                exc_info=True,
-            )
-            log.debug(
-                f"HTTP code was: {response.status_code}. Text was: {response.text}"
-            )
+            if not response.text == "ok" and response.status_code == 200:
+                log.critical(
+                    f"Unable get valid json from response. Error was: {error}",
+                    exc_info=True,
+                )
 
         return response
 
