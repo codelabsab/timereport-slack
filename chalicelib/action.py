@@ -422,11 +422,11 @@ class Action:
             date=datetime(year, 1, 1), second_date=datetime(year, 12, 1),
         )
 
-        self.slack.add_section_block(text=f"Locks found for months in {year}")
+        self.slack.add_section_block(text=f"Locks found for months in *{year}*")
         self.slack.add_divider_block()
 
         for lock in locks:
-            self.slack.add_section_block(text=f"Month: {lock} :lock:")
+            self.slack.add_section_block(text=f"{lock} :lock:")
 
         self.slack.post_message(message="From timereport", channel=self.user_id)
         return ""
