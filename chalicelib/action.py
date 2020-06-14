@@ -331,7 +331,7 @@ class Action:
             year = None
 
             try:
-                year = str(self.arguments[1])
+                year = int(self.arguments[1])
             except IndexError:
                 now = datetime.now()
                 year = now.year
