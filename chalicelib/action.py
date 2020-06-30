@@ -422,6 +422,7 @@ class Action:
             url=self.config["backend_url"], user_id=self.user_id, date=year
         )
         locks = response.json()
+
         if not locks:
             return self.send_response(f"No locks found for year *{year}*")
 
@@ -429,7 +430,7 @@ class Action:
         self.slack.add_divider_block()
 
         for lock in locks:
-            self.slack.add_section_block(text=f"{lock} :lock:")
+            self.slack.add_section_block(text=f"{lock.get('event_date')} :lock:")
 
         self.slack.post_message(message="From timereport", channel=self.user_id)
         return ""
