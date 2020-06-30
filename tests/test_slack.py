@@ -117,10 +117,6 @@ def test_delete_menu():
     assert test_result_dict.get("fields")
 
 
-def test_slack_handle_response_wrong_data_type():
-    assert fake_slack._handle_response("wrong data type") is not None
-
-
 def test_add_divider():
     fake_slack = Slack(slack_token="fake")
     fake_slack.add_divider_block()

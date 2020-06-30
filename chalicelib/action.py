@@ -315,15 +315,24 @@ class Action:
         """
         Lock the timereport for month
 
+        create lock:
         /timereport lock 2019-08
+
+        list locks:
+        /timereport lock list 2020
         """
-        if not self.arguments:
+
+        if not self._valid_number_of_args(min_args=1, max_args=2):
             return self.send_response(
-                f"Missing required argument. Here is an helpful message: {self._lock_action.__doc__}"
+                message=f"Got the wrong number of arguments for {self.action}. See these examples: {self._lock_action.__doc__}"
             )
 
-        event = create_lock(user_id=self.user_id, event_date=self.params[1])
+        if self.arguments[0] == "list":
+            return self._lock_list_action()
+
+        event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
         log.debug(f"lock event: {event}")
+
         response = lock_event(url=self.config["backend_url"], event=json.dumps(event))
         log.debug(f"response was: {response.text}")
         if response.status_code == 200:
@@ -333,26 +342,27 @@ class Action:
             self.send_response(message=f"Lock failed! :cry:")
             return ""
 
-    def _check_locks(self, date: datetime, second_date: datetime) -> bool:
+    def _check_locks(self, date: datetime, second_date: datetime) -> list:
         """
         Check dates for lock.
         """
-        is_locked = False
         dates_to_check = list()
+        locked_dates = list()
         for date in date_range(start_date=date, stop_date=second_date):
             if not date.strftime("%Y-%m") in dates_to_check:
                 dates_to_check.append(date.strftime("%Y-%m"))
 
         log.debug(f"Got {len(dates_to_check)} date(s) to check")
         for date in dates_to_check:
-            respone = read_lock(
+            response = read_lock(
                 url=self.config["backend_url"], user_id=self.user_id, date=date
             )
-            if respone.json():
+            if response.json():
                 log.info(f"Date {date} is locked")
-                is_locked = True
+                dates_to_check.append(response.json())
+                locked_dates.append(date)
 
-        return is_locked
+        return locked_dates
 
     def _valid_number_of_args(self, min_args: int, max_args: int) -> bool:
         """
@@ -395,3 +405,32 @@ class Action:
                 text=f"Date: *{event_date}*\nReason: *{reason}*\nHours: *{hours}*"
             )
             self.slack.add_divider_block()
+
+    def _lock_list_action(self) -> None:
+        """
+        Lists all locks for a given year
+        """
+        year = None
+
+        try:
+            year = int(self.arguments[1])
+        except IndexError:
+            now = datetime.now()
+            year = now.year
+
+        response = read_lock(
+            url=self.config["backend_url"], user_id=self.user_id, date=year
+        )
+        locks = response.json()
+
+        if not locks:
+            return self.send_response(f"No locks found for year *{year}*")
+
+        self.slack.add_section_block(text=f"Locks found for months in *{year}*")
+        self.slack.add_divider_block()
+
+        for lock in locks:
+            self.slack.add_section_block(text=f"{lock.get('event_date')} :lock:")
+
+        self.slack.post_message(message="From timereport", channel=self.user_id)
+        return ""

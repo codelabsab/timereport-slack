@@ -1,11 +1,12 @@
-import os
-import requests
-from urllib.parse import parse_qs
-import logging
-import json
-import hmac
-import hashlib
 import base64
+import hashlib
+import hmac
+import json
+import logging
+import os
+from urllib.parse import parse_qs
+
+import requests
 
 log = logging.getLogger(__name__)
 
@@ -57,10 +58,11 @@ class Slack:
                     f"Slack responded with not ok. Message was: {validated_response}"
                 )
         except (AttributeError, ValueError) as error:
-            log.critical(
-                f"Unable get valid json from response. Error was: {error}",
-                exc_info=True,
-            )
+            if not response.text == "ok" and response.status_code == 200:
+                log.critical(
+                    f"Unable get valid json from response. Error was: {error}",
+                    exc_info=True,
+                )
 
         return response
 
@@ -247,4 +249,3 @@ def delete_message_menu(user_name, date):
         }
     ]
     return attachment
-
