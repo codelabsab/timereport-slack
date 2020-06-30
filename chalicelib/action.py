@@ -418,8 +418,8 @@ class Action:
             now = datetime.now()
             year = now.year
 
-        locks = self._check_locks(
-            date=datetime(year, 1, 1), second_date=datetime(year, 12, 1),
+        locks = read_lock(
+            url=self.config["backend_url"], user_id=self.user_id, date=year
         )
         if not locks:
             return self.send_response(f"No locks found for year *{year}*")
