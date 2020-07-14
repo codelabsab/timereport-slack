@@ -18,8 +18,8 @@ before_install:
 stages:
 - name: Run tests
 - name: Deploy to dev
-  if: type = push AND branch != master
 - name: Deploy to prod
+  if: type = push AND branch = master
 jobs:
   include:
   - stage: Run tests
@@ -32,11 +32,7 @@ jobs:
     - pip install -r requirements.txt
     - chalice deploy --stage dev
   - stage: Deploy to prod
-    on:
-      branch: master
     script:
-    - if [ -z "$TRAVIS_TAG" ];then echo "Skipping deploying to prod because of missing
-      tag." && exit 0; fi
     - pip install chalice
     - pip install -r requirements.txt
     - chalice deploy --stage prod
