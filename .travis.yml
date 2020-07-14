@@ -24,15 +24,13 @@ jobs:
   include:
   - stage: Run tests
     script:
-    - pip install -r test-requirements.txt
-    - pytest -v
+    - pipenv install --dev
+    - pipenv run pytest -v
   - stage: Deploy to dev
     script:
-    - pip install chalice
-    - pip install -r requirements.txt
-    - chalice deploy --stage dev
+    - pipenv install
+    - pipenv run chalice deploy --stage dev
   - stage: Deploy to prod
     script:
-    - pip install chalice
-    - pip install -r requirements.txt
-    - chalice deploy --stage prod
+    - pipenv install
+    - pipenv run chalice deploy --stage prod
