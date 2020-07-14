@@ -50,7 +50,7 @@ class Action:
         edit - Edit a single event in timereport
         delete - Delete event in timereport
         list - List one or more events in timereport
-        lock - Not implemented yet
+        lock - Lock month to show you're done with the reporting
         help - Provide this helpful output
         help <action> - Provide helpful output for specific action
         """
