@@ -2,7 +2,7 @@ language: python
 install:
 - echo "Skipping install step"
 python:
-- '3.7'
+- '3.8'
 env:
   global:
   - AWS_DEFAULT_REGION: eu-north-1
@@ -18,25 +18,19 @@ before_install:
 stages:
 - name: Run tests
 - name: Deploy to dev
-  if: type = push AND branch != master
 - name: Deploy to prod
+  if: type = push AND branch = master
 jobs:
   include:
   - stage: Run tests
     script:
-    - pip install -r test-requirements.txt
-    - pytest -v
+    - pipenv install --dev
+    - pipenv run pytest -v
   - stage: Deploy to dev
     script:
-    - pip install chalice
-    - pip install -r requirements.txt
-    - chalice deploy --stage dev
+    - pipenv install
+    - pipenv run chalice deploy --stage dev
   - stage: Deploy to prod
-    on:
-      branch: master
     script:
-    - if [ -z "$TRAVIS_TAG" ];then echo "Skipping deploying to prod because of missing
-      tag." && exit 0; fi
-    - pip install chalice
-    - pip install -r requirements.txt
-    - chalice deploy --stage prod
+    - pipenv install
+    - pipenv run chalice deploy --stage prod
