@@ -14,6 +14,7 @@ def test_help_command(chalice_app):
 
     assert r["response"]["statusCode"] == 200
     assert "Supported actions" in r["slack_message"][1]["json"]["text"]
+    assert "unsupported" not in r["slack_message"][1]["json"]["text"]
 
 
 def test_help_specific_command(chalice_app):
@@ -54,11 +55,12 @@ def test_empty_list(chalice_app):
 
 
 @pytest.mark.integration
-def test_add_command_accepted(chalice_app):
+@pytest.mark.parametrize("date", ["today", "2020-01-01"])
+def test_add_command_accepted(chalice_app, date):
     user_id = f"{random.randint(0, 10000)}"
     r = call_from_slack(
         chalice_app=chalice_app,
-        full_command="add vab today 8",
+        full_command=f"add vab {date} 8",
         user_id=user_id,
         user_name="mattias",
     )
@@ -82,7 +84,7 @@ def test_add_command_accepted(chalice_app):
 
     rl = call_from_slack(
         chalice_app=chalice_app,
-        full_command="list today",
+        full_command=f"list {date}",
         user_id=user_id,
         user_name="mattias",
     )
@@ -93,7 +95,7 @@ def test_add_command_accepted(chalice_app):
     # Delete report
     r = call_from_slack(
         chalice_app=chalice_app,
-        full_command="delete today",
+        full_command=f"delete {date}",
         user_id=user_id,
         user_name="mattias",
     )
@@ -115,6 +117,81 @@ def test_add_command_accepted(chalice_app):
     )
     assert ri["response"]["statusCode"] == 200
     assert "OK, hang on" in ri["slack_message"][1]["json"]["text"]
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("date", ["today", "2020-01-01"])
+def test_add_command_accepted_and_edited(chalice_app, date):
+    user_id = f"{random.randint(0, 10000)}"
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"add vab {date} 8",
+        user_id=user_id,
+        user_name="mattias",
+    )
+
+    assert r["response"]["statusCode"] == 200
+    assert r["slack_message"][1]["json"]["text"] == "From timereport"
+    attachments = r["slack_message"][1]["json"]["attachments"]
+    assert attachments is not None
+    attachment = attachments[0]
+    assert len(attachment["actions"]) > 0
+    assert "Submit" in attachment["title"]
+
+    ri = respond_interactively(
+        chalice_app=chalice_app,
+        attachments=attachments,
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert ri["response"]["statusCode"] == 200
+    assert ri["slack_message"][1]["json"]["text"] == "Added successfully"
+
+    rl = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"list {date}",
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert rl["response"]["statusCode"] == 200
+    assert "nothing to list" not in rl["slack_message"][1]["json"]["text"]
+    assert "Reason: *vab*" in get_raw_block_text(slack_message=rl["slack_message"])
+
+    # Change to sjuk
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"edit sjuk {date} 8",
+        user_id=user_id,
+        user_name="mattias",
+    )
+
+    assert r["response"]["statusCode"] == 200
+    assert r["slack_message"][1]["json"]["text"] == "From timereport"
+
+    attachments = r["slack_message"][1]["json"]["attachments"]
+    assert attachments is not None
+    attachment = attachments[0]
+    assert len(attachment["actions"]) > 0
+    assert "Submit these values" in attachment["title"]
+
+    ri = respond_interactively(
+        chalice_app=chalice_app,
+        attachments=attachments,
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert ri["response"]["statusCode"] == 200
+    assert "Added successfully" in ri["slack_message"][1]["json"]["text"]
+
+    rl = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"list {date}",
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert rl["response"]["statusCode"] == 200
+    assert "nothing to list" not in rl["slack_message"][1]["json"]["text"]
+    assert "Reason: *sjuk*" in get_raw_block_text(slack_message=rl["slack_message"])
 
 
 @pytest.mark.integration

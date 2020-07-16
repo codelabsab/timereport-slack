@@ -1,24 +1,32 @@
-import logging
 import json
-from chalicelib.lib.list import get_list_data
-from chalicelib.lib.api import read_lock, read_event
-from chalicelib.lib.helpers import parse_date, date_range
-from chalicelib.lib.slack import (
-    submit_message_menu,
-    slack_client_responder,
-    delete_message_menu,
-    Slack,
-)
-from typing import Dict
-from chalicelib.model.event import create_lock
+import logging
 from datetime import datetime
+from typing import Dict
+
+from chalicelib.lib.api import read_event, read_lock
+from chalicelib.lib.helpers import date_range, parse_date
+from chalicelib.lib.list import get_list_data
 from chalicelib.lib.lock import lock_event
+from chalicelib.lib.slack import (
+    Slack,
+    delete_message_menu,
+    slack_client_responder,
+    submit_message_menu,
+)
+from chalicelib.model.event import create_lock
 
 log = logging.getLogger(__name__)
 
 
-class Action:
+class BaseAction:
+    # Name to identify the action
+    name = None
+    # Help text to show when running `/timereport help`
+    short_doc = None
+
     def __init__(self, payload, config):
+        self.payload = payload
+        self.config = config
         self.payload = payload
 
         try:
@@ -32,46 +40,213 @@ class Action:
         self.slack = Slack(slack_token=config["bot_access_token"])
         self.response_url = self.payload["response_url"][0]
         self.format_str = self.config.get("format_str")
-        self.actions = dict(
-            add=self._add_action,
-            edit=self._edit_action,
-            delete=self._delete_action,
-            list=self._list_action,
-            lock=self._lock_action,
-            help=self._help_action,
-        )
-
-    def perform_action(self):
-        """
-        Perform action.
-
-        Supported actions are:
-        add - Add one or more events in timereport
-        edit - Edit a single event in timereport
-        delete - Delete event in timereport
-        list - List one or more events in timereport
-        lock - Lock month to show you're done with the reporting
-        help - Provide this helpful output
-        help <action> - Provide helpful output for specific action
-        """
 
         self.action = self.params[0]
+
         self.arguments = self.params[1:]
         self.user_id = self.payload["user_id"][0]
         self.user_name = self.payload["user_name"][0]
 
-        log.debug(f"Action is: {self.action}")
-        log.debug(f"Arguments are: {self.arguments}")
-
-        action_fn = self.actions.get(self.action, self._unsupported_action)
-        return action_fn()
-
-    def _unsupported_action(self):
-        log.info(f"Action: {self.action} is not supported")
-        return self.send_response(message=f"Unsupported action: {self.action}")
-
-    def _add_action(self):
+    def send_response(self, message):
         """
+        Send a response to slack
+
+        :message: The Message to send
+        """
+
+        log.debug("Sending message to slack")
+        self.slack.post_message(channel=self.user_id, message=message)
+
+        return ""
+
+    def send_attachment(self, attachment):
+        """
+        Send an message to slack using attachment
+        :attachment: The attachment (slack specific attachment) to send
+        """
+
+        slack_client_response = slack_client_responder(
+            token=self.bot_access_token, user_id=self.user_id, attachment=attachment
+        )
+
+        if slack_client_response.status_code != 200:
+            log.error(
+                f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
+                The response from slack was: {slack_client_response.text}"""
+            )
+            return "Slack response to user failed"
+        else:
+            log.debug(f"Slack client response was: {slack_client_response.text}")
+        return slack_client_response
+
+    def _get_events(self, date_str):
+        return get_list_data(
+            f"{self.config['backend_url']}", self.user_id, date_str=date_str
+        )
+
+    def _create_list_message(self, data) -> None:
+        """
+        Create the slack block message layout for list action
+        """
+        data = json.loads(data)
+
+        start_date = data[0].get("event_date")
+        end_date = data[-1].get("event_date")
+
+        self.slack.add_section_block(
+            text=f"Reported time for period *{start_date}:{end_date}*",
+        )
+        self.slack.add_divider_block()
+
+        for event in data:
+            event_date = event.get("event_date")
+            reason = event.get("reason")
+            hours = event.get("hours")
+            self.slack.add_section_block(
+                text=f"Date: *{event_date}*\nReason: *{reason}*\nHours: *{hours}*"
+            )
+            self.slack.add_divider_block()
+
+    def _check_locks(self, date: datetime, second_date: datetime) -> list:
+        """
+        Check dates for lock.
+        """
+        dates_to_check = list()
+        locked_dates = list()
+        for date in date_range(start_date=date, stop_date=second_date):
+            if not date.strftime("%Y-%m") in dates_to_check:
+                dates_to_check.append(date.strftime("%Y-%m"))
+
+        log.debug(f"Got {len(dates_to_check)} date(s) to check")
+        for date in dates_to_check:
+            response = read_lock(
+                url=self.config["backend_url"], user_id=self.user_id, date=date
+            )
+            if response.json():
+                log.info(f"Date {date} is locked")
+                dates_to_check.append(response.json())
+                locked_dates.append(date)
+
+        return locked_dates
+
+    def _valid_reason(self, reason: str) -> bool:
+        """
+        Check that reason is valid
+        """
+
+        if reason in self.config.get("valid_reasons"):
+            return True
+
+        return False
+
+    def _valid_number_of_args(self, min_args: int, max_args: int) -> bool:
+        """
+        Check that the number of arguments in the list is within the valid range
+        """
+        log.debug(f"Got {len(self.arguments)} number of args")
+        if min_args <= len(self.arguments) <= max_args:
+            return True
+        return False
+
+    def perform_action(self):
+        """
+        Run the action
+        """
+        raise NotImplementedError()
+
+
+class HelpAction(BaseAction):
+    name = "help"
+    short_doc = "Provide this helpful output"
+    doc = """
+        Nothing to see here.. Try another action :)
+        """
+
+    def perform_action(self):
+        msg = ""
+        if len(self.arguments) > 0:
+            for action_cls in BaseAction.__subclasses__():
+                if action_cls.name == self.arguments[0]:
+                    msg = f"{action_cls.doc}"
+                    break
+        if msg == "":
+            msg = "Supported actions are:\n"
+            for action_cls in BaseAction.__subclasses__():
+                if action_cls == UnsupportedAction:
+                    continue
+                msg += f"\n{action_cls.name} - {action_cls.short_doc}"
+
+        return self.send_response(message=msg)
+
+
+class LockAction(BaseAction):
+    name = "lock"
+    doc = """
+        Lock the timereport for month
+
+        create lock:
+        /timereport lock 2019-08
+
+        list locks:
+        /timereport lock list 2020
+        """
+    short_doc = "Lock month to show you're done with the reporting"
+
+    def perform_action(self):
+        if not self._valid_number_of_args(min_args=1, max_args=2):
+            return self.send_response(
+                message=f"Got the wrong number of arguments for {self.action}. See these examples: {self._lock_action.__doc__}"
+            )
+
+        if self.arguments[0] == "list":
+            return self._lock_list_action()
+
+        event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
+        log.debug(f"lock event: {event}")
+
+        response = lock_event(url=self.config["backend_url"], event=json.dumps(event))
+        log.debug(f"response was: {response.text}")
+        if response.status_code == 200:
+            self.send_response(message=f"Lock successful! :lock: :+1:")
+            return ""
+        else:
+            self.send_response(message=f"Lock failed! :cry:")
+            return ""
+
+    def _lock_list_action(self) -> None:
+        """
+        Lists all locks for a given year
+        """
+        year = None
+
+        try:
+            year = int(self.arguments[1])
+        except IndexError:
+            now = datetime.now()
+            year = now.year
+
+        response = read_lock(
+            url=self.config["backend_url"], user_id=self.user_id, date=year
+        )
+        locks = response.json()
+
+        if not locks:
+            return self.send_response(f"No locks found for year *{year}*")
+
+        self.slack.add_section_block(text=f"Locks found for months in *{year}*")
+        self.slack.add_divider_block()
+
+        for lock in locks:
+            self.slack.add_section_block(text=f"{lock.get('event_date')} :lock:")
+
+        self.slack.post_message(message="From timereport", channel=self.user_id)
+        return ""
+
+
+class AddAction(BaseAction):
+    name = "add"
+    short_doc = "Add one or more events in timereport"
+    doc = """
         Add one or more events in timereport
 
         /timereport add <reason> <day> <hours>
@@ -88,6 +263,7 @@ class Action:
         a date of the format "2020-03-10" or a range such as "2020-03-10:2020-03-17"
         """
 
+    def perform_action(self):
         # validate number of arguments
         if not self._valid_number_of_args(min_args=2, max_args=3):
             log.debug(f"args: {self.arguments}")
@@ -132,15 +308,133 @@ class Action:
         )
         return ""
 
-    def _list_action(self):
+
+class DeleteAction(BaseAction):
+    name = "delete"
+    doc = """
+        Delete event in timereport.
+
+        /timereport delete <date>
+
+        Example: /timereport delete today
         """
+    short_doc = "Delete event in timereport"
+
+    def perform_action(self):
+        date_string = self.params[1]
+        date: Dict[str, datetime] = parse_date(date_string, format_str=self.format_str)
+
+        if date["from"] is None or date["to"] is None:
+            return self.send_response(message=f"Could not parse date {date_string}")
+
+        if date["from"] != date["to"]:
+            return self.send_response(
+                message=f"Delete doesn't support date range :cry:"
+            )
+
+        if not self._check_locks(date=date["from"], second_date=date["to"]):
+            self.send_attachment(
+                attachment=delete_message_menu(
+                    self.payload.get("user_name")[0], date_string
+                )
+            )
+        else:
+            self.send_response(message=f"Unable to delete since month is locked :cry:")
+        return ""
+
+
+class EditAction(BaseAction):
+    name = "edit"
+    short_doc = "Edit a single event in timereport"
+    doc = """
+        Edit event in timereport for user.
+        If no arguments supplied it will try to edit today.
+
+        /timereport edit <reason> <date> <hours>
+
+        Example: /timereport edit vab 2019-01-01 4
+        """
+
+    def perform_action(self):
+
+        if not self._valid_number_of_args(min_args=2, max_args=3):
+            self.send_response(message="Got the wrong number of arguments")
+
+        reason = self.arguments[0]
+        hours = 8
+
+        if not self._valid_reason(reason=reason):
+            return self.send_response(message=f"Reason {reason} is not valid")
+
+        try:
+            date_input = self.arguments[1]
+        except IndexError:
+            date_input = "today"
+            log.debug(f"Didn't get any params. Setting date to {date_input}")
+
+        try:
+            hours = round(float(self.arguments[2]))
+        except ValueError as error:
+            log.error(f"Failed to parse hours. Error was: {error}")
+            return self.send_response(message="Could not parse hours")
+        except TypeError as error:
+            log.debug(f"Caught error: {error}")
+            log.info(f"Using default hours '{hours}'")
+
+        date: Dict[str, datetime] = parse_date(date_input, format_str=self.format_str)
+        if date["from"] is None or date["to"] is None:
+            self.send_response(message="failed to parse date {date_string}")
+
+        if date["from"] != date["to"]:
+            return self.send_response(message=f"Edit doesn't support date range :cry:")
+
+        if self._check_locks(date=date["from"], second_date=date["to"]):
+            return self.send_response(
+                message=f"Can't edit date {date_input} because locked month :cry:"
+            )
+        event_to_edit = read_event(
+            url=self.config["backend_url"],
+            user_id=self.user_id,
+            date=date["from"].strftime(self.format_str),
+        )
+
+        if event_to_edit.status_code != 200:
+            log.error(f"Response code from API: {event_to_edit.status_code}")
+            return self.send_response(
+                message=f"Something went wrong fetching event to edit. :cry:"
+            )
+
+        log.debug(f"Event to edit is: {event_to_edit.json()}")
+        if not event_to_edit.json():
+            self.send_response(message=f"No event for date {date} to edit. :shrug:")
+            return ""
+
+        self.send_attachment(
+            attachment=submit_message_menu(self.user_name, reason, date_input, hours)
+        )
+
+        return ""
+
+
+class UnsupportedAction(BaseAction):
+    name = "unsupported"
+
+    def perform_action(self):
+        return self.send_response(message=f"Unsupported action: {self.action}")
+
+
+class ListAction(BaseAction):
+    name = "list"
+    doc = """
         List timereport for user.
         If no arguments supplied it will default to all.
-
         Supported arguments:
         "today" - List the event for the todays date
         "date" - The date as a string.
         """
+    short_doc = "List one or more events in timereport"
+
+    def perform_action(self):
         arguments = self.params[1:]
 
         log.debug(f"Got arguments: {arguments}")
@@ -175,262 +469,18 @@ class Action:
         self.slack.post_message(message="From timereport", channel=self.user_id)
         return ""
 
-    def _delete_action(self):
 
-        date_string = self.params[1]
-        date: Dict[str, datetime] = parse_date(date_string, format_str=self.format_str)
+def create_action(payload, config):
+    try:
+        params = payload["text"][0].split()
+    except KeyError:
+        log.info("No parameters received. Defaulting to help action")
+        params = ["help"]
 
-        if date["from"] is None or date["to"] is None:
-            return self.send_response(message=f"Could not parse date {date_string}")
+    action = params[0]
 
-        if date["from"] != date["to"]:
-            return self.send_response(
-                message=f"Delete doesn't support date range :cry:"
-            )
+    for action_cls in BaseAction.__subclasses__():
+        if action_cls.name == action:
+            return action_cls(payload, config)
 
-        if not self._check_locks(date=date["from"], second_date=date["to"]):
-            self.send_attachment(
-                attachment=delete_message_menu(
-                    self.payload.get("user_name")[0], date_string
-                )
-            )
-        else:
-            self.send_response(message=f"Unable to delete since month is locked :cry:")
-        return ""
-
-    def _edit_action(self):
-        """
-        Edit event in timereport for user.
-        If no arguments supplied it will try to edit today.
-
-        /timereport edit <reason> <date> <hours>
-
-        Example: /timereport edit vab 2019-01-01 4
-        """
-
-        if not self._valid_number_of_args(min_args=2, max_args=3):
-            self.send_response(message="Got the wrong number of arguments")
-
-        reason = self.arguments[0]
-        hours = 8
-
-        if not self._valid_reason(reason=reason):
-            return self.send_response(message=f"Reason {reason} is not valid")
-
-        try:
-            date_input = self.arguments[1]
-        except IndexError:
-            date_input = "today"
-            log.debug(f"Didn't get any params. Setting date to {date_input}")
-
-        try:
-            hours = round(float(self.arguments[2]))
-        except ValueError as error:
-            log.error(f"Failed to parse hours. Error was: {error}")
-            return self.send_response(message="Could not parse hours")
-        except TypeError as error:
-            log.debug(f"Caught error: {error}")
-            log.info(f"Using default hours '{hours}'")
-
-        date: Dict[str, datetime] = parse_date(date_input, format_str=self.format_str)
-        if date["from"] is None or date["to"] is None:
-            self.send_response(message="failed to parse date {date_string}")
-
-        if date["from"] is not date["to"]:
-            return self.send_response(message=f"Edit doesn't support date range :cry:")
-
-        if self._check_locks(date=date["from"], second_date=date["to"]):
-            return self.send_response(
-                message=f"Can't edit date {date_input} because locked month :cry:"
-            )
-
-        event_to_edit = read_event(
-            url=self.config["backend_url"], user_id=self.user_id, date=date_input
-        )
-
-        if event_to_edit.status_code != 200:
-            log.error(f"Response code from API: {event_to_edit.status_code}")
-            return self.send_response(
-                message=f"Something went wrong fetching event to edit. :cry:"
-            )
-
-        log.debug(f"Event to edit is: {event_to_edit.json()}")
-        if not event_to_edit.json():
-            self.send_response(message=f"No event for date {date} to edit. :shrug:")
-            return ""
-
-        self.send_attachment(
-            attachment=submit_message_menu(self.user_name, reason, date_input, hours)
-        )
-
-        return ""
-
-    def send_response(self, message):
-        """
-        Send a response to slack
-
-        :message: The Message to send
-        """
-
-        log.debug("Sending message to slack")
-        self.slack.post_message(channel=self.user_id, message=message)
-
-        return ""
-
-    def send_attachment(self, attachment):
-        """
-        Send an message to slack using attachment
-        :attachment: The attachment (slack specific attachment) to send
-        """
-
-        slack_client_response = slack_client_responder(
-            token=self.bot_access_token, user_id=self.user_id, attachment=attachment
-        )
-
-        if slack_client_response.status_code != 200:
-            log.error(
-                f"""Failed to send response to slack. Status code was: {slack_client_response.status_code}.
-                The response from slack was: {slack_client_response.text}"""
-            )
-            return "Slack response to user failed"
-        else:
-            log.debug(f"Slack client response was: {slack_client_response.text}")
-        return slack_client_response
-
-    def _help_action(self):
-        """
-        Nothing to see here.. Try another action :)
-        """
-        action_fn = self.perform_action
-        if len(self.arguments) > 0:
-            action_fn = self.actions.get(self.arguments[0], self.perform_action)
-        return self.send_response(message=f"{action_fn.__doc__}")
-
-    def _get_events(self, date_str):
-        return get_list_data(
-            f"{self.config['backend_url']}", self.user_id, date_str=date_str
-        )
-
-    def _lock_action(self):
-        """
-        Lock the timereport for month
-
-        create lock:
-        /timereport lock 2019-08
-
-        list locks:
-        /timereport lock list 2020
-        """
-
-        if not self._valid_number_of_args(min_args=1, max_args=2):
-            return self.send_response(
-                message=f"Got the wrong number of arguments for {self.action}. See these examples: {self._lock_action.__doc__}"
-            )
-
-        if self.arguments[0] == "list":
-            return self._lock_list_action()
-
-        event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
-        log.debug(f"lock event: {event}")
-
-        response = lock_event(url=self.config["backend_url"], event=json.dumps(event))
-        log.debug(f"response was: {response.text}")
-        if response.status_code == 200:
-            self.send_response(message=f"Lock successful! :lock: :+1:")
-            return ""
-        else:
-            self.send_response(message=f"Lock failed! :cry:")
-            return ""
-
-    def _check_locks(self, date: datetime, second_date: datetime) -> list:
-        """
-        Check dates for lock.
-        """
-        dates_to_check = list()
-        locked_dates = list()
-        for date in date_range(start_date=date, stop_date=second_date):
-            if not date.strftime("%Y-%m") in dates_to_check:
-                dates_to_check.append(date.strftime("%Y-%m"))
-
-        log.debug(f"Got {len(dates_to_check)} date(s) to check")
-        for date in dates_to_check:
-            response = read_lock(
-                url=self.config["backend_url"], user_id=self.user_id, date=date
-            )
-            if response.json():
-                log.info(f"Date {date} is locked")
-                dates_to_check.append(response.json())
-                locked_dates.append(date)
-
-        return locked_dates
-
-    def _valid_number_of_args(self, min_args: int, max_args: int) -> bool:
-        """
-        Check that the number of arguments in the list is within the valid range
-        """
-        log.debug(f"Got {len(self.arguments)} number of args")
-        if min_args <= len(self.arguments) <= max_args:
-            return True
-        return False
-
-    def _valid_reason(self, reason: str) -> bool:
-        """
-        Check that reason is valid
-        """
-
-        if reason in self.config.get("valid_reasons"):
-            return True
-
-        return False
-
-    def _create_list_message(self, data) -> None:
-        """
-        Create the slack block message layout for list action
-        """
-        data = json.loads(data)
-
-        start_date = data[0].get("event_date")
-        end_date = data[-1].get("event_date")
-
-        self.slack.add_section_block(
-            text=f"Reported time for period *{start_date}:{end_date}*",
-        )
-        self.slack.add_divider_block()
-
-        for event in data:
-            event_date = event.get("event_date")
-            reason = event.get("reason")
-            hours = event.get("hours")
-            self.slack.add_section_block(
-                text=f"Date: *{event_date}*\nReason: *{reason}*\nHours: *{hours}*"
-            )
-            self.slack.add_divider_block()
-
-    def _lock_list_action(self) -> None:
-        """
-        Lists all locks for a given year
-        """
-        year = None
-
-        try:
-            year = int(self.arguments[1])
-        except IndexError:
-            now = datetime.now()
-            year = now.year
-
-        response = read_lock(
-            url=self.config["backend_url"], user_id=self.user_id, date=year
-        )
-        locks = response.json()
-
-        if not locks:
-            return self.send_response(f"No locks found for year *{year}*")
-
-        self.slack.add_section_block(text=f"Locks found for months in *{year}*")
-        self.slack.add_divider_block()
-
-        for lock in locks:
-            self.slack.add_section_block(text=f"{lock.get('event_date')} :lock:")
-
-        self.slack.post_message(message="From timereport", channel=self.user_id)
-        return ""
+    return UnsupportedAction(payload, config)
