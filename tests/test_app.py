@@ -13,7 +13,7 @@ def test_help_command(chalice_app):
     )
 
     assert r["response"]["statusCode"] == 200
-    assert "Supported actions are:" in r["slack_message"][1]["json"]["text"]
+    assert "Supported actions" in r["slack_message"][1]["json"]["text"]
 
 
 @pytest.mark.integration
@@ -40,7 +40,7 @@ def test_add_command_accepted(chalice_app):
     )
 
     assert r["response"]["statusCode"] == 200
-    assert r["slack_message"][1]["json"]["text"] == "From timereport"
+    assert "From timereport" in r["slack_message"][1]["json"]["text"]
     attachments = r["slack_message"][1]["json"]["attachments"]
     assert attachments is not None
     attachment = attachments[0]
@@ -54,7 +54,7 @@ def test_add_command_accepted(chalice_app):
         user_name="mattias",
     )
     assert ri["response"]["statusCode"] == 200
-    assert ri["slack_message"][1]["json"]["text"] == "Added successfully"
+    assert "success" in ri["slack_message"][1]["json"]["text"]
 
     rl = call_from_slack(
         chalice_app=chalice_app,
@@ -75,7 +75,7 @@ def test_add_command_accepted(chalice_app):
     )
 
     assert r["response"]["statusCode"] == 200
-    assert r["slack_message"][1]["json"]["text"] == "From timereport"
+    assert "From timereport" in r["slack_message"][1]["json"]["text"]
 
     attachments = r["slack_message"][1]["json"]["attachments"]
     assert attachments is not None
@@ -104,7 +104,7 @@ def test_add_command_rejected(chalice_app):
     )
 
     assert r["response"]["statusCode"] == 200
-    assert r["slack_message"][1]["json"]["text"] == "From timereport"
+    assert "From timereport" in r["slack_message"][1]["json"]["text"]
     attachments = r["slack_message"][1]["json"]["attachments"]
     assert attachments is not None
     attachment = attachments[0]
@@ -143,5 +143,5 @@ def test_lock_month_and_list(chalice_app):
     assert r["response"]["statusCode"] == 200
 
     raw_block_text = get_raw_block_text(slack_message=r["slack_message"])
-    assert "Locks found for months in" in raw_block_text
+    assert "Locks found for" in raw_block_text
     assert "2020-07" in raw_block_text
