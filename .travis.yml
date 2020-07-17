@@ -5,6 +5,7 @@ python:
 - '3.8'
 env:
   global:
+  - PIPENV_IGNORE_VIRTUALENVS: 1
   - AWS_DEFAULT_REGION: eu-north-1
   - secure: MSx0UbNHbyPGa/LeG1QpZoRUWRcygxZyxkXt0pbDdoRlpHUj5ww8Fa5tE8oAcQrgqREVYE6cboF8D4npnm5G0NAj4QkFPBOPqgNzF5swXC96b5NaPhw1/7IRBOJrdzmpbvvX0z3fYK2PzDCIf9jKzC7iTwPDNqJHWlZqlqpdLFLPPwQGYOMslibNmpZQskM10gQ/OS8y4UaWbNsk7pou0p7fQL9hd2uQSwBQW1ss9fWyXuCWXkZ1rsxsXBubonh6uYUw9ppclGZt8OFFUQ4H5TldYN27cT5xun83tnILh4vDpk1sqEjP2GyiwxH3z/z+ivrVqmSLaaxlCZei02yYmHOH+Ig2pIUgvRHUGAoz0XtBAdXcze2pRbs6UloJMjzdzMmy85ufhBKBpdRrS8FTwCx6DpCCzhGW9nYh92lcs8WgX/AQU6PW68CvPrFbwUoMEnjsIyELQS+8If8ueMkQ5U4SwDZYSGqlkfd068El3c043qf4l1/x9zxKsxZ8VAbPLFTP9JFpKEl5VZAuVNR0EVHSwmrP3Vk7fFyHXL0VfS/t8uofcYhw+JaXq7o6iu0lbgPVsH1+OPC5/wcU+Kx18BGB5F/QyPOBR0sp8mft9ZHPJTlUdTsn6EQw/hBJlUPnfVK7dySsVNdPjFKgII8xJMlhdlZXGywrSYGLO0dHyII=
   - secure: Sx2e8LCOwPhNp+0rhw1FXYL9zjWJSg7ImYE9V1atR69hl8OIDM0c9IaoFWZpmBBsKubo40lD/xcKIsUABmQs0ePMkLOk/pytCXamJEABWt9RfD3tUCk8TG3UD0Sr6TSBhf0QN1i/LncZ2WbtTRJjob66qFEB1XGGCXpG1CGLyJR9Qir3SijFuK8vSceotkKlaec9JES4V5W02xq7ckeKfbUk2cCKTKddbHM3JCp1NbiuaHyfhaiI73rff1loy4gB2y2BOMDnkJRXIRrg4OJzE50CrLBcUI8w+HcxujZGNeu4PM/C4daQVZkKvGfIPvX5M6DWj2vgO+VJBYCuenvEeglHXaVSrsyBmn4fngzruYIj0kThtN7SgtpDETSBzED9M1FOxh8+MEOowsJCdSVbqU6cGK7HiyizYCXHfvxRefmweOc0PwBpF7wMi5aKWKy4lnxJBE0tJaVhxRqKwZ6C5L67vqdSJDouYODxx7xt1d7ZppDzxGTovZzsTDOBvQ/w+uwkxy1F72bHkquj/8Gia5KUgekpqG0wOz6zT56OfFBVVKGBUN2viM1lfy2Ai7xAy5BTCMySH7J35Umhy3HNBuSkS0Vo+CtQRGOgiGWD4mF/kPz2D94hd+o9ZOriP35C3TkG3IH659kPov4nghKROtvh7bTSVWkK4QCI0udQQZU=
@@ -23,9 +24,21 @@ stages:
 jobs:
   include:
   - stage: Run tests
+    env:
+    - AWS_ACCESS_KEY_ID: dummy
+    - AWS_SECRET_ACCESS_KEY: dummy
+    - AWS_DEFAULT_REGION: eu-north-1
     script:
     - pipenv install --dev
-    - pipenv run pytest -v
+    - pipenv run pytest -v -m "not integration"
+    - git clone https://github.com/codelabsab/timereport-api.git ../timereport-api
+    - cd ../timereport-api
+    - make dynamo
+    - pipenv install
+    - pipenv run make ci-server
+    - sleep 5
+    - cd ../timereport-slack
+    - pipenv run pytest -v -m integration
   - stage: Deploy to dev
     script:
     - pipenv install
