@@ -1,7 +1,8 @@
-from ruamel.yaml import YAML
-from datetime import timedelta, datetime
 import logging
+from datetime import date, datetime, timedelta
 from typing import List
+
+from ruamel.yaml import YAML
 
 log = logging.getLogger(__name__)
 
@@ -29,6 +30,23 @@ def date_range(start_date: datetime, stop_date: datetime) -> List[datetime]:
     while start_date <= stop_date:
         yield start_date
         start_date += delta
+
+
+def month_range(start_date: datetime, end_date: datetime) -> List[date]:
+    """
+    A generator that yields the months between start_date and end_date
+    """
+    year = start_date.year
+    month = start_date.month
+
+    while True:
+        current = date(year, month, 1)
+        yield current
+        if current.month == end_date.month and current.year == end_date.year:
+            break
+        month = ((month + 1) % 12) or 12
+        if month == 1:
+            year += 1
 
 
 def validate_date(date, format_str) -> bool:
@@ -62,8 +80,8 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
     # handle aliases
     if date == "today":
         today = datetime.now()
-        dates['from'] = today
-        dates['to'] = today
+        dates["from"] = today
+        dates["to"] = today
 
     # handle ranges
     elif ":" in date:
@@ -83,13 +101,13 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
             log.error(f"{date_from} is after {date_to}")
             return dates
 
-        dates['from'] = datetime.strptime(date_from, format_str)
-        dates['to'] = datetime.strptime(date_to, format_str)
+        dates["from"] = datetime.strptime(date_from, format_str)
+        dates["to"] = datetime.strptime(date_to, format_str)
 
     # handle single date
     else:
         if validate_date(date, format_str=format_str):
-            dates['to'] = datetime.strptime(date, format_str)
-            dates['from'] = datetime.strptime(date, format_str)
+            dates["to"] = datetime.strptime(date, format_str)
+            dates["from"] = datetime.strptime(date, format_str)
 
     return dates
