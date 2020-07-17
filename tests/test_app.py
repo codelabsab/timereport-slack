@@ -31,7 +31,7 @@ def test_add_command_accepted(chalice_app):
     attachments = r["slack_message"][1]["json"]["attachments"]
     assert attachments is not None
     attachment = attachments[0]
-    assert len(attachment["actions"]) > 0
+    assert attachment["actions"]
     assert "Submit" in attachment["title"]
 
     ri = respond_interactively(chalice_app, attachments, user_id, "mattias",)
@@ -52,7 +52,7 @@ def test_add_command_accepted(chalice_app):
     attachments = r["slack_message"][1]["json"]["attachments"]
     assert attachments is not None
     attachment = attachments[0]
-    assert len(attachment["actions"]) > 0
+    assert attachment["actions"]
     assert "Delete" in attachment["title"]
 
     ri = respond_interactively(chalice_app, attachments, user_id, "mattias",)
@@ -70,7 +70,7 @@ def test_add_command_rejected(chalice_app):
     attachments = r["slack_message"][1]["json"]["attachments"]
     assert attachments is not None
     attachment = attachments[0]
-    assert len(attachment["actions"]) > 0
+    assert attachment["actions"]
     assert "Submit" in attachment["title"]
 
     ri = respond_interactively(
