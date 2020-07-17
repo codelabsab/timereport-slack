@@ -16,6 +16,18 @@ def test_help_command(chalice_app):
     assert "Supported actions" in r["slack_message"][1]["json"]["text"]
 
 
+def test_help_specific_command(chalice_app):
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command="help add",
+        user_id=f"{random.randint(0, 10000)}",
+        user_name="mattias",
+    )
+
+    assert r["response"]["statusCode"] == 200
+    assert "/timereport add" in r["slack_message"][1]["json"]["text"]
+
+
 @pytest.mark.integration
 def test_empty_list(chalice_app):
     r = call_from_slack(
