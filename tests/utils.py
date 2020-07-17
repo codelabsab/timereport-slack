@@ -9,7 +9,7 @@ from tests.conftest import signing_secret
 
 
 def respond_interactively(
-    chalice_app, attachments, user_id, user_name, action="submit_yes"
+    *, chalice_app, attachments, user_id, user_name, action="submit_yes"
 ):
     """
     Mocks slacks menu driven responses, for example used to verify adding entries.
@@ -35,7 +35,7 @@ def respond_interactively(
 
 
 def call_from_slack(
-    chalice_app, full_command: str, user_id: str, user_name: str,
+    *, chalice_app, full_command: str, user_id: str, user_name: str,
 ) -> Dict[str, str]:
     """
     Mock command sent from slack.
@@ -80,7 +80,7 @@ def _perform_call(chalice_app, endpoint, payload):
     return dict(slack_message=mock_request.post.call_args, response=response)
 
 
-def get_raw_block_text(slack_message):
+def get_raw_block_text(*, slack_message):
     """
     Parse a slack message returning the raw text from "blocks"
 
