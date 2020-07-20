@@ -181,7 +181,7 @@ class LockAction(BaseAction):
     def perform_action(self):
         if not self._valid_number_of_args(min_args=1, max_args=2):
             return self.send_response(
-                message=f"Got the wrong number of arguments for {self.action}. See these examples: {self._lock_action.__doc__}"
+                message=f"Got the wrong number of arguments for {self.name}. See these examples: {self.doc}"
             )
 
         if self.arguments[0] == "list":
