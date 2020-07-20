@@ -1,5 +1,5 @@
-from chalicelib.lib.helpers import parse_date, date_range
-from datetime import datetime
+from chalicelib.lib.helpers import parse_date, date_range, month_range
+from datetime import datetime, date
 
 format_str = "%Y-%m-%d"
 
@@ -74,3 +74,14 @@ def test_date_range():
     assert len(test_date_list) == 10
     for item in test_date_list:
         assert isinstance(item, datetime)
+
+
+def test_month_range():
+    first_date = datetime.strptime("2019-01-01", format_str)
+    second_date = datetime.strptime("2019-05-10", format_str)
+    test_month_generator = month_range(start_date=first_date, end_date=second_date)
+
+    for item in test_month_generator:
+        assert isinstance(item, date)
+        assert item.year == 2019
+        assert 0 < item.month < 6

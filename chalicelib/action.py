@@ -1,5 +1,6 @@
 import json
 import logging
+from collections import defaultdict
 from datetime import datetime
 from typing import Dict
 
@@ -10,6 +11,7 @@ from chalicelib.lib.factory import factory
 from chalicelib.lib.helpers import date_range, parse_date
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.lock import lock_event
+from chalicelib.lib.period_data import get_period_data
 from chalicelib.lib.slack import (
     Slack,
     delete_message_menu,
@@ -82,34 +84,6 @@ class BaseAction:
         else:
             log.debug(f"Slack client response was: {slack_client_response.text}")
         return slack_client_response
-
-    def _get_events(self, date_str):
-        return get_list_data(
-            f"{self.config['backend_url']}", self.user_id, date_str=date_str
-        )
-
-    def _create_list_message(self, data) -> None:
-        """
-        Create the slack block message layout for list action
-        """
-        data = json.loads(data)
-
-        start_date = data[0].get("event_date")
-        end_date = data[-1].get("event_date")
-
-        self.slack.add_section_block(
-            text=f"Reported time for period *{start_date}:{end_date}*",
-        )
-        self.slack.add_divider_block()
-
-        for event in data:
-            event_date = event.get("event_date")
-            reason = event.get("reason")
-            hours = event.get("hours")
-            self.slack.add_section_block(
-                text=f"Date: *{event_date}*\nReason: *{reason}*\nHours: *{hours}*"
-            )
-            self.slack.add_divider_block()
 
     def _check_locks(self, date: datetime, second_date: datetime) -> list:
         """
@@ -526,6 +500,8 @@ class ListAction(BaseAction):
             return ""
 
         log.debug(f"The date string set to: {date_str}")
+
+        period_data = get_period_data(date_str=date_str)
         list_data = self._get_events(date_str=date_str)
 
         if not list_data or list_data == "[]":
@@ -535,9 +511,75 @@ class ListAction(BaseAction):
             )
             return ""
 
-        self._create_list_message(data=list_data)
+        self._create_list_message(data=list_data, period_data=period_data)
         self.slack.post_message(message="From timereport", channel=self.user_id)
         return ""
+
+    def _get_events(self, date_str):
+        return get_list_data(
+            f"{self.config['backend_url']}", self.user_id, date_str=date_str
+        )
+
+    def _create_list_message(self, data, period_data) -> None:
+        """
+        Create the slack block message layout for list action
+        """
+        data = json.loads(data)
+
+        start_date = data[0].get("event_date")
+        end_date = data[-1].get("event_date")
+
+        self.slack.add_section_block(
+            text=f"Reported time for period *{start_date}:{end_date}*",
+        )
+        self._show_period_data(list_data=data, period_data=period_data)
+        self.slack.add_divider_block()
+
+        for event in data:
+            event_date = event.get("event_date")
+            reason = event.get("reason")
+            hours = event.get("hours")
+            self.slack.add_section_block(
+                text=f"Date: *{event_date}*\nReason: *{reason}*\nHours: *{hours}*"
+            )
+            self.slack.add_divider_block()
+
+    def _show_period_data(self, list_data, period_data) -> Dict[str, int]:
+        if not period_data:
+            self.slack.add_section_block(text="No information about worked hours")
+            return
+
+        total_per_type = defaultdict(int)
+        total_absent = 0
+        for event in self._filter_non_workdays(list_data, period_data):
+            hours = int(event.get("hours"))
+            total_absent += hours
+            total_per_type[event.get("reason")] += hours
+
+        total_workhours = period_data["total_workdays"] * 8
+        total_worked = total_workhours - total_absent
+
+        self.slack.add_section_block(
+            text=f"Total hours: {total_worked} / {total_workhours} ({-total_absent})"
+        )
+
+        for reason, hours in total_per_type.items():
+            self.slack.add_section_block(text=f"{reason}: {hours}h")
+
+    def _filter_non_workdays(self, list_data, period_data):
+        holidays = [day["datum"] for day in period_data["holidays"]]
+
+        workday_events = []
+        for event in list_data:
+            event_date = event.get("event_date")
+            if event_date not in holidays and not self._is_weekend(event_date):
+                workday_events.append(event)
+
+        return workday_events
+
+    def _is_weekend(self, date_str):
+        date = datetime.strptime(date_str, "%Y-%m-%d")
+        return date.isoweekday() >= 6
 
 
 def create_action(payload, config):
