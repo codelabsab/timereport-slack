@@ -3,7 +3,10 @@ import logging
 from datetime import datetime
 from typing import Dict
 
+from chalicelib.lib.add import post_event
 from chalicelib.lib.api import read_event, read_lock
+from chalicelib.lib.delete import delete_event
+from chalicelib.lib.factory import factory
 from chalicelib.lib.helpers import date_range, parse_date
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.lock import lock_event
@@ -11,6 +14,7 @@ from chalicelib.lib.slack import (
     Slack,
     delete_message_menu,
     slack_client_responder,
+    slack_responder,
     submit_message_menu,
 )
 from chalicelib.model.event import create_lock
@@ -151,6 +155,14 @@ class BaseAction:
     def perform_action(self):
         """
         Run the action
+        """
+        raise NotImplementedError()
+
+    def perform_interactive(self):
+        """
+        Run interactive slack callback
+
+        Optional. Only for actions that require confirmation
         """
         raise NotImplementedError()
 
@@ -308,6 +320,39 @@ class AddAction(BaseAction):
         )
         return ""
 
+    def perform_interactive(self):
+        selection = self.payload.get("actions")[0].get("value")
+        log.info(f"Selection is: {selection}")
+        response_url = self.payload["response_url"]
+
+        if selection == "submit_yes":
+            self.slack.ack_response(response_url=response_url)
+            user_id = self.payload["user"]["id"]
+            msg = "Added successfully"
+            events = factory(self.payload, format_str=self.config.get("format_str"))
+            failed_events = list()
+            for event in events:
+                response = post_event(
+                    f"{self.config['backend_url']}/event/users/{user_id}",
+                    json.dumps(event),
+                )
+                if response.status_code != 200:
+                    log.debug(
+                        f"Event {event} got unexpected response from backend: {response.text}"
+                    )
+                    failed_events.append(event.get("event_date"))
+
+            if failed_events:
+                log.debug(f"Got {len(failed_events)} events")
+                msg = (
+                    f"Successfully added {len(events) - len(failed_events)} events.\n"
+                    f"These however failed: ```{failed_events} ```"
+                )
+            slack_responder(url=response_url, msg=msg)
+            return ""
+        else:
+            slack_responder(url=response_url, msg="Action canceled :cry:")
+
 
 class DeleteAction(BaseAction):
     name = "delete"
@@ -341,6 +386,40 @@ class DeleteAction(BaseAction):
         else:
             self.send_response(message=f"Unable to delete since month is locked :cry:")
         return ""
+
+    def perform_interactive(self):
+        selection = self.payload.get("actions")[0].get("value")
+        log.info(f"Selection is: {selection}")
+        response_url = self.payload["response_url"]
+
+        if selection == "submit_yes":
+            self.slack.ack_response(response_url=response_url)
+            user_id = self.payload["user"]["id"]
+            message = self.payload["original_message"]["attachments"][0]["fields"]
+            date = message[1]["value"]
+            if date == "today":
+                date = datetime.now().strftime(self.config["format_str"])
+
+            delete_by_date = delete_event(
+                f"{self.config['backend_url']}/event/users/{user_id}", date
+            )
+            log.info(
+                f"Delete event posted to URL: {self.config['backend_url']}/event/users/{user_id}"
+            )
+            if delete_by_date.status_code != 200:
+                log.debug(
+                    f"Error from backend: status code: {delete_by_date.status_code}. Response text: {delete_by_date.text}"
+                )
+                slack_responder(
+                    url=response_url, msg=f"Got unexpected response from backend"
+                )
+            else:
+                slack_responder(
+                    url=response_url, msg=f"successfully deleted entry: {date}"
+                )
+            return ""
+        else:
+            slack_responder(url=response_url, msg="Action canceled :cry:")
 
 
 class EditAction(BaseAction):
@@ -474,8 +553,11 @@ def create_action(payload, config):
     try:
         params = payload["text"][0].split()
     except KeyError:
-        log.info("No parameters received. Defaulting to help action")
-        params = ["help"]
+        try:
+            params = [payload["callback_id"]]
+        except KeyError:
+            log.info("No parameters received. Defaulting to help action")
+            params = ["help"]
 
     action = params[0]
 
