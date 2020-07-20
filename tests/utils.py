@@ -9,7 +9,7 @@ from tests.conftest import signing_secret
 
 
 def respond_interactively(
-    *, chalice_app, attachments, user_id, user_name, action="submit_yes"
+    *, chalice_app, attachments, user_id, user_name, callback_id, action="submit_yes"
 ):
     """
     Mocks slacks menu driven responses, for example used to verify adding entries.
@@ -26,7 +26,7 @@ def respond_interactively(
         user_id=[user_id],
         user_name=[user_name],
         actions=[dict(value=action)],
-        callback_id="add",
+        callback_id=callback_id,
         user=dict(id=user_id),
         original_message=dict(attachments=attachments),
     )
