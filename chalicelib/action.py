@@ -12,6 +12,7 @@ from chalicelib.lib.helpers import date_range, parse_date
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.lock import lock_event
 from chalicelib.lib.period_data import get_period_data
+from chalicelib.lib.reminder import remind_users
 from chalicelib.lib.slack import (
     Slack,
     delete_message_menu,
@@ -469,6 +470,17 @@ class UnsupportedAction(BaseAction):
 
     def perform_action(self):
         return self.send_response(message=f"Unsupported action: {self.action}")
+
+
+class ReminderAction(BaseAction):
+    name = "test-reminder"
+    short_doc = "Test run monthly lock reminder"
+    doc = ""
+
+    def perform_action(self):
+        remind_users(
+            self.slack, self.config["backend_url"], only_for_user_ids=[self.user_id]
+        )
 
 
 class ListAction(BaseAction):

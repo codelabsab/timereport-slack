@@ -22,15 +22,20 @@ class Slack:
         }
         self.blocks = list()
 
-    def post_message(self, message: str, channel: str) -> requests.models.Response:
+    def post_message(
+        self, message: str, channel: str, as_user=None
+    ) -> requests.models.Response:
         """
         Send slack message to channel. Channel can be a slack user ID to send direct message
         :param message: The text to send
         :param channel: The channel to send the message
+        :param as_user: When using user_id as channel, set to false for the message to go only to that user
         :return: requests.models.Response
         """
 
         data = {"channel": channel, "text": message}
+        if as_user is not None:
+            data["as_user"] = as_user
 
         data["blocks"] = self.blocks if self.blocks else None
         log.debug(f"Data is: ${data}")
