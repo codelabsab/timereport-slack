@@ -401,7 +401,6 @@ class EditAction(BaseAction):
     short_doc = "Edit a single event in timereport"
     doc = """
         Edit event in timereport for user.
-        If no arguments supplied it will try to edit today.
 
         /timereport edit <reason> <date> <hours>
 
@@ -410,29 +409,21 @@ class EditAction(BaseAction):
 
     def perform_action(self):
 
-        if not self._valid_number_of_args(min_args=2, max_args=3):
-            self.send_response(message="Got the wrong number of arguments")
+        if not self._valid_number_of_args(min_args=3, max_args=3):
+            return self.send_response(message="Got the wrong number of arguments")
 
         reason = self.arguments[0]
-        hours = 8
 
         if not self._valid_reason(reason=reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
-        try:
-            date_input = self.arguments[1]
-        except IndexError:
-            date_input = "today"
-            log.debug(f"Didn't get any params. Setting date to {date_input}")
+        date_input = self.arguments[1]
 
         try:
             hours = round(float(self.arguments[2]))
         except ValueError as error:
             log.error(f"Failed to parse hours. Error was: {error}")
             return self.send_response(message="Could not parse hours")
-        except TypeError as error:
-            log.debug(f"Caught error: {error}")
-            log.info(f"Using default hours '{hours}'")
 
         date: Dict[str, datetime] = parse_date(date_input, format_str=self.format_str)
         if date["from"] is None or date["to"] is None:
