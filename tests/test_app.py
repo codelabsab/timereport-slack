@@ -78,6 +78,7 @@ def test_add_command_accepted(chalice_app, date):
         attachments=attachments,
         user_id=user_id,
         user_name="mattias",
+        callback_id="add",
     )
     assert ri["response"]["statusCode"] == 200
     assert "success" in ri["slack_message"][1]["json"]["text"]
@@ -114,9 +115,19 @@ def test_add_command_accepted(chalice_app, date):
         attachments=attachments,
         user_id=user_id,
         user_name="mattias",
+        callback_id="delete",
     )
     assert ri["response"]["statusCode"] == 200
-    assert "OK, hang on" in ri["slack_message"][1]["json"]["text"]
+    assert "deleted" in ri["slack_message"][1]["json"]["text"]
+
+    rl = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"list {date}",
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert rl["response"]["statusCode"] == 200
+    assert "nothing to list" in rl["slack_message"][1]["json"]["text"]
 
 
 @pytest.mark.integration
@@ -143,6 +154,7 @@ def test_add_command_accepted_and_edited(chalice_app, date):
         attachments=attachments,
         user_id=user_id,
         user_name="mattias",
+        callback_id="add",
     )
     assert ri["response"]["statusCode"] == 200
     assert ri["slack_message"][1]["json"]["text"] == "Added successfully"
@@ -179,6 +191,7 @@ def test_add_command_accepted_and_edited(chalice_app, date):
         attachments=attachments,
         user_id=user_id,
         user_name="mattias",
+        callback_id="add",
     )
     assert ri["response"]["statusCode"] == 200
     assert "Added successfully" in ri["slack_message"][1]["json"]["text"]
@@ -218,6 +231,7 @@ def test_add_command_rejected(chalice_app):
         user_id=user_id,
         user_name="mattias",
         action="submit_no",
+        callback_id="add",
     )
     assert ri["response"]["statusCode"] == 200
     assert "canceled" in ri["slack_message"][1]["json"]["text"]
