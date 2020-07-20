@@ -1,24 +1,20 @@
-from chalice import Chalice
-import os
-import json
 import logging
-from datetime import datetime
+import os
 
-from chalicelib.lib.factory import factory
-from chalicelib.lib.add import post_event
-from chalicelib.lib.delete import delete_event
+from chalice import Chalice
+
+from chalicelib.action import create_action
+from chalicelib.lib.helpers import parse_config
+
 from chalicelib.lib.slack import (
+    Slack,
+    delete_message_menu,
+    slack_client_responder,
     slack_payload_extractor,
     slack_responder,
-    slack_client_responder,
     submit_message_menu,
-    delete_message_menu,
     verify_token,
-    Slack,
 )
-
-from chalicelib.lib.helpers import parse_config
-from chalicelib.action import create_action
 
 app = Chalice(app_name="timereport")
 app.debug = True
@@ -45,64 +41,12 @@ def interactive():
     try:
         req = app.current_request.raw_body.decode()
         payload = slack_payload_extractor(req)
-        selection = payload.get("actions")[0].get("value")
-        logger.info(f"Selection is: {selection}")
-        response_url = payload["response_url"]
-        slack = Slack(slack_token=config["bot_access_token"])
 
-        if selection == "submit_yes":
-            slack.ack_response(response_url=response_url)
-            user_id = payload["user"]["id"]
-            if payload.get("callback_id") == "delete":
-                message = payload["original_message"]["attachments"][0]["fields"]
-                date = message[1]["value"]
-                if date == "today":
-                    date = datetime.now().strftime(config["format_str"])
+        logger.info(f"payload is: {payload}")
 
-                delete_by_date = delete_event(
-                    f"{config['backend_url']}/event/users/{user_id}", date
-                )
-                logger.info(
-                    f"Delete event posted to URL: {config['backend_url']}/event/users/{user_id}"
-                )
-                if delete_by_date.status_code != 200:
-                    logger.debug(
-                        f"Error from backend: status code: {delete_by_date.status_code}. Response text: {delete_by_date.text}"
-                    )
-                    slack_responder(
-                        url=response_url, msg=f"Got unexpected response from backend"
-                    )
-                else:
-                    slack_responder(
-                        url=response_url, msg=f"successfully deleted entry: {date}"
-                    )
-                return ""
+        action = create_action(payload, config)
 
-            if payload.get("callback_id") == "add":
-                msg = "Added successfully"
-                events = factory(payload, format_str=config.get("format_str"))
-                failed_events = list()
-                for event in events:
-                    response = post_event(
-                        f"{config['backend_url']}/event/users/{user_id}",
-                        json.dumps(event),
-                    )
-                    if response.status_code != 200:
-                        logger.debug(
-                            f"Event {event} got unexpected response from backend: {response.text}"
-                        )
-                        failed_events.append(event.get("event_date"))
-
-                if failed_events:
-                    logger.debug(f"Got {len(failed_events)} events")
-                    msg = (
-                        f"Successfully added {len(events) - len(failed_events)} events.\n"
-                        f"These however failed: ```{failed_events} ```"
-                    )
-                slack_responder(url=response_url, msg=msg)
-                return ""
-        else:
-            slack_responder(url=response_url, msg="Action canceled :cry:")
+        action.perform_interactive()
     except Exception:
         logger.critical("Caught unhandled exception.", exc_info=True)
 
