@@ -427,7 +427,7 @@ class ListAction(BaseAction):
     name = "list"
     doc = """
         List timereport for user.
-        If no arguments supplied it will default to all.
+        If no arguments supplied it will default to current month.
         Supported arguments:
         "today" - List the event for the todays date
         "date" - The date as a string.
