@@ -18,7 +18,7 @@ from chalicelib.lib.slack import (
 )
 
 from chalicelib.lib.helpers import parse_config
-from chalicelib.action import Action
+from chalicelib.action import create_action
 
 app = Chalice(app_name="timereport")
 app.debug = True
@@ -123,7 +123,7 @@ def index():
 
         logger.info(f"payload is: {payload}")
 
-        action = Action(payload, config)
+        action = create_action(payload, config)
 
         action.perform_action()
     except Exception:
