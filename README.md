@@ -61,6 +61,12 @@ Commit all changes to your .travis.yml.
 $ git add chalice_secrets.tar.enc .travis.yml
 ```
 
+Upload the new secrets to s3 for easy access for other devs:
+
+```
+$ aws s3 cp chalice_secrets.tar s3://timereport.codelabs.se/chalice_secrets.tar
+```
+
 
 ### Deploys
 
