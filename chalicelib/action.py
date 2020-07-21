@@ -50,8 +50,14 @@ class BaseAction:
         self.action = self.params[0]
 
         self.arguments = self.params[1:]
-        self.user_id = self.payload["user_id"][0]
-        self.user_name = self.payload["user_name"][0]
+        try:
+            self.user_id = self.payload["user_id"][0]
+        except KeyError:
+            self.user_id = self.payload["user"]["id"]
+        try:
+            self.user_name = self.payload["user_name"][0]
+        except KeyError:
+            self.user_name = ""
 
     def send_response(self, message):
         """
@@ -353,9 +359,7 @@ class DeleteAction(BaseAction):
 
         if not self._check_locks(date=date["from"], second_date=date["to"]):
             self.send_attachment(
-                attachment=delete_message_menu(
-                    self.payload.get("user_name")[0], date_string
-                )
+                attachment=delete_message_menu(self.user_name, date_string)
             )
         else:
             self.send_response(message=f"Unable to delete since month is locked :cry:")

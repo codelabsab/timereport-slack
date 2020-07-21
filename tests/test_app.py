@@ -77,7 +77,6 @@ def test_add_command_accepted(chalice_app, date):
         chalice_app=chalice_app,
         attachments=attachments,
         user_id=user_id,
-        user_name="mattias",
         callback_id="add",
     )
     assert ri["response"]["statusCode"] == 200
@@ -114,7 +113,6 @@ def test_add_command_accepted(chalice_app, date):
         chalice_app=chalice_app,
         attachments=attachments,
         user_id=user_id,
-        user_name="mattias",
         callback_id="delete",
     )
     assert ri["response"]["statusCode"] == 200
@@ -148,7 +146,6 @@ def test_list_with_total_hours(chalice_app):
         chalice_app=chalice_app,
         attachments=attachments,
         user_id=user_id,
-        user_name="mattias",
         callback_id="add",
     )
     assert ri["response"]["statusCode"] == 200
@@ -193,7 +190,6 @@ def test_add_command_accepted_and_edited(chalice_app, date):
         chalice_app=chalice_app,
         attachments=attachments,
         user_id=user_id,
-        user_name="mattias",
         callback_id="add",
     )
     assert ri["response"]["statusCode"] == 200
@@ -230,7 +226,6 @@ def test_add_command_accepted_and_edited(chalice_app, date):
         chalice_app=chalice_app,
         attachments=attachments,
         user_id=user_id,
-        user_name="mattias",
         callback_id="add",
     )
     assert ri["response"]["statusCode"] == 200
@@ -269,7 +264,6 @@ def test_add_command_rejected(chalice_app):
         chalice_app=chalice_app,
         attachments=attachments,
         user_id=user_id,
-        user_name="mattias",
         action="submit_no",
         callback_id="add",
     )
