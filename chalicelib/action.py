@@ -473,7 +473,7 @@ class UnsupportedAction(BaseAction):
 
 
 class ReminderAction(BaseAction):
-    name = "test-reminder"
+    name = "reminder"
     short_doc = "Run monthly lock reminder"
     doc = ""
 
