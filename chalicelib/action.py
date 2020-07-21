@@ -474,7 +474,7 @@ class UnsupportedAction(BaseAction):
 
 class ReminderAction(BaseAction):
     name = "test-reminder"
-    short_doc = "Test run monthly lock reminder"
+    short_doc = "Run monthly lock reminder"
     doc = ""
 
     def perform_action(self):
