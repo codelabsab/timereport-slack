@@ -5,8 +5,7 @@ from datetime import datetime
 from typing import Dict
 
 from chalicelib.lib.add import post_event
-from chalicelib.lib.api import read_event, read_lock
-from chalicelib.lib.delete import delete_event
+from chalicelib.lib.api import read_event, read_lock, delete_event
 from chalicelib.lib.factory import factory
 from chalicelib.lib.helpers import date_range, parse_date
 from chalicelib.lib.list import get_list_data
@@ -379,11 +378,10 @@ class DeleteAction(BaseAction):
                 date = datetime.now().strftime(self.config["format_str"])
 
             delete_by_date = delete_event(
-                f"{self.config['backend_url']}/event/users/{user_id}", date
+                url=self.config["backend_url"], user_id=user_id, date=date
             )
-            log.info(
-                f"Delete event posted to URL: {self.config['backend_url']}/event/users/{user_id}"
-            )
+            log.debug(f"Delete event posted. User={user_id}. Date={date}")
+
             if delete_by_date.status_code != 200:
                 log.debug(
                     f"Error from backend: status code: {delete_by_date.status_code}. Response text: {delete_by_date.text}"
