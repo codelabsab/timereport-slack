@@ -2,7 +2,6 @@ import os
 import pytest
 from chalicelib.lib.helpers import parse_config
 from chalicelib.lib.factory import factory
-from chalicelib.lib.add import post_event
 from chalicelib.lib.list import get_list_data
 from chalicelib.model.event import create_lock
 from mockito import when, mock, unstub
@@ -19,28 +18,6 @@ def test_parsing_config():
     for option in mandatory_options:
         assert isinstance(option, str)
         assert test_config.get(option) is not None
-
-
-def test_create_event():
-    fake_url = "http://fake.com"
-    fake_data = "fake data"
-    when(requests).post(
-        url=fake_url, json=fake_data, headers={"Content-Type": "application/json"}
-    ).thenReturn(mock({"status_code": 200}))
-    response = post_event(fake_url, fake_data)
-    assert response.status_code == 200
-    unstub()
-
-
-def test_create_event_failure():
-    fake_url = "http://fake.com"
-    fake_data = "fake data"
-    when(requests).post(
-        url=fake_url, json=fake_data, headers={"Content-Type": "application/json"}
-    ).thenReturn(mock({"status_code": 500}))
-    response = post_event(fake_url, fake_data)
-    assert response.status_code != 200
-    unstub()
 
 
 def test_get_list_data_default():
