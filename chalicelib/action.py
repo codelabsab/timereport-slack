@@ -391,9 +391,12 @@ class DeleteAction(BaseAction):
                     url=response_url, msg=f"Got unexpected response from backend"
                 )
             else:
-                slack_responder(
-                    url=response_url, msg=f"successfully deleted entry: {date}"
-                )
+                deleted_count = int(delete_by_date.json().get("count", "0"))
+                if deleted_count > 0:
+                    msg = f"Deleted {deleted_count} events for {date}"
+                else:
+                    msg = f"No events found to delete for {date}"
+                slack_responder(url=response_url, msg=msg)
             return ""
         else:
             slack_responder(url=response_url, msg="Action canceled :cry:")

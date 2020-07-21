@@ -116,7 +116,7 @@ def test_add_command_accepted(chalice_app, date):
         callback_id="delete",
     )
     assert ri["response"]["statusCode"] == 200
-    assert "deleted" in ri["slack_message"][1]["json"]["text"]
+    assert "Deleted 1" in ri["slack_message"][1]["json"]["text"]
 
     rl = call_from_slack(
         chalice_app=chalice_app,
