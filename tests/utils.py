@@ -9,22 +9,18 @@ from tests.conftest import signing_secret
 
 
 def respond_interactively(
-    *, chalice_app, attachments, user_id, user_name, callback_id, action="submit_yes"
+    *, chalice_app, attachments, user_id, callback_id, action="submit_yes"
 ):
     """
     Mocks slacks menu driven responses, for example used to verify adding entries.
 
     :param chalice_app: mocked chalice app (from fixture with same name)
     :param attachments: attachments from call_from_slack, what we're responding to
-    :param user_id: id of the user
-    :param user_name: name of the user
     :param action: response from user
     :return: Dict with `slack_message` containing the message to slack and `response` containing the http response
     """
     payload = dict(
         response_url="example.com",
-        user_id=[user_id],
-        user_name=[user_name],
         actions=[dict(value=action)],
         callback_id=callback_id,
         user=dict(id=user_id),
