@@ -40,6 +40,10 @@ logger.setLevel(config["log_level"])
 def interactive():
     try:
         req = app.current_request.raw_body.decode()
+        req_headers = app.current_request.headers
+        if not verify_token(req_headers, req, config["signing_secret"]):
+            return "Slack signing secret not valid"
+
         payload = slack_payload_extractor(req)
 
         logger.info(f"payload is: {payload}")
