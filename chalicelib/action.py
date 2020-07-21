@@ -4,8 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict
 
-from chalicelib.lib.add import post_event
-from chalicelib.lib.api import read_event, read_lock, delete_event
+from chalicelib.lib.api import read_event, read_lock, delete_event, create_event
 from chalicelib.lib.factory import factory
 from chalicelib.lib.helpers import date_range, parse_date
 from chalicelib.lib.list import get_list_data
@@ -317,10 +316,10 @@ class AddAction(BaseAction):
             events = factory(self.payload, format_str=self.config.get("format_str"))
             failed_events = list()
             for event in events:
-                response = post_event(
-                    f"{self.config['backend_url']}/event/users/{user_id}",
-                    json.dumps(event),
+                response = create_event(
+                    url=self.config["backend_url"], event=json.dumps(event)
                 )
+
                 if response.status_code != 200:
                     log.debug(
                         f"Event {event} got unexpected response from backend: {response.text}"
