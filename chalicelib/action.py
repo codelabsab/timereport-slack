@@ -113,6 +113,11 @@ class BaseAction:
 
         return locked_dates
 
+    def _get_events(self, date_str):
+        return get_list_data(
+            f"{self.config['backend_url']}", self.user_id, date_str=date_str
+        )
+
     def _valid_reason(self, reason: str) -> bool:
         """
         Check that reason is valid
@@ -357,12 +362,24 @@ class DeleteAction(BaseAction):
                 message=f"Delete doesn't support date range :cry:"
             )
 
-        if not self._check_locks(date=date["from"], second_date=date["to"]):
-            self.send_attachment(
-                attachment=delete_message_menu(self.user_name, date_string)
+        if self._check_locks(date=date["from"], second_date=date["to"]):
+            return self.send_response(
+                message=f"Unable to delete since month is locked :cry:"
             )
-        else:
-            self.send_response(message=f"Unable to delete since month is locked :cry:")
+
+        date_str = date["from"].strftime(self.format_str)
+        events = self._get_events(date_str=date_str)
+        has_events = any(
+            event["event_date"] == date_str for event in json.loads(events)
+        )
+        if not has_events:
+            return self.send_response(
+                message=f"Unable to delete since no events found :cry:"
+            )
+
+        self.send_attachment(
+            attachment=delete_message_menu(self.user_name, date_string)
+        )
         return ""
 
     def perform_interactive(self):
@@ -531,11 +548,6 @@ class ListAction(BaseAction):
         self._create_list_message(data=list_data, period_data=period_data)
         self.slack.post_message(message="From timereport", channel=self.user_id)
         return ""
-
-    def _get_events(self, date_str):
-        return get_list_data(
-            f"{self.config['backend_url']}", self.user_id, date_str=date_str
-        )
 
     def _create_list_message(self, data, period_data) -> None:
         """

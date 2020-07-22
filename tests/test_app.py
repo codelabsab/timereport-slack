@@ -129,6 +129,20 @@ def test_add_command_accepted(chalice_app, date):
 
 
 @pytest.mark.integration
+def test_delete_non_existing(chalice_app):
+    user_id = f"{random.randint(0, 10000)}"
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"delete today",
+        user_id=user_id,
+        user_name="mattias",
+    )
+
+    assert r["response"]["statusCode"] == 200
+    assert "no events found" in r["slack_message"][1]["json"]["text"]
+
+
+@pytest.mark.integration
 def test_list_with_total_hours(chalice_app):
     # 3 days vab, public holiday, weekday, weekend
     user_id = f"{random.randint(0, 10000)}"
