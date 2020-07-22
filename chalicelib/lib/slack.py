@@ -37,7 +37,10 @@ class Slack:
         if as_user is not None:
             data["as_user"] = as_user
 
-        data["blocks"] = self.blocks if self.blocks else None
+        data["blocks"] = self.blocks[:49] if self.blocks else None
+        if len(self.blocks) > 49:
+            data["text"] += " *Too much data to display, some data is missing"
+            data["text"] += ", select a shorter range.*"
         log.debug(f"Data is: ${data}")
 
         return self._handle_response(
