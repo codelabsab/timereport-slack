@@ -116,7 +116,7 @@ def test_add_command_accepted(chalice_app, date):
         callback_id="delete",
     )
     assert ri["response"]["statusCode"] == 200
-    assert "deleted" in ri["slack_message"][1]["json"]["text"]
+    assert "Deleted 1" in ri["slack_message"][1]["json"]["text"]
 
     rl = call_from_slack(
         chalice_app=chalice_app,
@@ -126,6 +126,20 @@ def test_add_command_accepted(chalice_app, date):
     )
     assert rl["response"]["statusCode"] == 200
     assert "nothing to list" in rl["slack_message"][1]["json"]["text"]
+
+
+@pytest.mark.integration
+def test_delete_non_existing(chalice_app):
+    user_id = f"{random.randint(0, 10000)}"
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"delete today",
+        user_id=user_id,
+        user_name="mattias",
+    )
+
+    assert r["response"]["statusCode"] == 200
+    assert "no events found" in r["slack_message"][1]["json"]["text"]
 
 
 @pytest.mark.integration
