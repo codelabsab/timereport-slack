@@ -17,13 +17,15 @@ def factory(json_order, format_str):
 
     log.debug(f"json_order is: {json_order}")
 
-    payload = json_order["original_message"]["attachments"][0]["fields"]
+    fields = json_order["original_message"]["attachments"][0]["fields"]
 
-    user_name = payload[0]["value"]
-    reason = payload[1]["value"]
-    hours = payload[3]["value"]
+    user_id = json_order["user"]["id"]
+    user_name = fields[0]["value"]
+    reason = fields[1]["value"]
+    dates = parse_date(fields[2]["value"])
+    hours = fields[3]["value"]
+
     events = []
-    dates = parse_date(payload[2]["value"])
 
     for date in date_range(start_date=dates["from"], stop_date=dates["to"]):
         log.info(f"date is {date}")
@@ -32,6 +34,7 @@ def factory(json_order, format_str):
             "reason": reason,
             "event_date": date.strftime(format_str),
             "hours": hours,
+            "user_id": user_id,
         }
         events.append(document)
     return events
