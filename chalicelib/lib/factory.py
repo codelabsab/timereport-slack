@@ -6,7 +6,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def factory(json_order, format_str):
+def factory(json_order, format_str="%Y-%m-%d"):
     """
     Extract necessary values from the interactive message sent via slack
 
@@ -22,13 +22,14 @@ def factory(json_order, format_str):
     user_id = json_order["user"]["id"]
     user_name = fields[0]["value"]
     reason = fields[1]["value"]
-    dates = parse_date(fields[2]["value"])
+    dates = parse_date(fields[2]["value"], format_str=format_str)
     hours = fields[3]["value"]
 
     events = []
 
     for date in date_range(start_date=dates["from"], stop_date=dates["to"]):
         log.info(f"date is {date}")
+        log.error("test")
         document = {
             "user_name": user_name,
             "reason": reason,
