@@ -29,7 +29,6 @@ def factory(json_order, format_str="%Y-%m-%d"):
 
     for date in date_range(start_date=dates["from"], stop_date=dates["to"]):
         log.info(f"date is {date}")
-        log.error("test")
         document = {
             "user_name": user_name,
             "reason": reason,
