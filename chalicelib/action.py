@@ -448,7 +448,7 @@ class EditAction(BaseAction):
 
         date: Dict[str, datetime] = parse_date(date_input, format_str=self.format_str)
         if date["from"] is None or date["to"] is None:
-            self.send_response(message=f"failed to parse date {date_string}")
+            self.send_response(message=f"failed to parse date {date_input}")
 
         if date["from"] != date["to"]:
             return self.send_response(message=f"Edit doesn't support date range :cry:")
@@ -460,7 +460,7 @@ class EditAction(BaseAction):
         event_to_edit = read_event(
             url=self.config["backend_url"],
             user_id=self.user_id,
-            date=date["from"].strftime(self.format_str),
+            date={"from": date["from"].strftime(self.format_str)},
         )
 
         if event_to_edit.status_code != 200:

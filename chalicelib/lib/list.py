@@ -1,5 +1,6 @@
 import logging
 from datetime import date
+from chalicelib.lib.api import read_event
 
 import requests
 
@@ -14,7 +15,6 @@ def get_list_data(url, user_id, date_str):
     :user_id: The users user ID
     :date_str: A string contaning date. Valid formats: "2019-01", "2019-01-01", "2019-01-02:2019-01-03"
     """
-    api_url = f"{url}/event/users/{user_id}"
     try:
         start_date, end_date = date_str.split(":")
     except ValueError as error:
@@ -31,9 +31,9 @@ def get_list_data(url, user_id, date_str):
         log.debug(f"Unexpected exception. Error was: {error}", exc_info=True)
         return False
 
-    date_str = {"startDate": start_date, "endDate": end_date}
-
-    response = requests.get(url=api_url, params=date_str)
+    response = read_event(
+        url=url, user_id=user_id, date={"from": start_date, "to": end_date}
+    )
     if response.status_code == 200:
         return response.text
     else:

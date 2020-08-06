@@ -18,17 +18,20 @@ def create_event(url: str, event: dict) -> requests.models.Response:
     return response
 
 
-def read_event(url: str, user_id: str, date: str) -> requests.models.Response:
+def read_event(url: str, user_id: str, date: dict) -> requests.models.Response:
     """Get existing timereport for a user
 
     :param url: str: URL to backend API v2
     :param user_id: str: a user id
-    :param date: str: Valid formats: "2019-01", "2019-01-01", "2019-01-02:2019-01-03"
+    :param date: dict: Valid formats: {"from": "2019-01-01"}, {"from": "2019-01-02", "to": "2019-01-03"}
     :return: requests.models.Response
     """
-    url = f"{url}/users/{user_id}/events/{date}"
+    if not date.get("to"):
+        date["to"] = date["from"]
+
+    url = f"{url}/users/{user_id}/events"
     headers = {"Content-Type": "application/json"}
-    response = requests.get(url=url, headers=headers)
+    response = requests.get(url=url, headers=headers, params=date)
     return response
 
 
