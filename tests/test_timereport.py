@@ -3,7 +3,6 @@ import pytest
 from chalicelib.lib.helpers import parse_config
 from chalicelib.lib.factory import factory
 from chalicelib.lib.list import get_list_data
-from chalicelib.model.event import create_lock
 from mockito import when, mock, unstub
 import requests
 from datetime import datetime
@@ -19,16 +18,6 @@ def test_parsing_config():
     for option in mandatory_options:
         assert isinstance(option, str)
         assert test_config.get(option) is not None
-
-
-def test_create_lock():
-    test = create_lock(user_id="fake", event_date="2019-01")
-    assert isinstance(test.get("event_date"), str)
-
-
-def test_create_lock_faulty_date():
-    test = create_lock(user_id="fake", event_date="invalid date string")
-    assert test is not True
 
 
 def test_factory():
