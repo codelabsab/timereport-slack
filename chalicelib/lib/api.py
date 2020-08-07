@@ -1,4 +1,7 @@
 import requests
+import logging
+
+log = logging.getLogger(__name__)
 
 #####################################################
 #        implementation of timereport-api v2        #
@@ -54,13 +57,13 @@ def create_lock(url: str, user_id: str, date: str) -> requests.models.Response:
     :param url: str: URL to backend API v2
     :param user_id: str: user_id
     :param date: str: date in "YYYY-mm"
-    :type sent: dict: {"user_id":"foo01","event_date":"2019-02"}
     :return: requests.models.Response
     """
     url = f"{url}/locks"
     headers = {"Content-Type": "application/json"}
     data = {"user_id": user_id, "event_date": date}
-    response = requests.post(url=url, data=data, headers=headers)
+    log.debug(f"Create lock data is: {data}")
+    response = requests.post(url=url, json=data, headers=headers)
     return response
 
 
