@@ -7,6 +7,7 @@ from chalicelib.action import create_action
 from chalicelib.lib.helpers import parse_config
 from chalicelib.lib.reminder import remind_users
 from chalicelib.lib.slack import (
+    Slack,
     slack_client_responder,
     slack_payload_extractor,
     slack_responder,
