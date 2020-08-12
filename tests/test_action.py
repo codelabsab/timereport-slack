@@ -47,20 +47,6 @@ def test_perform_empty_action():
     unstub()
 
 
-def test_perform_lock():
-    fake_payload["text"] = ["lock 2019-01"]
-    action = create_action(fake_payload, fake_config)
-    action.user_id = "fake_userid"
-    when(action).send_response(message="Lock successful! :lock: :+1:").thenReturn()
-    when(requests).post(
-        url=f"{fake_config['backend_url']}/lock",
-        data=json.dumps({"user_id": "fake_userid", "event_date": "2019-01"}),
-        headers={"Content-Type": "application/json"},
-    ).thenReturn(mock({"status_code": 200}))
-    assert action.perform_action() == ""
-    unstub()
-
-
 def test_valid_number_of_args():
     fake_action = create_action(fake_payload, fake_config)
     fake_action.arguments = ["fake_arg_1"]

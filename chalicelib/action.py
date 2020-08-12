@@ -4,11 +4,16 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict
 
-from chalicelib.lib.api import read_event, read_lock, delete_event, create_event
+from chalicelib.lib.api import (
+    read_event,
+    read_lock,
+    delete_event,
+    create_event,
+    create_lock,
+)
 from chalicelib.lib.factory import factory
-from chalicelib.lib.helpers import date_range, parse_date
+from chalicelib.lib.helpers import date_range, parse_date, validate_date
 from chalicelib.lib.list import get_list_data
-from chalicelib.lib.lock import lock_event
 from chalicelib.lib.period_data import get_period_data
 from chalicelib.lib.reminder import remind_users
 from chalicelib.lib.slack import (
@@ -18,7 +23,6 @@ from chalicelib.lib.slack import (
     slack_responder,
     submit_message_menu,
 )
-from chalicelib.model.event import create_lock
 
 log = logging.getLogger(__name__)
 
@@ -197,10 +201,17 @@ class LockAction(BaseAction):
         if self.arguments[0] == "list":
             return self._lock_list_action()
 
-        event = create_lock(user_id=self.user_id, event_date=self.arguments[0])
-        log.debug(f"lock event: {event}")
+        if not validate_date(self.arguments[0], format_str="%Y-%m"):
+            return self.send_response(
+                message=f"Unable to lock using date '{self.arguments[0]}' :cry:"
+            )
+        log.debug(f"Event date is: {self.arguments[0]}")
 
-        response = lock_event(url=self.config["backend_url"], event=json.dumps(event))
+        response = create_lock(
+            url=self.config["backend_url"],
+            user_id=self.user_id,
+            date=self.arguments[0],
+        )
         log.debug(f"response was: {response.text}")
         if response.status_code == 200:
             self.send_response(message=f"Lock successful! :lock: :+1:")
