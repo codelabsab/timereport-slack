@@ -76,7 +76,8 @@ def index():
 
         logger.info(f"payload is: {payload}")
         requests.post(
-            url=payload["response_url"], headers={"Content-Type": "application/json"},
+            url=payload["response_url"][0],
+            headers={"Content-Type": "application/json"},
         )
 
         action = create_action(payload, config)
