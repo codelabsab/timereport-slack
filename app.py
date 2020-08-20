@@ -15,6 +15,8 @@ from chalicelib.lib.slack import (
     verify_token,
 )
 
+import requests
+
 app = Chalice(app_name="timereport")
 app.debug = True
 
@@ -47,6 +49,9 @@ def interactive():
         payload = slack_payload_extractor(req)
 
         logger.info(f"payload is: {payload}")
+        requests.post(
+            url=payload["response_url"], headers={"Content-Type": "application/json"},
+        )
 
         action = create_action(payload, config)
 
