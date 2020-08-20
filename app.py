@@ -75,6 +75,9 @@ def index():
         payload = slack_payload_extractor(req)
 
         logger.info(f"payload is: {payload}")
+        requests.post(
+            url=payload["response_url"], headers={"Content-Type": "application/json"},
+        )
 
         action = create_action(payload, config)
 
