@@ -20,7 +20,7 @@ def respond_interactively(
     :return: Dict with `slack_message` containing the message to slack and `response` containing the http response
     """
     payload = dict(
-        response_url="example.com",
+        response_url="http://example.com",
         actions=[dict(value=action)],
         callback_id=callback_id,
         user=dict(id=user_id),
@@ -46,7 +46,7 @@ def call_from_slack(
     payload = dict(
         command=command,
         text=[full_command],
-        response_url="example.com",
+        response_url="http://example.com",
         user_id=[user_id],
         user_name=[user_name],
     )
