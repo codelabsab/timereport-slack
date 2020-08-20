@@ -321,7 +321,6 @@ class AddAction(BaseAction):
         response_url = self.payload["response_url"]
 
         if selection == "submit_yes":
-            self.slack.ack_response(response_url=response_url)
             msg = "Added successfully"
             events = factory(self.payload, format_str=self.config.get("format_str"))
             failed_events = list()
@@ -397,7 +396,6 @@ class DeleteAction(BaseAction):
         response_url = self.payload["response_url"]
 
         if selection == "submit_yes":
-            self.slack.ack_response(response_url=response_url)
             user_id = self.payload["user"]["id"]
             message = self.payload["original_message"]["attachments"][0]["fields"]
             date = message[1]["value"]
