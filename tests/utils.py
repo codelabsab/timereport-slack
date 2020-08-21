@@ -45,10 +45,10 @@ def call_from_slack(
     command = full_command.split(" ")[0]
     payload = dict(
         command=command,
-        text=[full_command],
+        text=full_command,
         response_url="http://example.com",
-        user_id=[user_id],
-        user_name=[user_name],
+        user_id=user_id,
+        user_name=user_name,
     )
 
     return _perform_call(chalice_app, "/command", payload)
@@ -56,7 +56,14 @@ def call_from_slack(
 
 def _perform_call(chalice_app, endpoint, payload):
     timestamp = 1531420618
-    body = urlencode(dict(payload=json.dumps(payload)))
+
+    if endpoint == "/interactive":
+        body = dict(payload=json.dumps(payload))
+    else:
+        body = payload
+
+    body = urlencode(body)
+
     request_basestring = f"v0:{timestamp}:{body}"
     new_sign = f'v0={hmac.new(bytes(signing_secret, "utf-8"), bytes(request_basestring, "utf-8"), hashlib.sha256).hexdigest()}'
 
