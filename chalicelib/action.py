@@ -39,7 +39,6 @@ class BaseAction:
         self.payload = payload
         self.config = config
         self.payload = payload
-        log.debug(f"Payload is: {payload}")
 
         try:
             self.params = self.payload["text"].split()
