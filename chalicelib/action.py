@@ -24,6 +24,8 @@ from chalicelib.lib.slack import (
     submit_message_menu,
 )
 
+import requests
+
 log = logging.getLogger(__name__)
 
 
@@ -37,9 +39,10 @@ class BaseAction:
         self.payload = payload
         self.config = config
         self.payload = payload
+        log.debug(f"Payload is: {payload}")
 
         try:
-            self.params = self.payload["text"][0].split()
+            self.params = self.payload["text"].split()
         except KeyError:
             log.info("No parameters received. Defaulting to help action")
             self.params = ["help"]
@@ -47,18 +50,18 @@ class BaseAction:
         self.config = config
         self.bot_access_token = config["bot_access_token"]
         self.slack = Slack(slack_token=config["bot_access_token"])
-        self.response_url = self.payload["response_url"][0]
+        self.response_url = self.payload["response_url"]
         self.format_str = self.config.get("format_str")
 
         self.action = self.params[0]
 
         self.arguments = self.params[1:]
         try:
-            self.user_id = self.payload["user_id"][0]
+            self.user_id = self.payload["user_id"]
         except KeyError:
             self.user_id = self.payload["user"]["id"]
         try:
-            self.user_name = self.payload["user_name"][0]
+            self.user_name = self.payload["user_name"]
         except KeyError:
             self.user_name = ""
 
@@ -153,6 +156,12 @@ class BaseAction:
         Optional. Only for actions that require confirmation
         """
         raise NotImplementedError()
+
+    def acknowledge_response(self):
+        return requests.post(
+            url=self.payload["response_url"],
+            headers={"Content-Type": "application/json"},
+        )
 
 
 class HelpAction(BaseAction):
@@ -620,7 +629,7 @@ class ListAction(BaseAction):
 
 def create_action(payload, config):
     try:
-        params = payload["text"][0].split()
+        params = payload["text"].split()
     except KeyError:
         try:
             params = [payload["callback_id"]]
@@ -635,3 +644,4 @@ def create_action(payload, config):
             return action_cls(payload, config)
 
     return UnsupportedAction(payload, config)
+

@@ -48,12 +48,11 @@ def interactive():
 
         payload = slack_payload_extractor(req)
 
-        logger.info(f"payload is: {payload}")
-        requests.post(
-            url=payload["response_url"], headers={"Content-Type": "application/json"},
-        )
+        logger.debug(f"Slack extracted payload for interactive: {payload}")
 
         action = create_action(payload, config)
+
+        action.acknowledge_response()
 
         action.perform_interactive()
     except Exception:
@@ -74,13 +73,11 @@ def index():
 
         payload = slack_payload_extractor(req)
 
-        logger.info(f"payload is: {payload}")
-        requests.post(
-            url=payload["response_url"][0],
-            headers={"Content-Type": "application/json"},
-        )
+        logger.info(f"Slack extracted paylod for command: {payload}")
 
         action = create_action(payload, config)
+
+        action.acknowledge_response()
 
         action.perform_action()
     except Exception:

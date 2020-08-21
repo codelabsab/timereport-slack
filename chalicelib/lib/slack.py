@@ -142,11 +142,17 @@ def slack_payload_extractor(req):
 
     if data.get("payload"):
         extracted_data = json.loads(data.get("payload")[0])
-        log.info(f"Extracted data: {extracted_data}")
         return extracted_data
 
     if data.get("command"):
-        return data
+        extracted_data = {
+            "user_id": data["user_id"][0],
+            "response_url": data["response_url"][0],
+            "command": data["command"][0],
+            "text": data["text"][0],
+            "user_name": data["user_name"][0],
+        }
+        return extracted_data
     else:
         return "failed extracting payload", 200
 
