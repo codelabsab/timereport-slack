@@ -15,8 +15,6 @@ from chalicelib.lib.slack import (
     verify_token,
 )
 
-import requests
-
 app = Chalice(app_name="timereport")
 app.debug = True
 
