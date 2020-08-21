@@ -75,8 +75,6 @@ def index():
 
         action = create_action(payload, config)
 
-        action.acknowledge_response()
-
         action.perform_action()
     except Exception:
         logger.critical("Caught unhandled exception.", exc_info=True)
