@@ -157,6 +157,13 @@ class BaseAction:
         raise NotImplementedError()
 
     def acknowledge_response(self):
+        """
+        Method for "Confirm Reciept" to slack.
+
+        More info:
+        https://api.slack.com/interactivity/slash-commands#responding_to_commands
+        """
+
         return requests.post(
             url=self.response_url, headers={"Content-Type": "application/json"},
         )
