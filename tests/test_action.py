@@ -21,22 +21,6 @@ fake_config = dict(
 )
 
 
-def test_perform_unsupported_action():
-    action = create_action(fake_payload, fake_config)
-    when(action).send_response(message="Unsupported action: unsupported").thenReturn("")
-    assert action.perform_action() == ""
-    unstub()
-
-
-def test_perform_help_action():
-    fake_payload["text"] = ["help"]
-    fake_payload["user_name"] = "fake_username"
-    action = create_action(fake_payload, fake_config)
-    when(action).send_response(...).thenReturn("")
-    assert action.perform_action() == ""
-    unstub()
-
-
 def test_perform_empty_action():
     fake_payload.pop("text", None)
     fake_payload["user_name"] = "fake_username"

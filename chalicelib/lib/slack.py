@@ -74,21 +74,6 @@ class Slack:
 
         return response
 
-    def ack_response(self, response_url):
-        """
-        Send acknowledge response.
-        This is required by slack for interactive messages.
-        See https://api.slack.com/messaging/interactivity#responding_to_interactions
-        """
-        log.debug(f"Sending ack message to slack response URL: {response_url}")
-        return self._handle_response(
-            requests.post(
-                url=response_url,
-                headers={"Content-Type": "application/json"},
-                json={"text": "OK, hang on when I do this!"},
-            )
-        )
-
     def add_divider_block(self, slack_block_id: str = "") -> None:
         """
         Add a slack block divider to the blocks attribute
@@ -155,13 +140,19 @@ def slack_payload_extractor(req):
 
     log.debug(f"data is: {data}")
 
+    # payload key exists when data is sent from interactive buttons etc.
     if data.get("payload"):
-        extracted_data = json.loads(data.get("payload")[0])
-        log.info(f"Extracted data: {extracted_data}")
-        return extracted_data
+        return json.loads(data.get("payload")[0])
 
+    # command will exists when data is sent via slash command
     if data.get("command"):
-        return data
+        return {
+            "user_id": data["user_id"][0],
+            "response_url": data["response_url"][0],
+            "command": data["command"][0],
+            "text": data["text"][0],
+            "user_name": data["user_name"][0],
+        }
     else:
         return "failed extracting payload", 200
 

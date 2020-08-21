@@ -16,10 +16,14 @@ fake_slack = Slack(slack_token="fake")
 
 
 def test_slack_payload_extractor_command():
-    fake_data = slack_payload_extractor("command=bar&text=fake+text")
+    fake_data = slack_payload_extractor(
+        "command=bar&text=fake+text&user_id=fake_user_id&response_url=http://example.com&user_name=mrFaky"
+    )
     assert isinstance(fake_data, dict)
-    assert fake_data.get("command") == ["bar"]
-    assert fake_data.get("text") == ["fake text"]
+    assert fake_data.get("command") == "bar"
+    assert fake_data.get("text") == "fake text"
+    assert fake_data.get("user_id")
+    assert fake_data.get("response_url")
 
 
 def test_slack_payload_extractor_payload():

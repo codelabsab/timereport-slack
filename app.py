@@ -46,9 +46,11 @@ def interactive():
 
         payload = slack_payload_extractor(req)
 
-        logger.info(f"payload is: {payload}")
+        logger.debug(f"Slack extracted payload for interactive: {payload}")
 
         action = create_action(payload, config)
+
+        action.acknowledge_response()
 
         action.perform_interactive()
     except Exception:
@@ -69,9 +71,11 @@ def index():
 
         payload = slack_payload_extractor(req)
 
-        logger.info(f"payload is: {payload}")
+        logger.info(f"Slack extracted payload for command: {payload}")
 
         action = create_action(payload, config)
+
+        action.acknowledge_response()
 
         action.perform_action()
     except Exception:
