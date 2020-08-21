@@ -71,7 +71,7 @@ def index():
 
         payload = slack_payload_extractor(req)
 
-        logger.info(f"Slack extracted paylod for command: {payload}")
+        logger.info(f"Slack extracted payload for command: {payload}")
 
         action = create_action(payload, config)
 
