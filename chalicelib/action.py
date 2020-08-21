@@ -159,8 +159,7 @@ class BaseAction:
 
     def acknowledge_response(self):
         return requests.post(
-            url=self.payload["response_url"],
-            headers={"Content-Type": "application/json"},
+            url=self.response_url, headers={"Content-Type": "application/json"},
         )
 
 
