@@ -548,7 +548,7 @@ class ListAction(BaseAction):
         if not list_data or list_data == "[]":
             log.debug(f"List returned nothing. Date string was: {date_str}")
             self.send_response(
-                message=f"Sorry, nothing to list with supplied argument {arguments}"
+                message=f"Sorry, nothing to list with supplied argument {date_str}"
             )
             return ""
 
