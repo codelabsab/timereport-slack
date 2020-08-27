@@ -24,8 +24,6 @@ from chalicelib.lib.slack import (
     submit_message_menu,
 )
 
-import requests
-
 log = logging.getLogger(__name__)
 
 
@@ -155,18 +153,6 @@ class BaseAction:
         Optional. Only for actions that require confirmation
         """
         raise NotImplementedError()
-
-    def acknowledge_response(self):
-        """
-        Method for "Confirm Reciept" to slack.
-
-        More info:
-        https://api.slack.com/interactivity/slash-commands#responding_to_commands
-        """
-
-        return requests.post(
-            url=self.response_url, headers={"Content-Type": "application/json"},
-        )
 
 
 class HelpAction(BaseAction):
