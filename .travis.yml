@@ -1,6 +1,4 @@
 language: python
-install:
-- echo "Skipping install step"
 python:
 - '3.8'
 env:
@@ -16,6 +14,7 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_2b7df673148c_key -iv $encrypted_2b7df673148c_iv
   -in chalice_secrets.tar.enc -out chalice_secrets.tar -d
 - tar xvf chalice_secrets.tar
+- pip install awscli
 stages:
 - name: Run tests
   if: type = push
@@ -43,9 +42,13 @@ jobs:
     - pipenv run pytest -v -m integration
   - stage: Deploy to dev
     script:
+    - aws sqs create-queue --queue-name timereport-slack-command-dev
+    - aws sqs set-queue-attributes --region eu-north-1 --queue-url https://sqs.eu-north-1.queue.amazonaws.com/106618949447/timereport-slack-command-dev --attributes VisibilityTimeout=60
     - pipenv install
     - pipenv run chalice deploy --stage dev
   - stage: Deploy to prod
     script:
+    - aws sqs create-queue --queue-name timereport-slack-command-prod
+    - aws sqs set-queue-attributes --region eu-north-1 --queue-url https://sqs.eu-north-1.queue.amazonaws.com/106618949447/timereport-slack-command-prod --attributes VisibilityTimeout=60
     - pipenv install
     - pipenv run chalice deploy --stage prod

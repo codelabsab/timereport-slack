@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -14,6 +15,7 @@ from chalicelib.lib.slack import (
     submit_message_menu,
     verify_token,
 )
+from chalicelib.lib.sqs import send_message
 
 app = Chalice(app_name="timereport")
 app.debug = True
@@ -28,6 +30,8 @@ config["bot_access_token"] = os.getenv("bot_access_token")
 config["signing_secret"] = os.getenv("signing_secret")
 config["enable_lock_reminder"] = os.getenv("enable_lock_reminder")
 config["format_str"] = "%Y-%m-%d"
+config["command_queue"] = f"timereport-slack-command-{os.getenv('environment')}"
+config["enable_queue"] = os.getenv("enable_queue", False)
 
 logger.setLevel(config["log_level"])
 
@@ -71,13 +75,20 @@ def command():
 
         logger.info(f"Slack extracted payload for command: {payload}")
 
-        action = create_action(payload, config)
-
-        action.perform_action()
+        send_message(
+            config["enable_queue"], config["command_queue"], payload, command_handler
+        )
     except Exception:
         logger.critical("Caught unhandled exception.", exc_info=True)
 
     return ""
+
+
+@app.on_sqs_message(queue=config["command_queue"])
+def command_handler(event):
+    for record in event:
+        action = create_action(json.loads(record.body), config)
+        action.perform_action()
 
 
 @app.schedule("rate(1 day)")
