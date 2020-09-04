@@ -60,7 +60,7 @@ def interactive():
 @app.route(
     "/command", methods=["POST"], content_types=["application/x-www-form-urlencoded"]
 )
-def index():
+def command():
     try:
         req = app.current_request.raw_body.decode()
         req_headers = app.current_request.headers
