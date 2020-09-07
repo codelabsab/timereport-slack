@@ -39,31 +39,21 @@ If you want to include test coverage:
 pytest --cov=chalicelib
 ```
 ### Packaging secrets for chalice to travis-ci
+Download current secrets and extract
+
+```
+$ aws s3 cp s3://timereport.codelabs.se/chalice_secrets.tar .
+$ tar xvf chalice_secrets.tar
+```
+
+If you're making changes, package and upload updated secrets
+
 ```
 $ tar cvf chalice_secrets.tar .chalice/{config.json,deployed}
 a .chalice/config.json
 a .chalice/deployed
 a .chalice/deployed/dev.json
-```
 
-```
-$ travis encrypt-file chalice_secrets.tar --add
-encrypting chalice_secrets.tar for codelabsab/timereport
-storing result as chalice_secrets.tar.enc
-storing secure env variables for decryption
-```
-
-Make sure to add chalice_secrets.tar.enc to the git repository.
-Make sure not to add chalice_secrets.tar to the git repository.
-Commit all changes to your .travis.yml.
-
-```
-$ git add chalice_secrets.tar.enc .travis.yml
-```
-
-Upload the new secrets to s3 for easy access for other devs:
-
-```
 $ aws s3 cp chalice_secrets.tar s3://timereport.codelabs.se/chalice_secrets.tar
 ```
 

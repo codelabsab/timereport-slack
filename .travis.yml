@@ -11,9 +11,6 @@ notifications:
   slack:
     secure: HJHvn6wKNCIr3skGWx2HK8gz9KIdg8Yd73gBoUTyUgz39v16WkISHOVsSDDTg4RunX/nggO5XBwjc9HwZeiX2V4OjzAukOaufk/OOvz2Hl4vhkUIJWgho3KFJAcm+dOi3wwJHGFBtLW3yvprEnjIf6MQoQqsnXK21nzihgvO1kBS8UYagJvtFf0Tqhz3Biz1lcEJi5cTpkfaG9fCBit4qzQig5jZeBiVb2/aKiQYDhAvc6O9VijJj8TCCPWhPpQGAOUR+yjKZQGnSTmSEU1iJbvEngpmliARP3vAUS28Ahrw84C0LchdgBA3E1LcKxjZokRfaxKAHMEWg69ovufrwLoo6Eb6vLQR3qhvDrwrPV3zG7kgiiRStxtz2mjeAljcLqoKQ0BrUNxEEF4bHyVVAc5zpIalIWD/YzUw+WOrMcAA+Oti4XAbuD7tSoZrkqCutBmxonHLjITatGMzndKBMhHIJu5v7y77ibX1ZyRixBqZ/B9v+0HOEn61nZErlpy0L+TMRX/bWPyOFMqAQO6gz1mnEwwSeU/HBs020/yGrcAWCjU8bCukOJ8ax4fIpOSPgU3tKc5759I3YOE3s+QM4TWZ97CHk54c9t2nvW6sE0mZdjSIjVMW/5Rq4a9CIJaYnvgKjGgzq+rqlSugOxZL95gqBwQLqt3iHmpjNB54pto=
 before_install:
-- openssl aes-256-cbc -K $encrypted_2b7df673148c_key -iv $encrypted_2b7df673148c_iv
-  -in chalice_secrets.tar.enc -out chalice_secrets.tar -d
-- tar xvf chalice_secrets.tar
 - pip install awscli
 stages:
 - name: Run tests
@@ -44,11 +41,19 @@ jobs:
     script:
     - aws sqs create-queue --queue-name timereport-slack-command-dev --attributes
       VisibilityTimeout=60
+    - aws s3 cp s3://timereport.codelabs.se/chalice_secrets.tar .
+    - tar xvf chalice_secrets.tar
     - pipenv install
     - pipenv run chalice deploy --stage dev
+    - tar cvf chalice_secrets.tar .chalice/{config.json,deployed}
+    - aws s3 cp chalice_secrets.tar s3://timereport.codelabs.se/chalice_secrets.tar
   - stage: Deploy to prod
     script:
     - aws sqs create-queue --queue-name timereport-slack-command-prod --attributes
       VisibilityTimeout=60
+    - aws s3 cp s3://timereport.codelabs.se/chalice_secrets.tar .
+    - tar xvf chalice_secrets.tar
     - pipenv install
     - pipenv run chalice deploy --stage prod
+    - tar cvf chalice_secrets.tar .chalice/{config.json,deployed}
+    - aws s3 cp chalice_secrets.tar s3://timereport.codelabs.se/chalice_secrets.tar
