@@ -42,11 +42,13 @@ jobs:
     - pipenv run pytest -v -m integration
   - stage: Deploy to dev
     script:
-    - aws sqs create-queue --queue-name timereport-slack-command-dev --attributes VisibilityTimeout=60
+    - aws sqs create-queue --queue-name timereport-slack-command-dev --attributes
+      VisibilityTimeout=60
     - pipenv install
     - pipenv run chalice deploy --stage dev
   - stage: Deploy to prod
     script:
-    - aws sqs create-queue --queue-name timereport-slack-command-prod --attributes VisibilityTimeout=60
+    - aws sqs create-queue --queue-name timereport-slack-command-prod --attributes
+      VisibilityTimeout=60
     - pipenv install
     - pipenv run chalice deploy --stage prod
