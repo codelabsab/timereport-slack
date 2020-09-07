@@ -1,4 +1,5 @@
 import json
+import boto3
 import logging
 import os
 
@@ -36,12 +37,24 @@ config["enable_queue"] = os.getenv("enable_queue", False)
 logger.setLevel(config["log_level"])
 
 
+def dummy():
+    """
+    The sole purpose is to force Chalice to generate the right permissions in the policy.
+    Does nothing and returns nothing.
+    """
+    sqs = boto3.client("sqs")
+    sqs.send_message()
+    sqs.get_queue_url()
+
+
 @app.route(
     "/interactive",
     methods=["POST"],
     content_types=["application/x-www-form-urlencoded"],
 )
 def interactive():
+    if False:
+        dummy()
     try:
         req = app.current_request.raw_body.decode()
         req_headers = app.current_request.headers
