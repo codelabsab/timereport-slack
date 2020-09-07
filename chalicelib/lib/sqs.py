@@ -25,5 +25,5 @@ def send_message(
             QueueUrl=queue_data["QueueUrl"], MessageBody=json.dumps(message)
         )
     else:  # Handle sync, used for testing
-        evt = dict(body=json.dumps(message), receiptHandle="")
-        message_handler(dict(Records=[evt]), None)
+        message_data = dict(body=json.dumps(message), receiptHandle="")
+        message_handler(dict(Records=[message_data]), None)
