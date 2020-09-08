@@ -41,6 +41,8 @@ jobs:
     script:
     - aws sqs create-queue --queue-name timereport-slack-command-dev --attributes
       VisibilityTimeout=60
+    - aws sqs create-queue --queue-name timereport-slack-interactive-dev --attributes
+      VisibilityTimeout=60
     - aws s3 cp s3://timereport.codelabs.se/chalice_secrets.tar .
     - tar xvf chalice_secrets.tar
     - pipenv install
@@ -50,6 +52,8 @@ jobs:
   - stage: Deploy to prod
     script:
     - aws sqs create-queue --queue-name timereport-slack-command-prod --attributes
+      VisibilityTimeout=60
+    - aws sqs create-queue --queue-name timereport-slack-interactive-prod --attributes
       VisibilityTimeout=60
     - aws s3 cp s3://timereport.codelabs.se/chalice_secrets.tar .
     - tar xvf chalice_secrets.tar
