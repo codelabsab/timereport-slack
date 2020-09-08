@@ -32,6 +32,7 @@ config["signing_secret"] = os.getenv("signing_secret")
 config["enable_lock_reminder"] = os.getenv("enable_lock_reminder")
 config["format_str"] = "%Y-%m-%d"
 config["command_queue"] = f"timereport-slack-command-{os.getenv('environment')}"
+config["interactive_queue"] = f"timereport-slack-interactive-{os.getenv('environment')}"
 config["enable_queue"] = os.getenv("enable_queue", False)
 
 logger.setLevel(config["log_level"])
@@ -57,8 +58,12 @@ def interactive():
         dummy()
 
     def _handle_message(payload):
-        action = create_action(payload, config)
-        action.perform_interactive()
+        send_message(
+            config["enable_queue"],
+            config["interactive_queue"],
+            payload,
+            interactive_handler,
+        )
 
     return handle_slack_request(_handle_message)
 
@@ -104,6 +109,13 @@ def command_handler(event):
     for record in event:
         action = create_action(json.loads(record.body), config)
         action.perform_action()
+
+
+@app.on_sqs_message(queue=config["interactive_queue"])
+def interactive_handler(event):
+    for record in event:
+        action = create_action(json.loads(record.body), config)
+        action.perform_interactive()
 
 
 @app.schedule("rate(1 day)")
