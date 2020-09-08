@@ -55,29 +55,28 @@ def dummy():
 def interactive():
     if False:
         dummy()
-    try:
-        req = app.current_request.raw_body.decode()
-        req_headers = app.current_request.headers
-        if not verify_token(req_headers, req, config["signing_secret"]):
-            return "Slack signing secret not valid"
 
-        payload = slack_payload_extractor(req)
-
-        logger.debug(f"Slack extracted payload for interactive: {payload}")
-
+    def _handle_message(payload):
         action = create_action(payload, config)
-
         action.perform_interactive()
-    except Exception:
-        logger.critical("Caught unhandled exception.", exc_info=True)
 
-    return ""
+    return handle_slack_request(_handle_message)
 
 
 @app.route(
     "/command", methods=["POST"], content_types=["application/x-www-form-urlencoded"]
 )
 def command():
+    def _handle_message(payload):
+        send_message(
+            config["enable_queue"], config["command_queue"], payload, command_handler
+        )
+
+    return handle_slack_request(_handle_message)
+
+
+def handle_slack_request(action):
+    payload = None
     try:
         req = app.current_request.raw_body.decode()
         req_headers = app.current_request.headers
@@ -88,11 +87,14 @@ def command():
 
         logger.info(f"Slack extracted payload for command: {payload}")
 
-        send_message(
-            config["enable_queue"], config["command_queue"], payload, command_handler
-        )
+        action(payload)
     except Exception:
         logger.critical("Caught unhandled exception.", exc_info=True)
+
+        if isinstance(payload, dict) and "response_url" in payload:
+            slack_responder(
+                payload["response_url"], "Failed to handle request, try again!"
+            )
 
     return ""
 
