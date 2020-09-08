@@ -296,7 +296,7 @@ class AddAction(BaseAction):
             date=input_date, format_str=self.format_str
         )
         if parsed_dates["to"] is None or parsed_dates["from"] is None:
-            self.send_response(message=f"failed to parse date {input_date}")
+            return self.send_response(message=f"failed to parse date {input_date}")
 
         # validate months in date argument are not locked
         if self._check_locks(date=parsed_dates["from"], second_date=parsed_dates["to"]):
@@ -457,7 +457,7 @@ class EditAction(BaseAction):
 
         date: Dict[str, datetime] = parse_date(date_input, format_str=self.format_str)
         if date["from"] is None or date["to"] is None:
-            self.send_response(message=f"failed to parse date {date_input}")
+            return self.send_response(message=f"failed to parse date {date_input}")
 
         if date["from"] != date["to"]:
             return self.send_response(message=f"Edit doesn't support date range :cry:")
