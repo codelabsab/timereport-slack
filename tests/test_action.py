@@ -1,11 +1,12 @@
-import pytest
-from mockito import when, mock, unstub
-import requests
-from chalicelib.action import create_action
-from datetime import datetime
-from . import test_data
 import json
+from datetime import datetime
 
+import pytest
+import requests
+from chalicelib.action import BaseAction, create_action
+from mockito import mock, unstub, when
+
+from . import test_data
 
 fake_payload = dict(
     text=["unsupported args"],
@@ -32,19 +33,27 @@ def test_perform_empty_action():
 
 
 def test_valid_number_of_args():
-    fake_action = create_action(fake_payload, fake_config)
+    fake_action = BaseAction(fake_payload, fake_config)
     fake_action.arguments = ["fake_arg_1"]
 
     # Should be valid since we have provided the minimum amount
-    assert fake_action._valid_number_of_args(min_args=1, max_args=1) is True
+    fake_action.min_arguments = 1
+    fake_action.max_arguments = 1
+    assert fake_action._valid_number_of_args() is True
 
     fake_action.arguments.append("fake_arg_2")
 
     # Should be valid since we have provided the miniumum and maxiumum amount
-    assert fake_action._valid_number_of_args(min_args=1, max_args=2) is True
+    fake_action.min_arguments = 1
+    fake_action.max_arguments = 2
+    assert fake_action._valid_number_of_args() is True
 
     # Should be false since we don't have the minimum amount
-    assert fake_action._valid_number_of_args(min_args=3, max_args=3) is False
+    fake_action.min_arguments = 3
+    fake_action.max_arguments = 3
+    assert fake_action._valid_number_of_args() is False
 
     # Should be false since we don't have the maximum amount
-    assert fake_action._valid_number_of_args(min_args=1, max_args=1) is False
+    fake_action.min_arguments = 1
+    fake_action.max_arguments = 1
+    assert fake_action._valid_number_of_args() is False

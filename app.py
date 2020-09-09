@@ -73,9 +73,14 @@ def interactive():
 )
 def command():
     def _handle_message(payload):
-        send_message(
-            config["enable_queue"], config["command_queue"], payload, command_handler
-        )
+        action_instance = create_action(payload, config)
+        if action_instance.is_valid():
+            send_message(
+                config["enable_queue"],
+                config["command_queue"],
+                payload,
+                command_handler,
+            )
 
     return handle_slack_request(_handle_message)
 
