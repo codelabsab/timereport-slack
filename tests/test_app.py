@@ -55,12 +55,14 @@ def test_empty_list(chalice_app):
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("date", ["today", "2020-01-01"])
-def test_add_command_accepted(chalice_app, date):
+@pytest.mark.parametrize(
+    "date,hours", [("today", "8"), ("2020-01-01", "8"), ("today", "6.5")]
+)
+def test_add_command_accepted(chalice_app, date, hours):
     user_id = f"{random.randint(0, 10000)}"
     r = call_from_slack(
         chalice_app=chalice_app,
-        full_command=f"add vab {date} 8",
+        full_command=f"add vab {date} {hours}",
         user_id=user_id,
         user_name="mattias",
     )
@@ -91,6 +93,7 @@ def test_add_command_accepted(chalice_app, date):
     assert rl["response"]["statusCode"] == 200
     assert "nothing to list" not in rl["slack_message"][1]["json"]["text"]
     assert "Reason: *vab*" in get_raw_block_text(slack_message=rl["slack_message"])
+    assert f"Hours: *{hours}" in get_raw_block_text(slack_message=rl["slack_message"])
 
     # Delete report
     r = call_from_slack(
@@ -177,8 +180,8 @@ def test_list_with_total_hours(chalice_app):
     assert "Reason: *vab*" in raw_block_text
 
     # 152 hours total in month, 8 vab on weekdays and 16 vab on weekends/holidays (not counted)
-    assert "144 / 152 (-8)" in raw_block_text
-    assert "vab: 8h" in raw_block_text
+    assert "144.0 / 152 (-8.0)" in raw_block_text
+    assert "vab: 8.0h" in raw_block_text
 
 
 @pytest.mark.integration
