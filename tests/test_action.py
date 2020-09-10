@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 import requests
-from chalicelib.action import BaseAction, create_action
+from chalicelib.action import Action
 from mockito import mock, unstub, when
 
 from . import test_data
@@ -25,7 +25,7 @@ fake_config = dict(
 def test_perform_empty_action():
     fake_payload.pop("text", None)
     fake_payload["user_name"] = "fake_username"
-    action = create_action(fake_payload, fake_config)
+    action = Action.create(fake_payload, fake_config)
     when(action).send_response(...).thenReturn("")
     assert action.perform_action() == ""
     assert action.action == "help"
@@ -33,27 +33,27 @@ def test_perform_empty_action():
 
 
 def test_valid_number_of_args():
-    fake_action = BaseAction(fake_payload, fake_config)
+    fake_action = Action(fake_payload, fake_config)
     fake_action.arguments = ["fake_arg_1"]
 
     # Should be valid since we have provided the minimum amount
     fake_action.min_arguments = 1
     fake_action.max_arguments = 1
-    assert fake_action._valid_number_of_args() is True
+    assert fake_action.is_valid() is True
 
     fake_action.arguments.append("fake_arg_2")
 
     # Should be valid since we have provided the miniumum and maxiumum amount
     fake_action.min_arguments = 1
     fake_action.max_arguments = 2
-    assert fake_action._valid_number_of_args() is True
+    assert fake_action.is_valid() is True
 
     # Should be false since we don't have the minimum amount
     fake_action.min_arguments = 3
     fake_action.max_arguments = 3
-    assert fake_action._valid_number_of_args() is False
+    assert fake_action.is_valid() is False
 
     # Should be false since we don't have the maximum amount
     fake_action.min_arguments = 1
     fake_action.max_arguments = 1
-    assert fake_action._valid_number_of_args() is False
+    assert fake_action.is_valid() is False

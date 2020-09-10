@@ -5,14 +5,20 @@ from datetime import datetime
 from typing import Dict
 
 from chalicelib.lib.api import (
-    read_event,
-    read_lock,
-    delete_event,
     create_event,
     create_lock,
+    delete_event,
+    read_event,
+    read_lock,
 )
 from chalicelib.lib.factory import factory
-from chalicelib.lib.helpers import date_range, parse_date, validate_date
+from chalicelib.lib.helpers import (
+    check_locks,
+    date_range,
+    parse_date,
+    validate_date,
+    validate_reason,
+)
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.period_data import get_period_data
 from chalicelib.lib.reminder import remind_users
@@ -27,17 +33,38 @@ from chalicelib.lib.slack import (
 log = logging.getLogger(__name__)
 
 
-class BaseAction:
+class Action:
     # Name to identify the action
     name = None
     # Help text to show when running `/timereport help`
     short_doc = None
+    # Help text to show in help for specific command
+    doc = None
 
     # Min arguments required
     min_arguments = 0
 
     # Max arguments required
     max_arguments = 100
+
+    @staticmethod
+    def create(payload, config):
+        try:
+            params = payload["text"].split()
+        except KeyError:
+            try:
+                params = [payload["callback_id"]]
+            except KeyError:
+                log.info("No parameters received. Defaulting to help action")
+                params = ["help"]
+
+        action = params[0]
+
+        for action_cls in Action.__subclasses__():
+            if action_cls.name == action:
+                return action_cls(payload, config)
+
+        return UnsupportedAction(payload, config)
 
     def __init__(self, payload, config):
         self.payload = payload
@@ -59,6 +86,7 @@ class BaseAction:
         self.action = self.params[0]
 
         self.arguments = self.params[1:]
+
         try:
             self.user_id = self.payload["user_id"]
         except KeyError:
@@ -100,51 +128,10 @@ class BaseAction:
             log.debug(f"Slack client response was: {slack_client_response.text}")
         return slack_client_response
 
-    def _check_locks(self, date: datetime, second_date: datetime) -> list:
-        """
-        Check dates for lock.
-        """
-        dates_to_check = list()
-        locked_dates = list()
-        for date in date_range(start_date=date, stop_date=second_date):
-            if not date.strftime("%Y-%m") in dates_to_check:
-                dates_to_check.append(date.strftime("%Y-%m"))
-
-        log.debug(f"Got {len(dates_to_check)} date(s) to check")
-        for date in dates_to_check:
-            response = read_lock(
-                url=self.config["backend_url"], user_id=self.user_id, date=date
-            )
-            if response.json():
-                log.info(f"Date {date} is locked")
-                dates_to_check.append(response.json())
-                locked_dates.append(date)
-
-        return locked_dates
-
     def _get_events(self, date_str):
         return get_list_data(
             f"{self.config['backend_url']}", self.user_id, date_str=date_str
         )
-
-    def _valid_reason(self, reason: str) -> bool:
-        """
-        Check that reason is valid
-        """
-
-        if reason in self.config.get("valid_reasons"):
-            return True
-
-        return False
-
-    def _valid_number_of_args(self) -> bool:
-        """
-        Check that the number of arguments in the list is within the valid range
-        """
-        log.debug(f"Got {len(self.arguments)} number of args")
-        if self.min_arguments <= len(self.arguments) <= self.max_arguments:
-            return True
-        return False
 
     def perform_action(self):
         """
@@ -166,7 +153,7 @@ class BaseAction:
 
         Optional. Only when some validation is required
         """
-        if not self._valid_number_of_args():
+        if not (self.min_arguments <= len(self.arguments) <= self.max_arguments):
             self.send_response(
                 message=f"Got the wrong number of arguments for {self.name}. See these examples: {self.doc}"
             )
@@ -174,7 +161,7 @@ class BaseAction:
         return True
 
 
-class HelpAction(BaseAction):
+class HelpAction(Action):
     name = "help"
     short_doc = "Provide this helpful output"
     doc = """
@@ -184,13 +171,13 @@ class HelpAction(BaseAction):
     def perform_action(self):
         msg = ""
         if len(self.arguments) > 0:
-            for action_cls in BaseAction.__subclasses__():
+            for action_cls in Action.__subclasses__():
                 if action_cls.name == self.arguments[0]:
                     msg = f"{action_cls.doc}"
                     break
         if msg == "":
             msg = "Supported actions are:\n"
-            for action_cls in BaseAction.__subclasses__():
+            for action_cls in Action.__subclasses__():
                 if action_cls == UnsupportedAction:
                     continue
                 msg += f"\n{action_cls.name} - {action_cls.short_doc}"
@@ -198,7 +185,7 @@ class HelpAction(BaseAction):
         return self.send_response(message=msg)
 
 
-class LockAction(BaseAction):
+class LockAction(Action):
     name = "lock"
     doc = """
         Lock the timereport for month
@@ -267,7 +254,7 @@ class LockAction(BaseAction):
         return ""
 
 
-class AddAction(BaseAction):
+class AddAction(Action):
     name = "add"
     short_doc = "Add one or more events in timereport"
     doc = """
@@ -300,7 +287,7 @@ class AddAction(BaseAction):
         hours: str = self.arguments[2] if len(self.arguments) == 3 else 8
 
         # validate reason
-        if not self._valid_reason(reason=reason):
+        if not validate_reason(self.config, reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
         # validate hours
@@ -317,7 +304,12 @@ class AddAction(BaseAction):
             return self.send_response(message=f"failed to parse date {input_date}")
 
         # validate months in date argument are not locked
-        if self._check_locks(date=parsed_dates["from"], second_date=parsed_dates["to"]):
+        if check_locks(
+            config=self.config,
+            user_id=self.user_id,
+            date=parsed_dates["from"],
+            second_date=parsed_dates["to"],
+        ):
             return self.send_response(
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
@@ -365,7 +357,7 @@ class AddAction(BaseAction):
             slack_responder(url=response_url, msg="Action canceled :cry:")
 
 
-class DeleteAction(BaseAction):
+class DeleteAction(Action):
     name = "delete"
     doc = """
         Delete event in timereport.
@@ -388,7 +380,12 @@ class DeleteAction(BaseAction):
                 message=f"Delete doesn't support date range :cry:"
             )
 
-        if self._check_locks(date=date["from"], second_date=date["to"]):
+        if check_locks(
+            config=self.config,
+            user_id=self.user_id,
+            date=date["from"],
+            second_date=date["to"],
+        ):
             return self.send_response(
                 message=f"Unable to delete since month is locked :cry:"
             )
@@ -444,7 +441,7 @@ class DeleteAction(BaseAction):
             slack_responder(url=response_url, msg="Action canceled :cry:")
 
 
-class EditAction(BaseAction):
+class EditAction(Action):
     name = "edit"
     short_doc = "Edit a single event in timereport"
     doc = """
@@ -460,7 +457,7 @@ class EditAction(BaseAction):
     def perform_action(self):
         reason = self.arguments[0]
 
-        if not self._valid_reason(reason=reason):
+        if not validate_reason(self.config, reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
         date_input = self.arguments[1]
@@ -478,7 +475,12 @@ class EditAction(BaseAction):
         if date["from"] != date["to"]:
             return self.send_response(message=f"Edit doesn't support date range :cry:")
 
-        if self._check_locks(date=date["from"], second_date=date["to"]):
+        if check_locks(
+            config=self.config,
+            user_id=self.user_id,
+            date=date["from"],
+            second_date=date["to"],
+        ):
             return self.send_response(
                 message=f"Can't edit date {date_input} because locked month :cry:"
             )
@@ -506,14 +508,14 @@ class EditAction(BaseAction):
         return ""
 
 
-class UnsupportedAction(BaseAction):
+class UnsupportedAction(Action):
     name = "unsupported"
 
     def perform_action(self):
         return self.send_response(message=f"Unsupported action: {self.action}")
 
 
-class ReminderAction(BaseAction):
+class ReminderAction(Action):
     name = "reminder"
     short_doc = "Run monthly lock reminder"
     doc = ""
@@ -524,7 +526,7 @@ class ReminderAction(BaseAction):
         )
 
 
-class ListAction(BaseAction):
+class ListAction(Action):
     name = "list"
     doc = """
         List timereport for user.
@@ -632,22 +634,3 @@ class ListAction(BaseAction):
     def _is_weekend(self, date_str):
         date = datetime.strptime(date_str, "%Y-%m-%d")
         return date.isoweekday() >= 6
-
-
-def create_action(payload, config):
-    try:
-        params = payload["text"].split()
-    except KeyError:
-        try:
-            params = [payload["callback_id"]]
-        except KeyError:
-            log.info("No parameters received. Defaulting to help action")
-            params = ["help"]
-
-    action = params[0]
-
-    for action_cls in BaseAction.__subclasses__():
-        if action_cls.name == action:
-            return action_cls(payload, config)
-
-    return UnsupportedAction(payload, config)

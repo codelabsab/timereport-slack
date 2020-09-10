@@ -1,7 +1,8 @@
 import logging
 from datetime import date, datetime, timedelta
-from typing import List
+from typing import Any, Dict, List
 
+from chalicelib.lib.api import read_lock
 from ruamel.yaml import YAML
 
 log = logging.getLogger(__name__)
@@ -63,6 +64,13 @@ def validate_date(date, format_str) -> bool:
     return True
 
 
+def validate_reason(config: Dict[str, Any], reason: str) -> bool:
+    """
+    Check that reason is valid
+    """
+    return reason in config.get("valid_reasons")
+
+
 def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
     """
     Parse the date from a string.
@@ -111,3 +119,26 @@ def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
             dates["from"] = datetime.strptime(date, format_str)
 
     return dates
+
+
+def check_locks(
+    config: Dict[str, Any], user_id: str, date: datetime, second_date: datetime
+) -> list:
+    """
+    Get a list of locks for the specified user and daterange
+    """
+    dates_to_check = list()
+    locked_dates = list()
+    for date in date_range(start_date=date, stop_date=second_date):
+        if not date.strftime("%Y-%m") in dates_to_check:
+            dates_to_check.append(date.strftime("%Y-%m"))
+
+    log.debug(f"Got {len(dates_to_check)} date(s) to check")
+    for date in dates_to_check:
+        response = read_lock(url=config["backend_url"], user_id=user_id, date=date)
+        if response.json():
+            log.info(f"Date {date} is locked")
+            dates_to_check.append(response.json())
+            locked_dates.append(date)
+
+    return locked_dates
