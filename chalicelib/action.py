@@ -85,6 +85,7 @@ class Action:
         self.action = self.params[0]
 
         self.arguments = self.params[1:]
+
         try:
             self.user_id = self.payload["user_id"]
         except KeyError:
@@ -153,16 +154,6 @@ class Action:
             f"{self.config['backend_url']}", self.user_id, date_str=date_str
         )
 
-
-    def _valid_number_of_args(self) -> bool:
-        """
-        Check that the number of arguments in the list is within the valid range
-        """
-        log.debug(f"Got {len(self.arguments)} number of args")
-        if self.min_arguments <= len(self.arguments) <= self.max_arguments:
-            return True
-        return False
-
     def perform_action(self):
         """
         Run the action
@@ -183,7 +174,7 @@ class Action:
 
         Optional. Only when some validation is required
         """
-        if not self._valid_number_of_args():
+        if not (self.min_arguments <= len(self.arguments) <= self.max_arguments):
             self.send_response(
                 message=f"Got the wrong number of arguments for {self.name}. See these examples: {self.doc}"
             )

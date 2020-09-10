@@ -39,21 +39,21 @@ def test_valid_number_of_args():
     # Should be valid since we have provided the minimum amount
     fake_action.min_arguments = 1
     fake_action.max_arguments = 1
-    assert fake_action._valid_number_of_args() is True
+    assert fake_action.is_valid() is True
 
     fake_action.arguments.append("fake_arg_2")
 
     # Should be valid since we have provided the miniumum and maxiumum amount
     fake_action.min_arguments = 1
     fake_action.max_arguments = 2
-    assert fake_action._valid_number_of_args() is True
+    assert fake_action.is_valid() is True
 
     # Should be false since we don't have the minimum amount
     fake_action.min_arguments = 3
     fake_action.max_arguments = 3
-    assert fake_action._valid_number_of_args() is False
+    assert fake_action.is_valid() is False
 
     # Should be false since we don't have the maximum amount
     fake_action.min_arguments = 1
     fake_action.max_arguments = 1
-    assert fake_action._valid_number_of_args() is False
+    assert fake_action.is_valid() is False
