@@ -268,6 +268,11 @@ class AddAction(BaseAction):
         <day> can be
         "today" - Add event for todays date
         a date of the format "2020-03-10" or a range such as "2020-03-10:2020-03-17"
+
+        <hours> can be:
+        Nothing - Will default to a full workday
+        Full hours (1, 2, 3 etc.)
+        Partial hours (5.5 etc.) - `.5` = 30 minutes, `.25` = 15 minutes etc.
         """
 
     def perform_action(self):
@@ -287,7 +292,7 @@ class AddAction(BaseAction):
 
         # validate hours
         try:
-            hours: int = round(float(hours))
+            hours: float = float(hours)
         except ValueError:
             return self.send_response(message=f"Could not parse hours: {hours}")
 
@@ -450,7 +455,7 @@ class EditAction(BaseAction):
         date_input = self.arguments[1]
 
         try:
-            hours = round(float(self.arguments[2]))
+            hours = float(self.arguments[2])
         except ValueError as error:
             log.error(f"Failed to parse hours. Error was: {error}")
             return self.send_response(message="Could not parse hours")
@@ -588,7 +593,7 @@ class ListAction(BaseAction):
         total_per_type = defaultdict(int)
         total_absent = 0
         for event in self._filter_non_workdays(list_data, period_data):
-            hours = int(event.get("hours"))
+            hours = float(event.get("hours"))
             total_absent += hours
             total_per_type[event.get("reason")] += hours
 
