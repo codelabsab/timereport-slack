@@ -13,6 +13,7 @@ from chalicelib.lib.api import (
 )
 from chalicelib.lib.factory import factory
 from chalicelib.lib.helpers import (
+    check_locks,
     date_range,
     parse_date,
     validate_date,
@@ -126,28 +127,6 @@ class Action:
         else:
             log.debug(f"Slack client response was: {slack_client_response.text}")
         return slack_client_response
-
-    def _check_locks(self, date: datetime, second_date: datetime) -> list:
-        """
-        Check dates for lock.
-        """
-        dates_to_check = list()
-        locked_dates = list()
-        for date in date_range(start_date=date, stop_date=second_date):
-            if not date.strftime("%Y-%m") in dates_to_check:
-                dates_to_check.append(date.strftime("%Y-%m"))
-
-        log.debug(f"Got {len(dates_to_check)} date(s) to check")
-        for date in dates_to_check:
-            response = read_lock(
-                url=self.config["backend_url"], user_id=self.user_id, date=date
-            )
-            if response.json():
-                log.info(f"Date {date} is locked")
-                dates_to_check.append(response.json())
-                locked_dates.append(date)
-
-        return locked_dates
 
     def _get_events(self, date_str):
         return get_list_data(
@@ -325,7 +304,12 @@ class AddAction(Action):
             return self.send_response(message=f"failed to parse date {input_date}")
 
         # validate months in date argument are not locked
-        if self._check_locks(date=parsed_dates["from"], second_date=parsed_dates["to"]):
+        if check_locks(
+            config=self.config,
+            user_id=self.user_id,
+            date=parsed_dates["from"],
+            second_date=parsed_dates["to"],
+        ):
             return self.send_response(
                 message=f"Unable to add since one or more month in range are locked :cry:"
             )
@@ -396,7 +380,12 @@ class DeleteAction(Action):
                 message=f"Delete doesn't support date range :cry:"
             )
 
-        if self._check_locks(date=date["from"], second_date=date["to"]):
+        if check_locks(
+            config=self.config,
+            user_id=self.user_id,
+            date=date["from"],
+            second_date=date["to"],
+        ):
             return self.send_response(
                 message=f"Unable to delete since month is locked :cry:"
             )
@@ -486,7 +475,12 @@ class EditAction(Action):
         if date["from"] != date["to"]:
             return self.send_response(message=f"Edit doesn't support date range :cry:")
 
-        if self._check_locks(date=date["from"], second_date=date["to"]):
+        if check_locks(
+            config=self.config,
+            user_id=self.user_id,
+            date=date["from"],
+            second_date=date["to"],
+        ):
             return self.send_response(
                 message=f"Can't edit date {date_input} because locked month :cry:"
             )
