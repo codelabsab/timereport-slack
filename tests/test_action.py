@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 import requests
-from chalicelib.action import BaseAction, create_action
+from chalicelib.action import Action, create_action
 from mockito import mock, unstub, when
 
 from . import test_data
@@ -33,7 +33,7 @@ def test_perform_empty_action():
 
 
 def test_valid_number_of_args():
-    fake_action = BaseAction(fake_payload, fake_config)
+    fake_action = Action(fake_payload, fake_config)
     fake_action.arguments = ["fake_arg_1"]
 
     # Should be valid since we have provided the minimum amount

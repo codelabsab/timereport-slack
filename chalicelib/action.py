@@ -27,7 +27,7 @@ from chalicelib.lib.slack import (
 log = logging.getLogger(__name__)
 
 
-class BaseAction:
+class Action:
     # Name to identify the action
     name = None
     # Help text to show when running `/timereport help`
@@ -174,7 +174,7 @@ class BaseAction:
         return True
 
 
-class HelpAction(BaseAction):
+class HelpAction(Action):
     name = "help"
     short_doc = "Provide this helpful output"
     doc = """
@@ -184,13 +184,13 @@ class HelpAction(BaseAction):
     def perform_action(self):
         msg = ""
         if len(self.arguments) > 0:
-            for action_cls in BaseAction.__subclasses__():
+            for action_cls in Action.__subclasses__():
                 if action_cls.name == self.arguments[0]:
                     msg = f"{action_cls.doc}"
                     break
         if msg == "":
             msg = "Supported actions are:\n"
-            for action_cls in BaseAction.__subclasses__():
+            for action_cls in Action.__subclasses__():
                 if action_cls == UnsupportedAction:
                     continue
                 msg += f"\n{action_cls.name} - {action_cls.short_doc}"
@@ -198,7 +198,7 @@ class HelpAction(BaseAction):
         return self.send_response(message=msg)
 
 
-class LockAction(BaseAction):
+class LockAction(Action):
     name = "lock"
     doc = """
         Lock the timereport for month
@@ -267,7 +267,7 @@ class LockAction(BaseAction):
         return ""
 
 
-class AddAction(BaseAction):
+class AddAction(Action):
     name = "add"
     short_doc = "Add one or more events in timereport"
     doc = """
@@ -365,7 +365,7 @@ class AddAction(BaseAction):
             slack_responder(url=response_url, msg="Action canceled :cry:")
 
 
-class DeleteAction(BaseAction):
+class DeleteAction(Action):
     name = "delete"
     doc = """
         Delete event in timereport.
@@ -444,7 +444,7 @@ class DeleteAction(BaseAction):
             slack_responder(url=response_url, msg="Action canceled :cry:")
 
 
-class EditAction(BaseAction):
+class EditAction(Action):
     name = "edit"
     short_doc = "Edit a single event in timereport"
     doc = """
@@ -506,14 +506,14 @@ class EditAction(BaseAction):
         return ""
 
 
-class UnsupportedAction(BaseAction):
+class UnsupportedAction(Action):
     name = "unsupported"
 
     def perform_action(self):
         return self.send_response(message=f"Unsupported action: {self.action}")
 
 
-class ReminderAction(BaseAction):
+class ReminderAction(Action):
     name = "reminder"
     short_doc = "Run monthly lock reminder"
     doc = ""
@@ -524,7 +524,7 @@ class ReminderAction(BaseAction):
         )
 
 
-class ListAction(BaseAction):
+class ListAction(Action):
     name = "list"
     doc = """
         List timereport for user.
@@ -646,7 +646,7 @@ def create_action(payload, config):
 
     action = params[0]
 
-    for action_cls in BaseAction.__subclasses__():
+    for action_cls in Action.__subclasses__():
         if action_cls.name == action:
             return action_cls(payload, config)
 
