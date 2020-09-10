@@ -5,14 +5,19 @@ from datetime import datetime
 from typing import Dict
 
 from chalicelib.lib.api import (
-    read_event,
-    read_lock,
-    delete_event,
     create_event,
     create_lock,
+    delete_event,
+    read_event,
+    read_lock,
 )
 from chalicelib.lib.factory import factory
-from chalicelib.lib.helpers import date_range, parse_date, validate_date
+from chalicelib.lib.helpers import (
+    date_range,
+    parse_date,
+    validate_date,
+    validate_reason,
+)
 from chalicelib.lib.list import get_list_data
 from chalicelib.lib.period_data import get_period_data
 from chalicelib.lib.reminder import remind_users
@@ -32,6 +37,8 @@ class Action:
     name = None
     # Help text to show when running `/timereport help`
     short_doc = None
+    # Help text to show in help for specific command
+    doc = None
 
     # Min arguments required
     min_arguments = 0
@@ -146,15 +153,6 @@ class Action:
             f"{self.config['backend_url']}", self.user_id, date_str=date_str
         )
 
-    def _valid_reason(self, reason: str) -> bool:
-        """
-        Check that reason is valid
-        """
-
-        if reason in self.config.get("valid_reasons"):
-            return True
-
-        return False
 
     def _valid_number_of_args(self) -> bool:
         """
@@ -319,7 +317,7 @@ class AddAction(Action):
         hours: str = self.arguments[2] if len(self.arguments) == 3 else 8
 
         # validate reason
-        if not self._valid_reason(reason=reason):
+        if not validate_reason(self.config, reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
         # validate hours
@@ -479,7 +477,7 @@ class EditAction(Action):
     def perform_action(self):
         reason = self.arguments[0]
 
-        if not self._valid_reason(reason=reason):
+        if not validate_reason(self.config, reason):
             return self.send_response(message=f"Reason {reason} is not valid")
 
         date_input = self.arguments[1]

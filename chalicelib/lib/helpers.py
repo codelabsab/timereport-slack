@@ -1,6 +1,6 @@
 import logging
 from datetime import date, datetime, timedelta
-from typing import List
+from typing import List, Any, Dict
 
 from ruamel.yaml import YAML
 
@@ -61,6 +61,13 @@ def validate_date(date, format_str) -> bool:
         return False
 
     return True
+
+
+def validate_reason(config: Dict[str, Any], reason: str) -> bool:
+    """
+    Check that reason is valid
+    """
+    return reason in config.get("valid_reasons")
 
 
 def parse_date(date: str, format_str: str = "%Y-%m-%d") -> dict:
