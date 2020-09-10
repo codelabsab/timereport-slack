@@ -33,6 +33,12 @@ class BaseAction:
     # Help text to show when running `/timereport help`
     short_doc = None
 
+    # Min arguments required
+    min_arguments = 0
+
+    # Max arguments required
+    max_arguments = 100
+
     def __init__(self, payload, config):
         self.payload = payload
         self.config = config
@@ -131,12 +137,12 @@ class BaseAction:
 
         return False
 
-    def _valid_number_of_args(self, min_args: int, max_args: int) -> bool:
+    def _valid_number_of_args(self) -> bool:
         """
         Check that the number of arguments in the list is within the valid range
         """
         log.debug(f"Got {len(self.arguments)} number of args")
-        if min_args <= len(self.arguments) <= max_args:
+        if self.min_arguments <= len(self.arguments) <= self.max_arguments:
             return True
         return False
 
@@ -153,6 +159,19 @@ class BaseAction:
         Optional. Only for actions that require confirmation
         """
         raise NotImplementedError()
+
+    def is_valid(self):
+        """
+        Validate input data
+
+        Optional. Only when some validation is required
+        """
+        if not self._valid_number_of_args():
+            self.send_response(
+                message=f"Got the wrong number of arguments for {self.name}. See these examples: {self.doc}"
+            )
+            return False
+        return True
 
 
 class HelpAction(BaseAction):
@@ -191,12 +210,10 @@ class LockAction(BaseAction):
         /timereport lock list 2020
         """
     short_doc = "Lock month to show you're done with the reporting"
+    min_arguments = 1
+    max_arguments = 2
 
     def perform_action(self):
-        if not self._valid_number_of_args(min_args=1, max_args=2):
-            return self.send_response(
-                message=f"Got the wrong number of arguments for {self.name}. See these examples: {self.doc}"
-            )
 
         if self.arguments[0] == "list":
             return self._lock_list_action()
@@ -274,14 +291,10 @@ class AddAction(BaseAction):
         Full hours (1, 2, 3 etc.)
         Partial hours (5.5 etc.) - `.5` = 30 minutes, `.25` = 15 minutes etc.
         """
+    min_arguments = 2
+    max_arguments = 3
 
     def perform_action(self):
-        # validate number of arguments
-        if not self._valid_number_of_args(min_args=2, max_args=3):
-            log.debug(f"args: {self.arguments}")
-            return self.send_response(message="Wrong number of args for add command")
-
-        # assign
         reason: str = self.arguments[0]
         input_date: str = self.arguments[1]
         hours: str = self.arguments[2] if len(self.arguments) == 3 else 8
@@ -441,12 +454,10 @@ class EditAction(BaseAction):
 
         Example: /timereport edit vab 2019-01-01 4
         """
+    min_arguments = 3
+    max_arguments = 3
 
     def perform_action(self):
-
-        if not self._valid_number_of_args(min_args=3, max_args=3):
-            return self.send_response(message="Got the wrong number of arguments")
-
         reason = self.arguments[0]
 
         if not self._valid_reason(reason=reason):
