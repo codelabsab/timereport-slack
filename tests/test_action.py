@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 import requests
-from chalicelib.action import Action, create_action
+from chalicelib.action import Action
 from mockito import mock, unstub, when
 
 from . import test_data
@@ -25,7 +25,7 @@ fake_config = dict(
 def test_perform_empty_action():
     fake_payload.pop("text", None)
     fake_payload["user_name"] = "fake_username"
-    action = create_action(fake_payload, fake_config)
+    action = Action.create(fake_payload, fake_config)
     when(action).send_response(...).thenReturn("")
     assert action.perform_action() == ""
     assert action.action == "help"

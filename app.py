@@ -5,7 +5,7 @@ import os
 
 from chalice import Chalice
 
-from chalicelib.action import create_action
+from chalicelib.action import Action
 from chalicelib.lib.helpers import parse_config
 from chalicelib.lib.reminder import remind_users
 from chalicelib.lib.slack import (
@@ -73,7 +73,7 @@ def interactive():
 )
 def command():
     def _handle_message(payload):
-        action_instance = create_action(payload, config)
+        action_instance = Action.create(payload, config)
         if action_instance.is_valid():
             send_message(
                 config["enable_queue"],
@@ -112,14 +112,14 @@ def handle_slack_request(action):
 @app.on_sqs_message(queue=config["command_queue"])
 def command_handler(event):
     for record in event:
-        action = create_action(json.loads(record.body), config)
+        action = Action.create(json.loads(record.body), config)
         action.perform_action()
 
 
 @app.on_sqs_message(queue=config["interactive_queue"])
 def interactive_handler(event):
     for record in event:
-        action = create_action(json.loads(record.body), config)
+        action = Action.create(json.loads(record.body), config)
         action.perform_interactive()
 
 

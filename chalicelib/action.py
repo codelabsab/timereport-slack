@@ -39,6 +39,25 @@ class Action:
     # Max arguments required
     max_arguments = 100
 
+    @staticmethod
+    def create(payload, config):
+        try:
+            params = payload["text"].split()
+        except KeyError:
+            try:
+                params = [payload["callback_id"]]
+            except KeyError:
+                log.info("No parameters received. Defaulting to help action")
+                params = ["help"]
+
+        action = params[0]
+
+        for action_cls in Action.__subclasses__():
+            if action_cls.name == action:
+                return action_cls(payload, config)
+
+        return UnsupportedAction(payload, config)
+
     def __init__(self, payload, config):
         self.payload = payload
         self.config = config
@@ -632,22 +651,3 @@ class ListAction(Action):
     def _is_weekend(self, date_str):
         date = datetime.strptime(date_str, "%Y-%m-%d")
         return date.isoweekday() >= 6
-
-
-def create_action(payload, config):
-    try:
-        params = payload["text"].split()
-    except KeyError:
-        try:
-            params = [payload["callback_id"]]
-        except KeyError:
-            log.info("No parameters received. Defaulting to help action")
-            params = ["help"]
-
-    action = params[0]
-
-    for action_cls in Action.__subclasses__():
-        if action_cls.name == action:
-            return action_cls(payload, config)
-
-    return UnsupportedAction(payload, config)
