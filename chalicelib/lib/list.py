@@ -13,7 +13,7 @@ def get_list_data(url, user_id, date_str):
 
     :url: The URL to the backend API
     :user_id: The users user ID
-    :date_str: A string contaning date. Valid formats: "2019-01", "2019-01-01", "2019-01-02:2019-01-03"
+    :date_str: A string contaning date. Valid formats: "2019-01", "2019-01-01", "2019-01-02:2019-01-03" and ""
     """
     try:
         start_date, end_date = date_str.split(":")
