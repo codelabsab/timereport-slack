@@ -146,6 +146,42 @@ def test_delete_non_existing(chalice_app):
 
 
 @pytest.mark.integration
+def test_list_current_period(chalice_app):
+    user_id = f"{random.randint(0, 10000)}"
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command="add vab today 8",
+        user_id=user_id,
+        user_name="mattias",
+    )
+
+    assert r["response"]["statusCode"] == 200
+    attachments = r["slack_message"][1]["json"]["attachments"]
+
+    ri = respond_interactively(
+        chalice_app=chalice_app,
+        attachments=attachments,
+        user_id=user_id,
+        callback_id="add",
+    )
+    assert ri["response"]["statusCode"] == 200
+    assert "success" in ri["slack_message"][1]["json"]["text"]
+
+    rl = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"list",
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert rl["response"]["statusCode"] == 200
+    assert "nothing to list" not in rl["slack_message"][1]["json"]["text"]
+    raw_block_text = get_raw_block_text(slack_message=rl["slack_message"])
+    assert "Reason: *vab*" in raw_block_text
+
+    assert "vab: 8.0h" in raw_block_text
+
+
+@pytest.mark.integration
 def test_list_with_total_hours(chalice_app):
     # 3 days vab, public holiday, weekday, weekend
     user_id = f"{random.randint(0, 10000)}"

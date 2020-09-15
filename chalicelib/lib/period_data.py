@@ -1,8 +1,8 @@
 import logging
+from datetime import date
 from typing import Any, Dict
 
 import requests
-
 from chalicelib.lib.helpers import month_range, parse_date
 
 log = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ def get_period_data(date_str: str) -> Dict[str, Any]:
     """
     Get information about the period
 
-    :date_str: A string contaning date. Valid formats: "2019-01", "2019-01-01", "2019-01-02:2019-01-03"
+    :date_str: A string contaning date. Valid formats: "2019-01", "2019-01-01", "2019-01-02:2019-01-03" and ""
     """
 
     dates = parse_date(date_str, format_str="%Y-%m")
@@ -20,7 +20,8 @@ def get_period_data(date_str: str) -> Dict[str, Any]:
         dates = parse_date(date_str, format_str="%Y-%m-%d")
 
     if dates["from"] is None or dates["to"] is None:
-        return False
+        current_month = date.today()
+        dates = {"from": current_month, "to": current_month}
 
     total_workdays = 0
     holidays = []
