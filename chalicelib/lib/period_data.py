@@ -27,7 +27,7 @@ def get_period_data(date_str: str) -> Dict[str, Any]:
     holidays = []
     for dt in month_range(dates["from"], dates["to"]):
         month_str = f"{dt.year}-{dt.month:02}"
-        api_url = f"http://api.codelabs.se/{month_str}.json"
+        api_url = f"https://api2.codelabs.se/{month_str}.json"
 
         response = requests.get(url=api_url, timeout=1)
         if response.status_code == 200:
