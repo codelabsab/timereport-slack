@@ -333,24 +333,15 @@ class AddAction(Action):
         if selection == "submit_yes":
             msg = "Added successfully"
             events = factory(self.payload, format_str=self.config.get("format_str"))
-            failed_events = list()
-            for event in events:
-                response = create_event(
-                    url=self.config["backend_url"], event=json.dumps(event)
-                )
+            response = create_event(
+                url=self.config["backend_url"], event=json.dumps(events)
+            )
 
-                if response.status_code != 200:
-                    log.debug(
-                        f"Event {event} got unexpected response from backend: {response.text}"
-                    )
-                    failed_events.append(event.get("event_date"))
-
-            if failed_events:
-                log.debug(f"Got {len(failed_events)} events")
-                msg = (
-                    f"Successfully added {len(events) - len(failed_events)} events.\n"
-                    f"These however failed: ```{failed_events} ```"
+            if response.status_code != 200:
+                log.debug(
+                    f"Event {events} got unexpected response from backend: {response.text}"
                 )
+                msg = "Failed to add one or more of the events"
             slack_responder(url=response_url, msg=msg)
             return ""
         else:
