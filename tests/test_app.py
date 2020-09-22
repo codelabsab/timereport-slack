@@ -56,7 +56,13 @@ def test_empty_list(chalice_app):
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    "date,hours", [("today", "8"), ("2020-01-01", "8"), ("today", "6.5")]
+    "date,hours",
+    [
+        ("today", "8"),
+        ("2020-01-01", "8"),
+        ("today", "6.5"),
+        ("2020-01-01:2020-01-02", "8"),
+    ],
 )
 def test_add_command_accepted(chalice_app, date, hours):
     user_id = f"{random.randint(0, 10000)}"
@@ -94,6 +100,9 @@ def test_add_command_accepted(chalice_app, date, hours):
     assert "nothing to list" not in rl["slack_message"][1]["json"]["text"]
     assert "Reason: *vab*" in get_raw_block_text(slack_message=rl["slack_message"])
     assert f"Hours: *{hours}" in get_raw_block_text(slack_message=rl["slack_message"])
+
+    if ":" in date:
+        return  # Delete doesn't support ranges
 
     # Delete report
     r = call_from_slack(
