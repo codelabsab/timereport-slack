@@ -347,6 +347,15 @@ def test_lock_month_and_list(chalice_app):
 
     r = call_from_slack(
         chalice_app=chalice_app,
+        full_command="lock 2019-07",
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert r["response"]["statusCode"] == 200
+    assert "Lock successful" in r["slack_message"][1]["json"]["text"]
+
+    r = call_from_slack(
+        chalice_app=chalice_app,
         full_command="lock list 2020",
         user_id=user_id,
         user_name="mattias",
@@ -356,3 +365,41 @@ def test_lock_month_and_list(chalice_app):
     raw_block_text = get_raw_block_text(slack_message=r["slack_message"])
     assert "Locks found for" in raw_block_text
     assert "2020-07" in raw_block_text
+    assert "2019-07" not in raw_block_text
+
+
+@pytest.mark.integration
+def test_lock_month_add(chalice_app):
+    user_id = f"{random.randint(0, 10000)}"
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command="lock 2020-07",
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert r["response"]["statusCode"] == 200
+    assert "Lock successful" in r["slack_message"][1]["json"]["text"]
+
+    # Add in locked period
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command="lock list 2020",
+        user_id=user_id,
+        user_name="mattias",
+    )
+    assert r["response"]["statusCode"] == 200
+
+    raw_block_text = get_raw_block_text(slack_message=r["slack_message"])
+    assert "Locks found for" in raw_block_text
+    assert "2020-07" in raw_block_text
+
+    # Add in non locked period
+    r = call_from_slack(
+        chalice_app=chalice_app,
+        full_command=f"add vab 2020-08-03 8",
+        user_id=user_id,
+        user_name="mattias",
+    )
+
+    assert r["response"]["statusCode"] == 200
+    assert r["slack_message"][1]["json"]["text"] != "are locked"

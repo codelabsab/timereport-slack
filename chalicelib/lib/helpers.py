@@ -128,15 +128,20 @@ def check_locks(
     Get a list of locks for the specified user and daterange
     """
     dates_to_check = list()
-    locked_dates = list()
     for date in date_range(start_date=date, stop_date=second_date):
         if not date.strftime("%Y-%m") in dates_to_check:
             dates_to_check.append(date.strftime("%Y-%m"))
 
     log.debug(f"Got {len(dates_to_check)} date(s) to check")
+    response = read_lock(url=config["backend_url"], user_id=user_id)
+    data = response.json()
+    if not data:
+        return []
+
+    locked_dates = list()
+    locked_months = [d["event_date"] for d in data]
     for date in dates_to_check:
-        response = read_lock(url=config["backend_url"], user_id=user_id, date=date)
-        if response.json():
+        if date in locked_months:
             log.info(f"Date {date} is locked")
             dates_to_check.append(response.json())
             locked_dates.append(date)

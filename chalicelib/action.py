@@ -236,10 +236,9 @@ class LockAction(Action):
             now = datetime.now()
             year = now.year
 
-        response = read_lock(
-            url=self.config["backend_url"], user_id=self.user_id, date=year
-        )
+        response = read_lock(url=self.config["backend_url"], user_id=self.user_id)
         locks = response.json()
+        locks = [l for l in locks if l["event_date"].startswith(str(year))]
 
         if not locks:
             return self.send_response(f"No locks found for year *{year}*")
