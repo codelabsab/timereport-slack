@@ -67,16 +67,15 @@ def create_lock(url: str, user_id: str, date: str) -> requests.models.Response:
     return response
 
 
-def read_lock(url: str, user_id: str, date: str) -> requests.models.Response:
+def read_lock(url: str, user_id: str) -> requests.models.Response:
     """
     List locks for user. Response contains a list of all locks for user
     and will need to get parsed on our side.
     :param url: str
     :param user_id: str
-    :param date: str
     :return: requests.models.Response
     """
-    url = f"{url}/lock/users/{user_id}/{date}"
+    url = f"{url}/users/{user_id}/locks"
     headers = {"Content-Type": "application/json"}
-    response = requests.get(url=url, headers=headers)
+    response = requests.get(url=url, headers=headers, timeout=3)
     return response
