@@ -1,0 +1,24 @@
+{
+  "version": "2.0",
+  "app_name": "timereport",
+  "stages": {
+    "dev": {
+      "api_gateway_stage": "api",
+      "environment_variables": {
+          "bot_access_token": "{{ bot_access_token }}",
+          "backend_url": "{{ backend_url }}",
+          "environment": "{{ environment }}",
+          "signing_secret": "{{ signing_secret }}"
+      }
+    },
+    "prod": {
+      "api_gateway_stage": "api",
+      "environment_variables": {
+          "bot_access_token": "{{ bot_access_token }}",
+          "backend_url": "{{ backend_url }}",
+          "environment": "{{ environment }}",
+          "signing_secret": "{{ signing_secret }}"
+      }
+    }
+  }
+}

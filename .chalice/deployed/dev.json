@@ -1,0 +1,59 @@
+{
+  "resources": [
+    {
+      "name": "default-role",
+      "resource_type": "iam_role",
+      "role_arn": "arn:aws:iam::106618949447:role/timereport-dev",
+      "role_name": "timereport-dev"
+    },
+    {
+      "name": "command_handler",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-dev-command_handler"
+    },
+    {
+      "name": "command_handler-sqs-event-source",
+      "resource_type": "sqs_event",
+      "queue_arn": "arn:aws:sqs:eu-north-1:106618949447:timereport-slack-command-dev",
+      "event_uuid": "598dc798-30d2-4753-aa70-39000e66a2ff",
+      "queue": "timereport-slack-command-dev",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-dev-command_handler"
+    },
+    {
+      "name": "interactive_handler",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-dev-interactive_handler"
+    },
+    {
+      "name": "interactive_handler-sqs-event-source",
+      "resource_type": "sqs_event",
+      "queue_arn": "arn:aws:sqs:eu-north-1:106618949447:timereport-slack-interactive-dev",
+      "event_uuid": "fe2fad01-a747-4c54-8141-d787367699f9",
+      "queue": "timereport-slack-interactive-dev",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-dev-interactive_handler"
+    },
+    {
+      "name": "check_user_locks",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-dev-check_user_locks"
+    },
+    {
+      "name": "check_user_locks-event",
+      "resource_type": "cloudwatch_event",
+      "rule_name": "timereport-dev-check_user_locks-event"
+    },
+    {
+      "name": "api_handler",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-dev"
+    },
+    {
+      "name": "rest_api",
+      "resource_type": "rest_api",
+      "rest_api_id": "lgpaj0e968",
+      "rest_api_url": "https://lgpaj0e968.execute-api.eu-north-1.amazonaws.com/api/"
+    }
+  ],
+  "schema_version": "2.0",
+  "backend": "api"
+}
