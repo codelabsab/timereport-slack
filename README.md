@@ -64,25 +64,6 @@ If you want to include test coverage:
 ```
 pytest --cov=chalicelib
 ```
-### Packaging secrets for chalice to travis-ci
-Download current secrets and extract
-
-```
-$ aws s3 cp s3://timereport.codelabs.se/chalice_secrets.tar .
-$ tar xvf chalice_secrets.tar
-```
-
-If you're making changes, package and upload updated secrets
-
-```
-$ tar cvf chalice_secrets.tar .chalice/{config.json,deployed}
-a .chalice/config.json
-a .chalice/deployed
-a .chalice/deployed/dev.json
-
-$ aws s3 cp chalice_secrets.tar s3://timereport.codelabs.se/chalice_secrets.tar
-```
-
 
 ### Deploys
 
@@ -94,15 +75,20 @@ Deploys to production are done automatically on tagged releases on the master br
 ### to deploy from local environment
 
 Setup awscli with your access_key_id and secret_access_key
-Download chalice_secrets.tar from s3
 
-Copy secrets:
-```
-$ aws s3 cp s3://timereport.codelabs.se/chalice_secrets.tar .
-```
+#### Configure
 
-extract contents and replace the files in your timereport directory with these secret files
+To create the config use the script [template-config.py](template-config.py)
+It uses the template [config.json.j2](config.json.j2).
+
+The script expects environment variables. See the [dev pipeline](.github/workflows/dev.yml) or look in the script.
 they should never be pushed to github.
+
+Run:
+```
+# python template-config.py
+```
+You should now have .chalice/config.json with appropriate values
 
 Deploy to dev:
 ```
