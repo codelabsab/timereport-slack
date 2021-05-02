@@ -33,7 +33,7 @@ config["enable_lock_reminder"] = os.getenv("enable_lock_reminder")
 config["format_str"] = "%Y-%m-%d"
 config["command_queue"] = f"timereport-slack-command-{os.getenv('environment')}"
 config["interactive_queue"] = f"timereport-slack-interactive-{os.getenv('environment')}"
-config["enable_queue"] = os.getenv("enable_queue", False)
+config["enable_queue"] = os.getenv("enable_queue")
 
 logger.setLevel(config["log_level"])
 

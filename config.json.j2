@@ -6,18 +6,21 @@
       "api_gateway_stage": "api",
       "environment_variables": {
           "bot_access_token": "{{ bot_access_token }}",
-          "backend_url": "{{ backend_url }}",
-          "environment": "{{ environment }}",
-          "signing_secret": "{{ signing_secret }}"
+          "backend_url": "https://ywdi37qne9.execute-api.eu-north-1.amazonaws.com/api",
+          "environment": "dev",
+          "signing_secret": "{{ signing_secret }}",
+          "enable_queue": "yes"
       }
     },
     "prod": {
       "api_gateway_stage": "api",
       "environment_variables": {
           "bot_access_token": "{{ bot_access_token }}",
-          "backend_url": "{{ backend_url }}",
-          "environment": "{{ environment }}",
-          "signing_secret": "{{ signing_secret }}"
+          "backend_url": "https://uwxrroffo0.execute-api.eu-north-1.amazonaws.com/api",
+          "environment": "prod",
+          "signing_secret": "{{ signing_secret }}",
+          "enable_lock_reminder": "yes",
+          "enable_queue": "yes"
       }
     }
   }

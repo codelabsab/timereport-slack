@@ -28,10 +28,8 @@ jobs:
         pipenv run python template-config.py
         pipenv run chalice deploy --stage dev
       env:
-        BACKEND_URL: https://ywdi37qne9.execute-api.eu-north-1.amazonaws.com/api
         BOT_ACCESS_TOKEN: ${{ secrets.BOT_ACCESS_TOKEN }}
         SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
         AWS_DEFAULT_REGION: "eu-north-1"
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
