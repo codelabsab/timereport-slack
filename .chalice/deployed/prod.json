@@ -1,0 +1,59 @@
+{
+  "resources": [
+    {
+      "name": "default-role",
+      "resource_type": "iam_role",
+      "role_arn": "arn:aws:iam::106618949447:role/timereport-prod",
+      "role_name": "timereport-prod"
+    },
+    {
+      "name": "command_handler",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-prod-command_handler"
+    },
+    {
+      "name": "command_handler-sqs-event-source",
+      "resource_type": "sqs_event",
+      "queue_arn": "arn:aws:sqs:eu-north-1:106618949447:timereport-slack-command-prod",
+      "event_uuid": "57848626-2c85-4b20-93b5-dcb2dc4517df",
+      "queue": "timereport-slack-command-prod",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-prod-command_handler"
+    },
+    {
+      "name": "interactive_handler",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-prod-interactive_handler"
+    },
+    {
+      "name": "interactive_handler-sqs-event-source",
+      "resource_type": "sqs_event",
+      "queue_arn": "arn:aws:sqs:eu-north-1:106618949447:timereport-slack-interactive-prod",
+      "event_uuid": "65421dcf-b5cd-433a-87d0-8ff44f0bceab",
+      "queue": "timereport-slack-interactive-prod",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-prod-interactive_handler"
+    },
+    {
+      "name": "check_user_locks",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-prod-check_user_locks"
+    },
+    {
+      "name": "check_user_locks-event",
+      "resource_type": "cloudwatch_event",
+      "rule_name": "timereport-prod-check_user_locks-event"
+    },
+    {
+      "name": "api_handler",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-north-1:106618949447:function:timereport-prod"
+    },
+    {
+      "name": "rest_api",
+      "resource_type": "rest_api",
+      "rest_api_id": "z5eb1fyua4",
+      "rest_api_url": "https://z5eb1fyua4.execute-api.eu-north-1.amazonaws.com/api/"
+    }
+  ],
+  "schema_version": "2.0",
+  "backend": "api"
+}

@@ -1,11 +1,16 @@
-name: Test & deploy dev
-
-on: [push]
+name: deploy prod
+on:
+  workflow_run:
+    workflows: ["Test & deploy dev"]
+    branches: [master]
+    types:
+      - completed
 
 jobs:
-  dev:
+  prod:
     runs-on: ubuntu-latest
-    environment: dev
+    environment: prod
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v2
@@ -18,15 +23,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install pipenv
           pipenv install --dev
-      - name: Run tests
+      - name: Deploy to prod
         run: |
-          pipenv run pytest -v -m "not integration"
-      - name: Deploy to dev
-        run: |
-          pipenv run aws sqs create-queue --queue-name timereport-slack-command-dev --attributes VisibilityTimeout=60
-          pipenv run aws sqs create-queue --queue-name timereport-slack-interactive-dev --attributes VisibilityTimeout=60
+          pipenv run aws sqs create-queue --queue-name timereport-slack-command-prod --attributes VisibilityTimeout=60
+          pipenv run aws sqs create-queue --queue-name timereport-slack-interactive-prod --attributes VisibilityTimeout=60
           pipenv run python template-config.py
-          pipenv run chalice deploy --stage dev
+          pipenv run chalice deploy --stage prod
         env:
           BOT_ACCESS_TOKEN: ${{ secrets.BOT_ACCESS_TOKEN }}
           SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
