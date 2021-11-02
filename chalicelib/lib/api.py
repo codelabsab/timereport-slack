@@ -1,11 +1,17 @@
 import requests
 import logging
+import os
 
 log = logging.getLogger(__name__)
 
 #####################################################
 #        implementation of timereport-api v2        #
 #####################################################
+
+# TODO: This should be provided via app.py as rest of config.
+# Maybe convert this to a class to make it easy to setup URL and api key
+backend_api_key = os.getenv("backend_api_key", "development")
+headers = {"Content-Type": "application/json", "Authorization": backend_api_key}
 
 
 def create_event(url: str, event: dict) -> requests.models.Response:
@@ -16,7 +22,6 @@ def create_event(url: str, event: dict) -> requests.models.Response:
     :return: requests.models.Response
     """
     url = f"{url}/events"
-    headers = {"Content-Type": "application/json"}
     response = requests.post(url=url, json=event, headers=headers)
     return response
 
@@ -33,7 +38,6 @@ def read_event(url: str, user_id: str, date: dict) -> requests.models.Response:
         date["to"] = date["from"]
 
     url = f"{url}/users/{user_id}/events"
-    headers = {"Content-Type": "application/json"}
     response = requests.get(url=url, headers=headers, params=date)
     return response
 
@@ -47,7 +51,7 @@ def delete_event(url: str, user_id: str, date: str) -> requests.models.Response:
     :return: requests.models.Response
     """
     url = f"{url}/users/{user_id}/events/{date}"
-    response = requests.delete(url=url)
+    response = requests.delete(url=url, headers=headers)
     return response
 
 
@@ -60,7 +64,6 @@ def create_lock(url: str, user_id: str, date: str) -> requests.models.Response:
     :return: requests.models.Response
     """
     url = f"{url}/locks"
-    headers = {"Content-Type": "application/json"}
     data = {"user_id": user_id, "event_date": date}
     log.debug(f"Create lock data is: {data}")
     response = requests.post(url=url, json=data, headers=headers)
@@ -76,6 +79,5 @@ def read_lock(url: str, user_id: str) -> requests.models.Response:
     :return: requests.models.Response
     """
     url = f"{url}/users/{user_id}/locks"
-    headers = {"Content-Type": "application/json"}
     response = requests.get(url=url, headers=headers, timeout=3)
     return response

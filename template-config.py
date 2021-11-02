@@ -4,6 +4,7 @@ from os import getenv
 config = {
     "bot_access_token": getenv("BOT_ACCESS_TOKEN"),
     "signing_secret": getenv("SIGNING_SECRET"),
+    "backend_api_key": getenv("BACKEND_API_KEY"),
 }
 template_file = "config.json.j2"
 destination = ".chalice/config.json"
