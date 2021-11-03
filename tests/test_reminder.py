@@ -16,7 +16,8 @@ def test_remind_user_without_lock():
     )
 
     when(requests).get(
-        url=f"{fake_config['backend_url']}/users/testuser/locks", **kwargs,
+        url=f"{fake_config['backend_url']}/users/testuser/locks",
+        **kwargs,
     ).thenReturn(mock({"status_code": 200, "text": json.dumps([])}))
 
     when(requests).post(
@@ -39,7 +40,8 @@ def test_remind_user_with_lock():
 
     lock_evt = dict(event_date=last_month(), user_id="testuser")
     when(requests).get(
-        url=f"{fake_config['backend_url']}/users/testuser/locks", **kwargs,
+        url=f"{fake_config['backend_url']}/users/testuser/locks",
+        **kwargs,
     ).thenReturn(mock({"status_code": 200, "text": json.dumps([lock_evt])}))
 
     with expect(requests, times=0).post(...):
