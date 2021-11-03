@@ -1,6 +1,7 @@
-valid_reasons: 
+valid_reasons:
   - vab
   - sjuk
   - intern
   - semester
+  - föräldraledig
 log_level: DEBUG

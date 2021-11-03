@@ -266,6 +266,7 @@ class AddAction(Action):
          * sjuk
          * intern
          * semester
+         * föräldraledig
 
 
         <day> can be
