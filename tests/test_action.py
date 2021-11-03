@@ -1,12 +1,5 @@
-import json
-from datetime import datetime
-
-import pytest
-import requests
 from chalicelib.action import Action
-from mockito import mock, unstub, when
-
-from . import test_data
+from mockito import unstub, when
 
 fake_payload = dict(
     text=["unsupported args"],
